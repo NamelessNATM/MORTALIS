@@ -142,23 +142,28 @@ A dynamic world simulation where players influence the world through city-buildi
     *   **Permadeath:** World bosses are one-time-only events. Once killed, they are gone forever.
 
 ### 2.16 Loot & Crafting System
-*   **Deterministic Loot:**
+*   **Deterministic Loot & Carving:**
     *   **Harvesting:** There are **NO RNG drops** for gear or major components. Instead, players must physically carve/harvest specific parts (e.g., dragon scales, head, poison sacs) from defeated enemies.
-    *   **Logic:** If you kill a dragon, you are guaranteed to find dragon parts, provided you have the skill or tools to harvest them.
+    *   **Carving Skill:** Carving is a dedicated skill separate from crafting. Harder parts (e.g., intact dragon heart vs. simple hide) require higher skill levels.
+    *   **NPC Carvers:** Players can hire NPC specialists to carve corpses for them. These NPCs follow the same hierarchy (Apprentice to Grandmaster) and discovery mechanics as craftsmen.
 *   **Crafting-Only Gear:**
     *   **No Weapon Drops:** Players do not find finished swords or armor on bodies. All gear must be crafted using harvested materials.
 *   **Craftsman Hierarchy:**
-    *   **Requirement:** To craft high-tier items, players must either level their own skill or find a specific NPC craftsman. Not all smiths can forge all items.
+    *   **Player Progression:** Players can level up their own Crafting or Carving skills to reach Grandmaster status.
+    *   **NPC Hierarchy:** To craft high-tier items without personal skill, players must find a specific NPC craftsman.
     *   **Tiers:**
-        1.  **Apprentice Craftsman**
-        2.  **Journeyman Craftsman**
-        3.  **Expert Craftsman**
-        4.  **Master Craftsman**
-        5.  **Grandmaster Craftsman**
+        1.  **Apprentice**
+        2.  **Journeyman**
+        3.  **Expert**
+        4.  **Master**
+        5.  **Grandmaster**
+*   **Risk & Failure:**
+    *   **No Hard Gate:** The system does not prevent low-level players from attempting to carve or craft high-level resources.
+    *   **Consequence:** Attempting to carve or craft above one's skill level results in **failure**, destroying the valuable resources and producing "junk" items instead.
 *   **Discovery Quest Chain:**
-    *   **Scavenger Hunt:** High-tier craftsmen are hidden. Players must ask lower-tier craftsmen for information (e.g., an Apprentice points to a Journeyman, who points to an Expert).
+    *   **Scavenger Hunt:** High-tier NPCs are hidden. Players must ask lower-tier NPCs for information (e.g., an Apprentice points to a Journeyman, who points to an Expert).
     *   **Map Marking:** Once a player successfully locates a Master or Grandmaster, their location is permanently marked on that player's map.
-    *   **Exploration:** Finding the right smith to forge your legendary dragon armor is a journey in itself.
+    *   **Exploration:** Finding the right smith or carver is a journey in itself.
 
 ### 2.17 Legacy & Remembrance
 *   **NPC Recognition:** NPCs will remember the specific players who defeat world bosses or save towns from raids.
