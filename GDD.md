@@ -52,10 +52,18 @@ A dynamic world simulation where players influence the world through city-buildi
 ### 2.8 Combat & PvP
 *   **Open PvP:** Player-versus-Player combat is enabled throughout the world.
 *   **Justice System:**
-    *   **Safe Zones (Conditional):** Cities are not hard-coded safe zones, but...
-    *   **Guard Response:** If a player kills another player within a city, NPC guards will immediately attempt to arrest or kill the offender.
+    *   **Crime:** Killing a player or NPC within a city is a crime.
+    *   **Guard Response:** NPC guards will attempt to arrest or kill the offender.
+    *   **Punishment:**
+        *   **Jail:** Players are placed in a jail cell for a specific duration.
+        *   **Fines:** Players can pay a fee to be released early.
+        *   **Jailbreak:** Other players can break prisoners out of jail.
 
-### 2.9 Communication
+### 2.9 Diplomacy & Alliances
+*   **City Alliances:** Cities can form alliances with one another.
+*   **Reputation Propagation:** Committing a crime (e.g., killing a player/NPC) in one city causes the player to become hostile in that city *and* all allied cities.
+
+### 2.10 Communication
 *   **Proximity Voice Chat:** The primary and only form of communication.
     *   **Mechanic:** Players can only hear others who are physically close to them in the game world.
     *   **No Text Chat:** There is no global or local text chat system.
