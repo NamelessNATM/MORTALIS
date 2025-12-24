@@ -15,6 +15,7 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Legacy System:** Players are remembered by NPCs as founders of cities.
 *   **Immersive Communication:** Proximity-only voice chat emphasizes realistic social interactions.
 *   **Realistic Travel & Trade:** No fast travel and local-only trading create a grounded, immersive world.
+*   **High-Stakes Economy:** Physical banking means local disasters have real consequences.
 
 ---
 
@@ -78,6 +79,15 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Localized Trading:** There is no global auction house or marketplace.
 *   **Bulletin Boards:** Players must travel to specific cities and post sell orders on physical bulletin boards.
 *   **NPC Trading:** Players can also sell items directly to NPCs in cities.
+*   **Banking:**
+    *   **Character-Bound:** Bank storage is personal to the character.
+    *   **Physical Location:** Items stored in a bank are physically located in that city.
+    *   **Risk:** If a city is destroyed, all items stored in its bank are lost permanently.
+
+### 2.13 Survival Mechanics
+*   **Vitals:** Players must manage Hunger and Thirst.
+*   **Temperature:** Environmental temperature affects the player.
+*   **Clothing:** Players must wear appropriate clothing for the climate to avoid negative effects (e.g., warm clothes for snow, light clothes for desert).
 
 ---
 
@@ -93,6 +103,7 @@ A dynamic world simulation where players influence the world through city-buildi
 ### 3.3 World Design
 *   **Tile-Based World:** The world is divided into tiles where players can choose locations for cities.
 *   **Environmental Hazards:** Locations vary in suitability (e.g., volcanoes).
+*   **Climate Zones:** Different regions have distinct temperatures requiring specific preparation.
 
 ---
 
