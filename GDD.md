@@ -2,32 +2,47 @@
 
 ## 1. Game Overview
 **Game Title:** [Title Placeholder]
-**Genre:** [e.g., RPG, FPS, Puzzle]
-**Platform:** [e.g., PC, Mobile, Console]
-**Target Audience:** [e.g., Casual players, Hardcore gamers]
+**Genre:** Multiplayer Simulation RPG
+**Platform:** [e.g., PC]
+**Target Audience:** [e.g., Simulation fans, RPG players]
 
 ### 1.1 Concept
-[Brief description of the game concept. What is the game about?]
+A dynamic world simulation where players influence the world through city-building and resource contribution.
 
 ### 1.2 Unique Selling Points (USPs)
-*   [Feature 1]
-*   [Feature 2]
-*   [Feature 3]
+*   **Organic City Growth:** Cities grow based on resource contributions rather than direct placement.
+*   **Species-Dependent Architecture:** City appearance reflects the species contributing resources.
+*   **Legacy System:** Players are remembered by NPCs as founders of cities.
 
 ---
 
 ## 2. Gameplay Mechanics
 
-### 2.1 Core Loop
-[Describe the primary gameplay loop: Action -> Reward -> Upgrade -> Repeat]
+### 2.1 City Building & Settlement
+*   **Founding:** Players choose a specific tile to found a city. Location matters (e.g., building near a volcano is possible but risky).
+*   **Growth:** Players do not place individual structures. Instead, they contribute resources to the city, which causes it to generate and grow over time organically.
+*   **Architecture:** The city's visual style and architecture evolve based on the species of the players who contribute resources.
+*   **Founders:** The highest contributing players are recorded as "Founders". NPCs will remember and recognize these players.
+*   **Population:** NPCs will eventually move to these player-founded cities.
 
-### 2.2 Controls
+### 2.2 Magic System
+*   **Status:** Magic exists in the world.
+*   **Mechanics:** TBD (System currently under design).
+
+### 2.3 Player Session Management
+*   **Logout:** When a player logs off, their character vanishes safely from the world. There are no harsh penalties for logging off (e.g., sleeping bodies remaining in danger).
+
+### 2.4 Core Loop
+[Describe the primary gameplay loop: Gather Resources -> Contribute to City -> Unlock Status/Lore -> Repeat]
+
+### 2.5 Controls
 *   **Move:** [Key/Input]
 *   **Action:** [Key/Input]
 *   **Menu:** [Key/Input]
 
-### 2.3 Progression System
-[How does the player advance? Levels, XP, Unlocks?]
+### 2.6 Progression System
+*   **Founder Status:** Gaining recognition from NPCs.
+*   **City Development:** Watching the city grow and change based on contributions.
 
 ---
 
@@ -37,11 +52,11 @@
 [Summary of the plot]
 
 ### 3.2 Characters
-*   **[Character Name]:** [Description]
-*   **[Character Name]:** [Description]
+*   **NPCs:** Inhabitants who populate cities and remember player actions (specifically Founders).
 
 ### 3.3 World Design
-[Description of the game world/environment]
+*   **Tile-Based World:** The world is divided into tiles where players can choose locations for cities.
+*   **Environmental Hazards:** Locations vary in suitability (e.g., volcanoes).
 
 ---
 
@@ -63,7 +78,7 @@
 ---
 
 ## 6. Development Roadmap
-*   **Phase 1:** Prototype
+*   **Phase 1:** Prototype (City Building Mechanics)
 *   **Phase 2:** Vertical Slice
 *   **Phase 3:** Alpha
 *   **Phase 4:** Beta
