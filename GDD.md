@@ -10,16 +10,19 @@
 [Brief description of the game concept. What is the game about?]
 
 ### 1.2 Unique Selling Points (USPs)
-*   [Feature 1]
-*   [Feature 2]
-*   [Feature 3]
+*   **Dynamic City Migration:** Cities are non-permanent entities that react to the game world's state.
+*   **Ecological Desolation:** High-level player activity transforms lands, making them hostile and economically unviable for civilization.
+*   **Living Economy:** NPC behavior is driven by economic viability, leading to realistic mass migrations.
 
 ---
 
 ## 2. Gameplay Mechanics
 
 ### 2.1 Core Loop
-[Describe the primary gameplay loop: Action -> Reward -> Upgrade -> Repeat]
+1.  **Explore & Conquer:** Players explore new lands, fighting mobs and gathering resources.
+2.  **Desolate:** As players become powerful, their presence and the escalation of threats desolate the land.
+3.  **Migrate:** Players must follow the migrating NPCs to access shops, quests, and services, or stay in the desolated lands for high-risk, high-reward gameplay without support.
+4.  **Rebuild/Defend:** Players may participate in securing new locations for the migrating NPCs.
 
 ### 2.2 Controls
 *   **Move:** [Key/Input]
@@ -41,7 +44,11 @@
 *   **[Character Name]:** [Description]
 
 ### 3.3 World Design
-[Description of the game world/environment]
+The game world is not static; it evolves based on the player base's progression.
+
+*   **Desolation:** As the player base in a region matures and levels up, the land becomes "desolated." This means the environment becomes harsher, and only the toughest mobs survive.
+*   **City Abandonment:** When a region becomes desolated, it is no longer economically viable for cities to exist there. Trade routes fail, resources become too dangerous to harvest, and the cost of defense skyrockets.
+*   **Migration:** Consequently, NPCs will abandon these cities. They pack up and move to new, safer locations, establishing new settlements. This creates a cycle where civilization is always retreating from the "end-game" zones, forcing players to travel to find services or follow the civilization to new frontiers.
 
 ---
 
