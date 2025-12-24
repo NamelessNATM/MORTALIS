@@ -146,6 +146,12 @@ A dynamic world simulation where players influence the world through city-buildi
     *   **Harvesting:** There are **NO RNG drops** for gear or major components. Instead, players must physically carve/harvest specific parts (e.g., dragon scales, head, poison sacs) from defeated enemies.
     *   **Carving Skill:** Carving is a dedicated skill separate from crafting. Harder parts (e.g., intact dragon heart vs. simple hide) require higher skill levels.
     *   **NPC Carvers:** Players can hire NPC specialists to carve corpses for them. These NPCs follow the same hierarchy (Apprentice to Grandmaster) and discovery mechanics as craftsmen.
+*   **Logistics & Transport:**
+    *   **Physicality:** Loot (especially large carcasses) is physically present in the world and has weight/bulk. It does not magically disappear into an inventory.
+    *   **Transport Planning:** Players must plan how to move a kill *before* they hunt.
+    *   **Scaling:**
+        *   **Small/Medium:** Can be carried by a player's mount.
+        *   **Large/Colossal:** Requires multiple players to carry or pre-arranged heavy transport (e.g., wagons, ships, hired transport services).
 *   **Crafting-Only Gear:**
     *   **No Weapon Drops:** Players do not find finished swords or armor on bodies. All gear must be crafted using harvested materials.
 *   **Craftsman Hierarchy:**
