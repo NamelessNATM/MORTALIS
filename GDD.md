@@ -65,17 +65,22 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **City Alliances:** Cities can form alliances with one another.
 *   **Reputation Propagation:** Committing a crime (e.g., killing a player/NPC) in one city causes the player to become hostile in that city *and* all allied cities.
 
-### 2.10 Communication
+### 2.10 Social & Guilds
+*   **Formal Guilds:** Players can officially form guilds.
+*   **Headquarters:** Guilds do not build their own HQ from scratch. Instead, they must rent existing buildings within cities to serve as their headquarters.
+*   **Rental System:** Guild HQs require periodic rent payments, integrating guilds into the local city economy.
+
+### 2.11 Communication
 *   **Proximity Voice Chat:** The primary and only form of communication.
     *   **Mechanic:** Players can only hear others who are physically close to them in the game world.
     *   **No Text Chat:** There is no global or local text chat system.
 
-### 2.11 Travel & Mounts
+### 2.12 Travel & Mounts
 *   **Mounts:** Players can use mounts for transportation.
     *   **Mortality:** Mounts are not immortal; they can die.
 *   **Fast Travel:** There is **NO** fast travel. Players must physically traverse the world.
 
-### 2.12 Economy & Trade
+### 2.13 Economy & Trade
 *   **Localized Trading:** There is no global auction house or marketplace.
 *   **Bulletin Boards:** Players must travel to specific cities and post sell orders on physical bulletin boards.
 *   **NPC Trading:** Players can also sell items directly to NPCs in cities.
@@ -84,7 +89,7 @@ A dynamic world simulation where players influence the world through city-buildi
     *   **Physical Location:** Items stored in a bank are physically located in that city.
     *   **Risk:** If a city is destroyed, all items stored in its bank are lost permanently.
 
-### 2.13 Survival Mechanics
+### 2.14 Survival Mechanics
 *   **Vitals:** Players must manage Hunger and Thirst.
 *   **Temperature:** Environmental temperature affects the player.
 *   **Clothing:** Players must wear appropriate clothing for the climate to avoid negative effects (e.g., warm clothes for snow, light clothes for desert).
