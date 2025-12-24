@@ -27,7 +27,16 @@
 *   **Menu:** [Key/Input]
 
 ### 2.3 Progression System
-[How does the player advance? Levels, XP, Unlocks?]
+*   **Classless System:** Players are not bound by pre-defined classes.
+*   **Skill-Based Growth:** Progression is determined by actions. Skills improve through usage (e.g., using a sword unlocks higher sword abilities).
+*   **No Generic XP:** There is no generic experience points system for upgrading overall stats; improvement is tied directly to specific activities.
+
+### 2.4 Death Mechanics
+*   **Permadeath:** Death is permanent. Upon death, the character is lost along with their progress and possessions. The player must create a new character.
+*   **Social Interactions:** Other players can interact with the deceased character's body, including burying them and holding funerals.
+
+### 2.5 World Mechanics
+*   **Ore Depletion:** [TBD - Pending decision]
 
 ---
 
