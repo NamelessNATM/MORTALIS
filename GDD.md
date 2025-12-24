@@ -250,6 +250,12 @@ A dynamic world simulation where players influence the world through city-buildi
 ---
 
 ## 5. Technical Requirements
+*   **Infrastructure:** Quantum Computing Servers
+    *   **Necessity:** Required to handle the massive complexity of dynamic world simulation, ecological decay, and persistent object tracking.
+    *   **Persistence Tracking:** Quantum processing allows for the real-time tracking of millions of individual objects (carcasses, dropped items) and their decay states across the entire server.
+*   **AI Engine:** Quantum-Powered Neural Networks
+    *   **Mobs:** Powers the evolutionary and psychological adaptability of mobs (e.g., generational learning, developing specific resistances).
+    *   **NPCs:** Enables complex memory systems for NPCs to remember specific players ("Founders", "Boogeymen") and dynamic historical events.
 *   **Engine:** [e.g., Unity, Unreal, Godot, Custom]
 *   **Language:** [e.g., C#, C++, Python]
 *   **Platforms:** [List supported platforms]
