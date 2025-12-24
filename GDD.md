@@ -114,6 +114,9 @@ A dynamic world simulation where players influence the world through city-buildi
     *   **Defense Against Extinction:** Active, aggressive hunting of a specific mob population **increases** the likelihood of mutation. The species reacts to the threat by spawning stronger defenders.
     *   **Mutation Acceleration:** High-pressure environments (continuous extermination) can cause mutations to spiral, leading to multiple Area or Region bosses spawning simultaneously. This requires exponentially larger player forces to contain.
     *   **Ecological Triggers:** Mutations can also be triggered by indirect player actions, such as tampering with food sources or altering the local ecology, forcing mobs to adapt to survive.
+    *   **Adaptive Evolution:** Mutated mobs do not just get stronger stats; they genetically adapt to specific threats.
+        *   *Example:* If a guild of Fire Mages hunts goblins, the goblin bosses will evolve Fire Resistance.
+        *   *Iterative Learning:* If players bring more reinforcements to kill an adapted boss, the *next* generation of bosses will evolve to counter those new threats as well.
     *   **Unique Bosses:** Because they are born from mutation, all bosses (even lower tier ones) are unique.
 *   **Tier 0: Area Bosses**
     *   **Origin:** Born from local mob populations via standard mutation.
