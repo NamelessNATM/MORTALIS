@@ -109,7 +109,16 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Clothing:** Players must wear appropriate clothing for the climate to avoid negative effects (e.g., warm clothes for snow, light clothes for desert).
 
 ### 2.15 Enemy Hierarchy & PvE
+*   **Dynamic Ecology:**
+    *   **Mutation:** All mob populations have a chance to mutate. These mutations create unique individuals with distinct stats and abilities.
+    *   **Defense Against Extinction:** Active, aggressive hunting of a specific mob population **increases** the likelihood of mutation. The species reacts to the threat by spawning stronger defenders.
+    *   **Unique Bosses:** Because they are born from mutation, all bosses (even lower tier ones) are unique.
+*   **Tier 0: Area Bosses**
+    *   **Origin:** Born from local mob populations via standard mutation.
+    *   **Scope:** Local threat (e.g., a specific cave or field).
+    *   **Difficulty:** Stronger than average mobs, challenging for solo players but manageable.
 *   **Tier 1: Region Bosses**
+    *   **Origin:** Born from extreme mutation or prolonged survival of an Area Boss.
     *   **Scope:** Tied to a specific local region (e.g., a forest, a mountain range).
     *   **Impact:** Minor, localized impact on the region. The world largely continues as normal.
     *   **Difficulty:** Impossible for a single player. Requires a full party or a small guild raid to defeat.
