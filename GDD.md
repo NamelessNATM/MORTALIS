@@ -14,6 +14,7 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Species-Dependent Architecture:** City appearance reflects the species contributing resources.
 *   **Legacy System:** Players are remembered by NPCs as founders of cities.
 *   **Immersive Communication:** Proximity-only voice chat emphasizes realistic social interactions.
+*   **Realistic Travel & Trade:** No fast travel and local-only trading create a grounded, immersive world.
 
 ---
 
@@ -67,6 +68,16 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Proximity Voice Chat:** The primary and only form of communication.
     *   **Mechanic:** Players can only hear others who are physically close to them in the game world.
     *   **No Text Chat:** There is no global or local text chat system.
+
+### 2.11 Travel & Mounts
+*   **Mounts:** Players can use mounts for transportation.
+    *   **Mortality:** Mounts are not immortal; they can die.
+*   **Fast Travel:** There is **NO** fast travel. Players must physically traverse the world.
+
+### 2.12 Economy & Trade
+*   **Localized Trading:** There is no global auction house or marketplace.
+*   **Bulletin Boards:** Players must travel to specific cities and post sell orders on physical bulletin boards.
+*   **NPC Trading:** Players can also sell items directly to NPCs in cities.
 
 ---
 
