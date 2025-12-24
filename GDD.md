@@ -111,9 +111,12 @@ A dynamic world simulation where players influence the world through city-buildi
 ### 2.15 Enemy Hierarchy & PvE
 *   **Tier 1: [Placeholder Name]**
     *   [Description TBD]
-*   **Tier 2: [Placeholder Name]**
-    *   [Description TBD]
+*   **Tier 2: Continental Bosses**
+    *   **Scope:** Tied to a specific continent.
+    *   **Impact:** Direct impact is localized to the continent (e.g., weather, terrain). Indirect global impact via NPC refugees and trade disruption.
+    *   **Mechanics:** Similar to World Bosses (active threat, strategic quests) but scaled down for regional coordination.
 *   **Tier 3: World Bosses (The Calamities)**
+    *   **Permanent World Alteration:** The world is forever changed after a world boss event. It never reverts to its previous state (e.g., a lush forest becomes a permanent wasteland).
     *   **Active Threat:** World bosses do not wait passively in dungeons. They actively invade the server, altering the environment and impacting quests/NPCs globally.
     *   **Server-Wide Coordination:** Defeating a world boss requires the cooperation of the entire server population, not just a single party.
     *   **Strategic Quest Chains:**
