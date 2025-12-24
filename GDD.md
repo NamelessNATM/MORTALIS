@@ -79,6 +79,13 @@ A dynamic world simulation where players influence the world through city-buildi
         *   **Jail:** Players are placed in a jail cell for a specific duration.
         *   **Fines:** Players can pay a fee to be released early.
         *   **Jailbreak:** Other players can break prisoners out of jail.
+*   **Death & Rebirth:**
+    *   **Loot Drop:** On death, a player drops **all** gear and inventory items.
+    *   **Skill Inheritance:** Players retain their learned skills and attributes on their next character, but with diminishing returns to prevent abuse.
+        *   **1st Death:** 100% skill carry-over.
+        *   **2nd Death:** 75% carry-over.
+        *   **3rd Death:** 50% carry-over.
+        *   **4th+ Death:** 25% carry-over (hard floor).
 
 ### 2.9 Diplomacy & Alliances
 *   **City Alliances:** Cities can form alliances with one another.
