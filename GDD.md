@@ -109,8 +109,11 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Clothing:** Players must wear appropriate clothing for the climate to avoid negative effects (e.g., warm clothes for snow, light clothes for desert).
 
 ### 2.15 Enemy Hierarchy & PvE
-*   **Tier 1: [Placeholder Name]**
-    *   [Description TBD]
+*   **Tier 1: Region Bosses**
+    *   **Scope:** Tied to a specific local region (e.g., a forest, a mountain range).
+    *   **Impact:** Minor, localized impact on the region. The world largely continues as normal.
+    *   **Difficulty:** Impossible for a single player. Requires a full party or a small guild raid to defeat.
+    *   **Mechanics:** Standard raid mechanics; does not require the complex server-wide quest chains of higher tiers.
 *   **Tier 2: Continental Bosses**
     *   **Scope:** Tied to a specific continent.
     *   **Impact:** Direct impact is localized to the continent (e.g., weather, terrain). Indirect global impact via NPC refugees and trade disruption.
