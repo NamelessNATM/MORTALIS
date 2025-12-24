@@ -1,10 +1,10 @@
 # Game Design Document (GDD)
 
 ## 1. Game Overview
-**Game Title:** [Title Placeholder]
-**Genre:** [e.g., RPG, FPS, Puzzle]
-**Platform:** [e.g., PC, Mobile, Console]
-**Target Audience:** [e.g., Casual players, Hardcore gamers]
+**Game Title:** MORTALIS
+**Genre:** MMORPG
+**Platform:** Future Tech / Full Dive VR (paired with PC/Consoles)
+**Target Audience:** TBD
 
 ### 1.1 Concept
 [Brief description of the game concept. What is the game about?]
@@ -58,7 +58,7 @@
 ## 5. Technical Requirements
 *   **Engine:** [e.g., Unity, Unreal, Godot, Custom]
 *   **Language:** [e.g., C#, C++, Python]
-*   **Platforms:** [List supported platforms]
+*   **Platforms:** Future Tech / Full Dive VR
 
 ---
 
