@@ -109,6 +109,13 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Clothing:** Players must wear appropriate clothing for the climate to avoid negative effects (e.g., warm clothes for snow, light clothes for desert).
 
 ### 2.15 Enemy Hierarchy & PvE
+*   **Static Power:**
+    *   **No Level Scaling:** Enemies do not scale with the player. A wolf is always a wolf; a dragon is always a dragon.
+    *   **Progression Indicator:** The environment itself tells the story of progression. Players naturally move from safe zones to dangerous ones as they grow stronger.
+*   **Dynamic Respawn System:**
+    *   **No Fixed Timers:** Mobs do not respawn on a set timer (e.g., every 5 minutes).
+    *   **Finite Populations:** Clearing a cave of goblins removes them from that location until a new group naturally migrates there.
+    *   **Migration:** New mob populations must physically travel or migrate to repopulate an area, making the world feel alive and reactive.
 *   **Dynamic Ecology:**
     *   **Mutation:** All mob populations have a chance to mutate. These mutations create unique individuals with distinct stats and abilities.
     *   **Defense Against Extinction:** Active, aggressive hunting of a specific mob population **increases** the likelihood of mutation. The species reacts to the threat by spawning stronger defenders.
