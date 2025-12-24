@@ -29,8 +29,17 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Population:** NPCs will eventually move to these player-founded cities.
 
 ### 2.2 Magic System
-*   **Status:** Magic exists in the world.
-*   **Mechanics:** TBD (System currently under design).
+*   **Hidden Affinity:** Players do not choose a mage class at character creation. Instead, they discover their hidden affinity through exploration and gameplay.
+*   **Mage Types:**
+    *   **Type A (Material Mage):** The most common type.
+        *   **Mechanic:** Spells require physical components (herbs, gems, etc.) to cast.
+        *   **Economy:** Directly tied to the economy; running out of items means no casting.
+    *   **Type B (Vitality Mage):** Uncommon/Rare.
+        *   **Mechanic:** Magic draws from the user's physical stats (HP/Stamina).
+        *   **Risk:** Overuse of magic can be fatal to the caster.
+    *   **Type C (Arcane Mage):** Extremely Rare.
+        *   **Mechanic:** Vancian-style magic. Spells are "memorized" at a campfire.
+        *   **Resource:** Uses a dedicated "Mana" pool. When Mana runs out, the player must rest/memorize again to cast.
 
 ### 2.3 Player Session Management
 *   **Logout:** When a player logs off, their character vanishes safely from the world. There are no harsh penalties for logging off (e.g., sleeping bodies remaining in danger).
@@ -47,9 +56,11 @@ A dynamic world simulation where players influence the world through city-buildi
 ### 2.6 Progression System
 *   **Founder Status:** Gaining recognition from NPCs.
 *   **City Development:** Watching the city grow and change based on contributions.
+*   **Magic Discovery:** Unlocking hidden magical affinities.
 
 ### 2.7 Character Creation
 *   **Species/Race Freedom:** Players are free to be whatever species or race they desire. This choice directly impacts the architectural style of cities they contribute to.
+*   **Hidden Traits:** Players are born with hidden magical affinities that are not revealed immediately.
 
 ### 2.8 Combat & PvP
 *   **Open PvP:** Player-versus-Player combat is enabled throughout the world.
