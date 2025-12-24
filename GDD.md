@@ -13,6 +13,7 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Organic City Growth:** Cities grow based on resource contributions rather than direct placement.
 *   **Species-Dependent Architecture:** City appearance reflects the species contributing resources.
 *   **Legacy System:** Players are remembered by NPCs as founders of cities.
+*   **Immersive Communication:** Proximity-only voice chat emphasizes realistic social interactions.
 
 ---
 
@@ -39,10 +40,25 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Move:** [Key/Input]
 *   **Action:** [Key/Input]
 *   **Menu:** [Key/Input]
+*   **Push-to-Talk:** [Key/Input]
 
 ### 2.6 Progression System
 *   **Founder Status:** Gaining recognition from NPCs.
 *   **City Development:** Watching the city grow and change based on contributions.
+
+### 2.7 Character Creation
+*   **Species/Race Freedom:** Players are free to be whatever species or race they desire. This choice directly impacts the architectural style of cities they contribute to.
+
+### 2.8 Combat & PvP
+*   **Open PvP:** Player-versus-Player combat is enabled throughout the world.
+*   **Justice System:**
+    *   **Safe Zones (Conditional):** Cities are not hard-coded safe zones, but...
+    *   **Guard Response:** If a player kills another player within a city, NPC guards will immediately attempt to arrest or kill the offender.
+
+### 2.9 Communication
+*   **Proximity Voice Chat:** The primary and only form of communication.
+    *   **Mechanic:** Players can only hear others who are physically close to them in the game world.
+    *   **No Text Chat:** There is no global or local text chat system.
 
 ---
 
@@ -53,6 +69,7 @@ A dynamic world simulation where players influence the world through city-buildi
 
 ### 3.2 Characters
 *   **NPCs:** Inhabitants who populate cities and remember player actions (specifically Founders).
+*   **Players:** Can be any species, influencing the world's aesthetic.
 
 ### 3.3 World Design
 *   **Tile-Based World:** The world is divided into tiles where players can choose locations for cities.
@@ -66,7 +83,8 @@ A dynamic world simulation where players influence the world through city-buildi
 [Visual style description: Pixel art, Realistic, Low-poly, etc.]
 
 ### 4.2 Sound Design
-[Music style, Sound effects]
+*   **Voice Chat:** High-quality proximity voice implementation (crucial for gameplay).
+*   [Music style, Sound effects]
 
 ---
 
@@ -74,6 +92,7 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Engine:** [e.g., Unity, Unreal, Godot, Custom]
 *   **Language:** [e.g., C#, C++, Python]
 *   **Platforms:** [List supported platforms]
+*   **Networking:** Low-latency voice chat solution required.
 
 ---
 
