@@ -178,6 +178,11 @@ A dynamic world simulation where players influence the world through city-buildi
     *   **Scaling:**
         *   **Small/Medium:** Can be carried by a player's mount.
         *   **Large/Colossal:** Requires multiple players to carry or pre-arranged heavy transport (e.g., wagons, ships, hired transport services).
+*   **Decay & Spoilage:**
+    *   **Natural Decay:** Dropped items and creature carcasses do not persist indefinitely. They are subject to natural decay mechanics.
+        *   **Carcasses:** Will rot and spoil over time, rendering them useless for harvesting high-quality materials.
+        *   **Gear:** Dropped weapons and armor left in the world will rust and accumulate damage, eventually becoming scrap.
+    *   **Time Pressure:** This adds a layer of urgency to logistics. Players must transport their kills to a city or preservation facility before the resources spoil.
 *   **Crafting-Only Gear:**
     *   **No Weapon Drops:** Players do not find finished swords or armor on bodies. All gear must be crafted using harvested materials.
 *   **Craftsman Hierarchy:**
