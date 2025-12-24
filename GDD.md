@@ -112,6 +112,8 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Dynamic Ecology:**
     *   **Mutation:** All mob populations have a chance to mutate. These mutations create unique individuals with distinct stats and abilities.
     *   **Defense Against Extinction:** Active, aggressive hunting of a specific mob population **increases** the likelihood of mutation. The species reacts to the threat by spawning stronger defenders.
+    *   **Mutation Acceleration:** High-pressure environments (continuous extermination) can cause mutations to spiral, leading to multiple Area or Region bosses spawning simultaneously. This requires exponentially larger player forces to contain.
+    *   **Ecological Triggers:** Mutations can also be triggered by indirect player actions, such as tampering with food sources or altering the local ecology, forcing mobs to adapt to survive.
     *   **Unique Bosses:** Because they are born from mutation, all bosses (even lower tier ones) are unique.
 *   **Tier 0: Area Bosses**
     *   **Origin:** Born from local mob populations via standard mutation.
