@@ -16,6 +16,7 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Immersive Communication:** Proximity-only voice chat emphasizes realistic social interactions.
 *   **Realistic Travel & Trade:** No fast travel and local-only trading create a grounded, immersive world.
 *   **High-Stakes Economy:** Physical banking means local disasters have real consequences.
+*   **One-Time World Events:** Unique bosses and quests are finite, creating a true history of "firsts."
 
 ---
 
@@ -104,6 +105,14 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Vitals:** Players must manage Hunger and Thirst.
 *   **Temperature:** Environmental temperature affects the player.
 *   **Clothing:** Players must wear appropriate clothing for the climate to avoid negative effects (e.g., warm clothes for snow, light clothes for desert).
+
+### 2.15 PvE & World Events
+*   **One-Time Bosses:**
+    *   **Permadeath:** World bosses and unique bosses are one-time-only events. Once killed, they do not respawn.
+    *   **Prestige:** "First kills" are also "only kills," offering immense prestige to the victors.
+*   **Immersive Quest Instances:**
+    *   **Reactionary World:** High-stakes quests take place in specialized instances to maintain immersion (e.g., NPCs react to the danger rather than idling).
+    *   **Area Locking:** During major events or boss raids, specific areas may become disabled or inaccessible to other players until the quest resolves.
 
 ---
 
