@@ -69,6 +69,11 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Open PvP:** Player-versus-Player combat is enabled throughout the world.
 *   **Justice System:**
     *   **Crime:** Killing a player or NPC within a city is a crime.
+    *   **Bounties:**
+        *   **Trigger:** Killing a player or stealing their loot (especially carcass hauls) triggers the bounty system.
+        *   **Alignment:** Victims are often aligned with a city (usually their starting city).
+        *   **Consequence:** The aggressor is declared a criminal by the victim's city *and* all allied cities. A bounty is placed on their head, encouraging other players to hunt them.
+        *   **Shifting Alignment:** City alignment is dynamic; players can change allegiance, but crimes carry over until resolved or time passes.
     *   **Guard Response:** NPC guards will attempt to arrest or kill the offender.
     *   **Punishment:**
         *   **Jail:** Players are placed in a jail cell for a specific duration.
