@@ -108,19 +108,28 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Temperature:** Environmental temperature affects the player.
 *   **Clothing:** Players must wear appropriate clothing for the climate to avoid negative effects (e.g., warm clothes for snow, light clothes for desert).
 
-### 2.15 PvE & World Events
-*   **One-Time Bosses:**
-    *   **Permadeath:** World bosses and unique bosses are one-time-only events. Once killed, they do not respawn.
-    *   **Prestige:** "First kills" are also "only kills," offering immense prestige to the victors.
-*   **Legacy & Remembrance:**
-    *   **NPC Recognition:** NPCs will remember the specific players who defeat world bosses or save towns from raids.
-    *   **Inscriptions:** Heroic deeds are recorded in in-game tomes and history books found in cities.
-    *   **Monuments:** Statues may be erected in cities to honor players who performed legendary feats.
+### 2.15 Enemy Hierarchy & PvE
+*   **Tier 1: [Placeholder Name]**
+    *   [Description TBD]
+*   **Tier 2: [Placeholder Name]**
+    *   [Description TBD]
+*   **Tier 3: World Bosses (The Calamities)**
+    *   **Active Threat:** World bosses do not wait passively in dungeons. They actively invade the server, altering the environment and impacting quests/NPCs globally.
+    *   **Server-Wide Coordination:** Defeating a world boss requires the cooperation of the entire server population, not just a single party.
+    *   **Strategic Quest Chains:**
+        *   Bosses cannot be defeated by simple damage. Players must complete a series of unique, non-repeatable quests to weaken the boss or buff the players (e.g., "Destroy the Siege Engine" or "Purify the Water Source").
+        *   **First-Come, First-Served:** Once a party completes one of these strategic quests, it is completed for the server and disappears. This prevents farming and forces diverse contributions.
+    *   **Permadeath:** World bosses are one-time-only events. Once killed, they are gone forever.
+
+### 2.16 Legacy & Remembrance
+*   **NPC Recognition:** NPCs will remember the specific players who defeat world bosses or save towns from raids.
+*   **Inscriptions:** Heroic deeds are recorded in in-game tomes and history books found in cities.
+*   **Monuments:** Statues may be erected in cities to honor players who performed legendary feats.
 *   **Immersive Quest Instances:**
     *   **Reactionary World:** High-stakes quests take place in specialized instances to maintain immersion (e.g., NPCs react to the danger rather than idling).
     *   **Area Locking:** During major events or boss raids, specific areas may become disabled or inaccessible to other players until the quest resolves.
 
-### 2.16 Server Ecology & Governance
+### 2.17 Server Ecology & Governance
 *   **Resource Depletion:** Over-harvesting by guilds or players can strip the world, turning it into a barren wasteland.
 *   **Emergency Meetings:** Players or guilds can call a server-wide meeting to address the ecological crisis.
 *   **Democratic Voting:** The server population votes on a course of action:
