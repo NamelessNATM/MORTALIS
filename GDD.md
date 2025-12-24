@@ -58,6 +58,7 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Founder Status:** Gaining recognition from NPCs.
 *   **City Development:** Watching the city grow and change based on contributions.
 *   **Magic Discovery:** Unlocking hidden magical affinities.
+*   **Legendary Status:** Being immortalized in history for unique feats (e.g., boss kills).
 
 ### 2.7 Character Creation
 *   **Species/Race Freedom:** Players are free to be whatever species or race they desire. This choice directly impacts the architectural style of cities they contribute to.
@@ -110,6 +111,10 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **One-Time Bosses:**
     *   **Permadeath:** World bosses and unique bosses are one-time-only events. Once killed, they do not respawn.
     *   **Prestige:** "First kills" are also "only kills," offering immense prestige to the victors.
+*   **Legacy & Remembrance:**
+    *   **NPC Recognition:** NPCs will remember the specific players who defeat world bosses or save towns from raids.
+    *   **Inscriptions:** Heroic deeds are recorded in in-game tomes and history books found in cities.
+    *   **Monuments:** Statues may be erected in cities to honor players who performed legendary feats.
 *   **Immersive Quest Instances:**
     *   **Reactionary World:** High-stakes quests take place in specialized instances to maintain immersion (e.g., NPCs react to the danger rather than idling).
     *   **Area Locking:** During major events or boss raids, specific areas may become disabled or inaccessible to other players until the quest resolves.
