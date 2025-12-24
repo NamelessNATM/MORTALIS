@@ -141,7 +141,26 @@ A dynamic world simulation where players influence the world through city-buildi
         *   **First-Come, First-Served:** Once a party completes one of these strategic quests, it is completed for the server and disappears. This prevents farming and forces diverse contributions.
     *   **Permadeath:** World bosses are one-time-only events. Once killed, they are gone forever.
 
-### 2.16 Legacy & Remembrance
+### 2.16 Loot & Crafting System
+*   **Deterministic Loot:**
+    *   **Harvesting:** There are **NO RNG drops** for gear or major components. Instead, players must physically carve/harvest specific parts (e.g., dragon scales, head, poison sacs) from defeated enemies.
+    *   **Logic:** If you kill a dragon, you are guaranteed to find dragon parts, provided you have the skill or tools to harvest them.
+*   **Crafting-Only Gear:**
+    *   **No Weapon Drops:** Players do not find finished swords or armor on bodies. All gear must be crafted using harvested materials.
+*   **Craftsman Hierarchy:**
+    *   **Requirement:** To craft high-tier items, players must either level their own skill or find a specific NPC craftsman. Not all smiths can forge all items.
+    *   **Tiers:**
+        1.  **Apprentice Craftsman**
+        2.  **Journeyman Craftsman**
+        3.  **Expert Craftsman**
+        4.  **Master Craftsman**
+        5.  **Grandmaster Craftsman**
+*   **Discovery Quest Chain:**
+    *   **Scavenger Hunt:** High-tier craftsmen are hidden. Players must ask lower-tier craftsmen for information (e.g., an Apprentice points to a Journeyman, who points to an Expert).
+    *   **Map Marking:** Once a player successfully locates a Master or Grandmaster, their location is permanently marked on that player's map.
+    *   **Exploration:** Finding the right smith to forge your legendary dragon armor is a journey in itself.
+
+### 2.17 Legacy & Remembrance
 *   **NPC Recognition:** NPCs will remember the specific players who defeat world bosses or save towns from raids.
 *   **Inscriptions:** Heroic deeds are recorded in in-game tomes and history books found in cities.
 *   **Monuments:** Statues may be erected in cities to honor players who performed legendary feats.
@@ -149,7 +168,7 @@ A dynamic world simulation where players influence the world through city-buildi
     *   **Reactionary World:** High-stakes quests take place in specialized instances to maintain immersion (e.g., NPCs react to the danger rather than idling).
     *   **Area Locking:** During major events or boss raids, specific areas may become disabled or inaccessible to other players until the quest resolves.
 
-### 2.17 Server Ecology & Governance
+### 2.18 Server Ecology & Governance
 *   **Resource Depletion:** Over-harvesting by guilds or players can strip the world, turning it into a barren wasteland.
 *   **Emergency Meetings:** Players or guilds can call a server-wide meeting to address the ecological crisis.
 *   **Democratic Voting:** The server population votes on a course of action:
