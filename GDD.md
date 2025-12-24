@@ -17,6 +17,7 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Realistic Travel & Trade:** No fast travel and local-only trading create a grounded, immersive world.
 *   **High-Stakes Economy:** Physical banking means local disasters have real consequences.
 *   **One-Time World Events:** Unique bosses and quests are finite, creating a true history of "firsts."
+*   **Democratic World Management:** Players collectively decide the fate of a ruined world: reset or adapt.
 
 ---
 
@@ -118,6 +119,16 @@ A dynamic world simulation where players influence the world through city-buildi
 *   **Immersive Quest Instances:**
     *   **Reactionary World:** High-stakes quests take place in specialized instances to maintain immersion (e.g., NPCs react to the danger rather than idling).
     *   **Area Locking:** During major events or boss raids, specific areas may become disabled or inaccessible to other players until the quest resolves.
+
+### 2.16 Server Ecology & Governance
+*   **Resource Depletion:** Over-harvesting by guilds or players can strip the world, turning it into a barren wasteland.
+*   **Emergency Meetings:** Players or guilds can call a server-wide meeting to address the ecological crisis.
+*   **Democratic Voting:** The server population votes on a course of action:
+    1.  **Total Reset:** The server is wiped and reset to a pristine state. All player progress is lost.
+        *   *Optional:* The vote can include banning the guilty parties from the fresh server.
+    2.  **Adaptation:** The server refuses to reset and continues in the wasteland.
+        *   *Consequence:* Flora and fauna adapt to the harsh conditions, making the game significantly more difficult.
+*   **Reconvening:** If "Adaptation" is chosen, players can reconvene later to vote again on a reset if the majority opinion shifts.
 
 ---
 
