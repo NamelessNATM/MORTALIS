@@ -1,2 +1,0 @@
-# MORTALIS
-Quantum MMORPG
