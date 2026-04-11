@@ -114,3 +114,56 @@ Variable 02: Bulk Composition — to be opened in a separate thread.
 First act of that session: Gemini deep research prompt.
 Variable 02 scope is fully undetermined until research returns.
 
+---
+## Scaffold 003 — Variable 02: Bulk Composition & Radius
+**Date:** 2026-04-11
+**Type:** Implementation
+
+### What was implemented
+Variable 02 maps mass to compositional regime, applies regime-specific
+mass–radius relations, and derives bulk surface and interior proxy quantities.
+
+### Files created
+- `variable_02_composition/regime_classifier.py` — four-regime classification from M [kg]
+- `variable_02_composition/mass_radius_rocky.py` — Zeng et al. 2016 rocky M–R
+- `variable_02_composition/mass_radius_subneptune.py` — Chen & Kipping / Otegi et al. sub-Neptune M–R
+- `variable_02_composition/mass_radius_gasgiant.py` — Bashi et al. 2017 gas-giant M–R
+- `variable_02_composition/surface_gravity.py` — g = GM/R²
+- `variable_02_composition/escape_velocity.py` — v_e = sqrt(2GM/R)
+- `variable_02_composition/central_pressure.py` — uniform-sphere P_c = 3GM²/(8πR⁴)
+- `variable_02_composition/mean_density.py` — rho_mean = M / (4/3 π R³)
+
+### Files modified
+- `variable_02_composition/variable_02_composition.py` — full entry point: regime routing, derived quantities, brown-dwarf domain exclusion
+- `main.py` — Variable 02 wired; returns `v01` and `v02`
+- `changelog.md` — this entry
+
+### Physics implemented (with sources)
+| Quantity | Formula / model | Source |
+|----------|-----------------|--------|
+| Regime boundaries | 4.4 M_⊕, 127 M_⊕, 13 M_J | Research session 2026-04-11 |
+| Rocky R | (1.07 − 0.21·CMF)(M/M_⊕)^(1/3.7) R_⊕ | Zeng et al. 2016 |
+| Sub-Neptune R | R = 0.56 M^0.67 (R,M in Earth units) | Chen & Kipping 2017; Otegi et al. 2020 |
+| Gas-giant R | R = 18.6 M^(−0.06) (R,M in Earth units) | Bashi et al. 2017 |
+| g | GM/R² | Newton (Rule 1 B) |
+| v_e | sqrt(2GM/R) | Energy conservation (Rule 1 B) |
+| P_c | 3GM²/(8πR⁴) | Uniform-density hydrostatic shell (Rule 1 B, caveat) |
+| rho_mean | M / (4/3 π R³) | Definition (Rule 1 B) |
+
+### Flags open
+- **Flag 07:** CMF defaults to 0.325 (Earth). No disk chemistry variable in cascade yet. Deferred.
+- **Flag 08:** Compositional degeneracy ~2–10 M_⊕; regime boundary is a statistical threshold, not a knife-edge.
+- **Flag 09:** Rocky M–R coefficients from PREM / Earth only — EARTH FALLBACK; universal applicability not confirmed.
+- **Flag 10:** Water phase state (Ice VII vs. supercritical steam) is underdetermined from mass alone. Planets in the 2–4 R_earth range may compress water into high-density solid phases or retain it as an inflated supercritical steam envelope depending on stellar equilibrium temperature. Deferred to stellar insolation variable. Source: research session 2026-04-11.
+- **Flag 11:** Central pressure uses uniform-density assumption — approximate lower bound; real P_c higher (differentiation).
+- **Flag 12:** Bashi et al. gas-giant fit: **17% Jupiter overestimate** (formula as in literature; not a patch candidate).
+
+### Calibration notes (session benchmarks)
+- **Earth (rocky formula):** M = 1 M_⊕, CMF = 0.325 → R = 1.00175 R_⊕ (0.17% error).
+- **Earth (derived):** g ≈ 9.82 m/s² vs 9.807 (rounding); rho_mean = 5,514 kg/m³ ✓; v_e = 11,186 m/s ✓; P_c ≈ 171 GPa vs ~364 GPa (expected underestimate, Flag 11).
+- **Neptune (sub-Neptune formula):** M = 17.15 M_⊕ → R = 3.69 R_⊕ vs 3.865 (4.5% — acceptable empirical fit).
+- **Jupiter (gas-giant Formula 9 / Bashi):** M = 318 M_⊕ → R = 13.15 R_⊕ vs 11.21 known (**17% overestimate**, Flag 12).
+
+### Next step
+Variable 03 — Stellar Insolation (research prompt to be written).
+
