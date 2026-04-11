@@ -190,3 +190,131 @@ dwarf regime (M < 1e24 kg). Formula was already present in research session
 ### Expected outcome
 Seed 1 re-run expected to produce physically sensible rho_mean ~3500 kg/m^3.
 
+
+## Scaffold 004 — Variable 03: Stellar Properties
+**Date:** 2026-04-11
+**Type:** Implementation
+
+### What was implemented
+Variable 03 samples a host star deterministically from a seed. It produces
+stellar mass, stability classification, age, luminosity, radius, effective
+temperature, main-sequence lifetime, and XUV luminosity. All outputs depend
+only on the seed — no v01 or v02 inputs are passed in at this stage. Orbital
+coupling is deferred to Variable 05.
+
+### Files created
+- `variable_03_stellar/stellar_mass_sampler.py` — Kroupa (2001) IMF, inverse
+  transform sampling, renormalised over Eker MLR valid domain (0.179–31 M☉).
+  Regime 1 (0.01–0.179 M☉) excluded to prevent MLR ValueError. Documented
+  as design decision.
+- `variable_03_stellar/stellar_stability.py` — three-outcome stability
+  classification per Flag 19 Option B: unstable_low (<0.5 M☉), stable
+  (0.5–1.5 M☉), unstable_high (>1.5 M☉). Full mass range passes forward;
+  unstable stars tagged, not discarded.
+- `variable_03_stellar/stellar_age_sampler.py` — Just & Jahreiß (2010) Model A
+  SFH; closed-form CDF integral I(t); scipy.optimize.brentq root-finding;
+  mass-conditional τ_min and τ_max bounds. Returns age_Gyr and τ_frac.
+- `variable_03_stellar/mass_luminosity.py` — Eker et al. (2018) six-regime
+  piecewise MLR. Returns L_star_solar and L_star_W.
+- `variable_03_stellar/mass_radius_lowmass.py` — Eker et al. (2018) quadratic
+  MRR. Valid for M★ ≤ 1.5 M☉.
+- `variable_03_stellar/surface_gravity_evolution.py` — log g★(M★, τ_frac)
+  fitted to PARSEC v1.2S isochrone grids at solar metallicity. Valid for
+  M★ > 1.5 M☉. Flag 25 applies.
+- `variable_03_stellar/stellar_radius_highmass.py` — Torres (2010) exact
+  gravitational identity log(R/R☉) = 0.5·log(M/M☉) − 0.5·(log g − 4.438).
+  Valid for M★ > 1.5 M☉.
+- `variable_03_stellar/stellar_temperature.py` — Stefan-Boltzmann law. Sole
+  T_eff derivation path for both mass regimes. MTR excised (Flag 24).
+- `variable_03_stellar/main_sequence_lifetime.py` — simplified scaling law
+  t_MS = 10·(M/M☉)^(−2.5) Gyr. Hurley (2000) precision model deferred
+  pending metallicity (Flag 16).
+- `variable_03_stellar/xuv_luminosity.py` — Ribas (2005) saturation and
+  power-law decay model. Returns L_XUV_fraction and L_XUV_W.
+
+### Files modified
+- `variable_03_stellar/variable_03_stellar.py` — entry point fully implemented;
+  orchestrates all ten sub-functions; no physics directly
+- `main.py` — Variable 03 wired into cascade; v03 print block added
+- `requirements.txt` — scipy added for brentq
+- `changelog.md` — this entry
+
+### Physics implemented
+| Quantity | Formula / model | Source |
+|---|---|---|
+| M★ | Kroupa (2001) broken power-law IMF, ITS | Kroupa 2001 |
+| Stability | 0.5 / 1.5 M☉ thresholds | Eker 2018; Ribas 2005 |
+| age, τ_frac | Just & Jahreiß (2010) Model A SFH + brentq | JJ 2010 |
+| L★ | Six-regime piecewise MLR | Eker 2018 |
+| R★ (low-mass) | Quadratic MRR | Eker 2018 |
+| log g★ | PARSEC isochrone polynomial (M★, τ_frac) | PARSEC v1.2S |
+| R★ (high-mass) | Torres (2010) gravitational identity | Torres 2010; Moya 2018 |
+| T_eff | Stefan-Boltzmann from L and R | Rule 1 Category A |
+| t_MS | 10·(M/M☉)^(−2.5) Gyr | Scaling law |
+| L_XUV | Ribas (2005) saturation + decay | Ribas 2005 |
+
+### Design note — IMF domain restriction
+The Kroupa IMF is defined over 0.01–150 M☉. The Eker (2018) MLR is valid only
+over 0.179–31 M☉. To avoid MLR ValueError on low-mass draws, the IMF sampler
+renormalises the CDF over the MLR-compatible overlap (0.179–31 M☉), excluding
+regime 1 entirely. This is a documented architectural constraint, not a silent
+patch. It means the engine does not currently generate stars below 0.179 M☉.
+This should be revisited if a luminosity model for ultra-low-mass stars is
+added in a future session.
+
+### Calibration notes
+- L(1.0 M☉) = 0.984 L☉ (−1.6%, physically expected — empirical MLR averages
+  over main-sequence ages)
+- R(1.0 M☉) = 0.992 R☉ (−0.8%, same cause)
+- T_eff(L☉, R☉) = 5772 K ✓
+- t_MS(1.0 M☉) = 10.0 Gyr ✓
+- XUV at 4.57 Gyr: 9.08×10⁻⁶ (within observed solar cycle range ✓)
+- Torres identity: Sirius A −4.9%, Fomalhaut −2.2%, Vega −8.7% (residual
+  from oblate geometry, not formula error)
+- Median age for 1.0 M☉ at U=0.5: verified numerically as 6.58 Gyr (research
+  document reported 5.6 Gyr — discrepancy due to rounding in manual integral
+  evaluation; brentq result is authoritative)
+
+### Seed 1 verified output
+- Planet: dwarf regime, M = 4.11×10¹⁸ kg
+- Star: M★ = 0.2187 M☉, unstable_low, age = 1.40 Gyr
+- T_eff = 3399 K, R★ = 0.201 R☉, L★ = 0.00484 L☉
+- t_MS = 447 Gyr, L_XUV/L = 3.88×10⁻⁵
+- Map: uniform dwarf colour (160, 140, 120) — correct; V03 adds no grid layers
+
+### Flags opened this session
+- Flag 20: Kroupa α exponents empirical — inherent to model
+- Flag 22: JJ2010 SFH parameters — Milky Way solar neighbourhood only
+- Flag 23: τ_min anchor — Earth/Solar System only
+- Flag 24: MTR excised from high-mass radius and temperature paths
+- Flag 25: log g★ coefficients fitted at solar metallicity only
+
+### Flags resolved this session
+- Flag 15: Stellar age — resolved as JJ2010 SFH with brentq sampling
+- Flag 17: High-mass radius calibration — resolved; three-step path rejected;
+  Torres identity adopted
+- Flag 18: Stellar wind Ṁ — moved to Variable 04 or 05; V03 outputs L_XUV only
+- Flag 19: Stability filter — resolved as Option B (tag and pass, full range)
+- Flag 21: log g★ evolution formula — resolved via PARSEC isochrone fit
+
+### Flags still open
+- Flag 02: Hill radius — deferred to Variable 05
+- Flag 04: σ_rbf universality — Earth fallback
+- Flag 05: Power-law alpha exponents — inherent
+- Flag 06: 13 M_J upper boundary — review if metallicity added
+- Flag 07: CMF default — deferred to disk chemistry
+- Flag 08: Compositional degeneracy — inherent
+- Flag 09: Rocky M-R universality — Earth fallback
+- Flag 10: Water phase state — deferred to Variable 03 stellar insolation
+- Flag 11: Uniform density P_c — inherent approximation
+- Flag 12: Bashi gas-giant 17% overestimate — inherent to model
+- Flag 13: Dwarf rho_0 — Earth fallback
+- Flag 14: BC polynomial coefficients — deferred
+- Flag 16: Metallicity Z — deferred
+- Flag 20: Kroupa α empirical — inherent
+- Flag 22: JJ2010 single measurement context — inherent
+- Flag 23: τ_min anchor — Earth fallback
+- Flag 25: log g★ solar metallicity — Flag 16 dependent
+
+### Next step
+Variable 04: Atmosphere — research prompt to be written.
