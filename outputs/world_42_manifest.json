@@ -1,6 +1,6 @@
 {
   "seed": 42,
-  "version": 2,
+  "version": 3,
   "history": [
     {
       "version": 1,
@@ -20,6 +20,17 @@
       ],
       "npz": "outputs/world_42_v002.npz",
       "png": "outputs/world_42_v002.png"
+    },
+    {
+      "version": 3,
+      "active_variables": [
+        "v01",
+        "v02",
+        "v03",
+        "v05"
+      ],
+      "npz": "outputs/world_42_v003.npz",
+      "png": "outputs/world_42_v003.png"
     }
   ]
 }

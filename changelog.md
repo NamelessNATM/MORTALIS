@@ -318,3 +318,104 @@ added in a future session.
 
 ### Next step
 Variable 04: Atmosphere — research prompt to be written.
+
+---
+## Scaffold 005 — Variable 05: Planetary Kinematics
+**Date:** 2026-04-11
+**Type:** Implementation
+
+### What was implemented
+Variable 05 samples semimajor axis and eccentricity from empirically
+established demographic distributions, derives all orbital and insolation
+quantities, and provides the orbital inputs that Variable 04 (atmosphere)
+requires. Obliquity is sampled from an isotropic distribution.
+
+### Files created
+- `variable_05_kinematics/__init__.py` — empty
+- `variable_05_kinematics/roche_limit.py` — fluid Roche limit inner boundary
+- `variable_05_kinematics/disk_outer_boundary.py` — ALMA scaling outer boundary
+- `variable_05_kinematics/semimajor_axis_sampler.py` — regime-conditioned broken
+  power-law inverse-CDF sampler with hot Jupiter override
+- `variable_05_kinematics/orbital_eccentricity_sampler.py` — Beta(0.867, 3.03)
+  sampler with tidal circularisation cutoff and Roche periapsis floor
+- `variable_05_kinematics/stellar_flux.py` — orbit-averaged bolometric and XUV flux
+- `variable_05_kinematics/equilibrium_temperature.py` — Stefan-Boltzmann T_eq
+  with regime-based albedo placeholders
+- `variable_05_kinematics/hill_radius.py` — three-body restricted problem Hill radius
+- `variable_05_kinematics/orbital_period.py` — Kepler's third law exact two-body form
+- `variable_05_kinematics/obliquity_sampler.py` — isotropic spin axis sampling
+- `variable_05_kinematics/atmospheric_escape.py` — energy-limited XUV escape rate
+- `variable_05_kinematics/variable_05_kinematics.py` — entry point; no physics directly
+
+### Files modified
+- `main.py` — Variable 05 wired into cascade; v05 print block added
+
+### Physics implemented
+| Quantity | Formula / model | Source |
+|---|---|---|
+| a_Roche | 2.44 R★ (ρ★/ρ_planet)^(1/3) | Roche (1849); universal |
+| a_max | 100 AU × (M★/M☉)^0.5 | Andrews et al. (2018) ALMA; Flag 31 |
+| a | Broken power-law inverse-CDF, regime-conditioned | Fernandes et al. (2019); Hsu et al. (2019) |
+| e | Beta(0.867, 3.03) with tidal and Roche floors | Kipping (2013); Flag 37 |
+| obliquity | cos(obliquity) uniform [-1,1] | Agnor et al. (1999); Flag 36 |
+| T_orb | 2π √(a³/(μ★+μ_planet)) | Newton (Principia); universal |
+| ⟨F⟩ | L★ / (4π a² √(1-e²)) | Murray & Dermott (1999); universal |
+| F_XUV | L_XUV / (4π a² √(1-e²)) | Same derivation; universal |
+| T_eq | ((1-A)⟨F⟩ / 4σ)^(1/4) | Selsis et al. (2007); universal |
+| R_H | a (M / 3M★)^(1/3) | Hill (1878); universal |
+| Ṁ | ε π R_XUV³ F_XUV / GM | Watson et al. (1981); Flags 34, 35 |
+
+### Research path
+Three Gemini research prompts required for this variable:
+1. Initial Variable 05 prompt — established all formulas and sampling distributions
+2. Follow-up prompt (Gaps 1 and 2) — resolved outer disk boundary and semimajor
+   axis distribution functional form
+3. Second follow-up prompt — resolved calibration failures in Toomre and
+   photoevaporation formulas; established Candidate A (ALMA scaling) as a_max.
+   Candidate C (internal photoevaporation, a_max = 9.2 AU for 1 M☉) rejected
+   because it excludes outer solar system analogues.
+
+### Calibration verified numerically (pre-implementation)
+- ⟨F⟩ at Earth: 1361.3 W/m² (target 1361) ✓
+- T_eq at Earth, A=0.30: 254.6 K (target 255 K) ✓
+- R_H at Earth: 1.496×10⁹ m (target 1.496×10⁹ m) ✓
+- T_orb at Earth: 365.3 days (target 365.25 days) ✓
+- a_Roche Earth/Sun: 0.0072 AU (Earth orbit at 1 AU well outside) ✓
+
+### Seed outputs verified numerically (post-implementation)
+- Seed 1: a=0.1108 AU, e=0.094, T_eq=215.1 K, T_orb=28.8 days — all verified ✓
+- Seed 42: a=0.5450 AU, e=0.229, T_eq=168.7 K — all verified ✓
+- Periapsis > Roche limit confirmed both seeds ✓
+- M_dot timescale for seed 1 (~13 Myr) correctly signals rapid atmospheric
+  stripping for a dwarf body at 0.11 AU — physically consistent ✓
+
+### Flags opened this session
+- Flag 31: a_max ALMA scaling — single-survey approximation; varies between
+  star-forming regions. Candidate C rejected (see research path above).
+- Flag 32: Rocky and dwarf semimajor axes use sub-Neptune distribution.
+  No separate rocky-only demographic fit exists at required precision.
+- Flag 33: Hot Jupiter 1% Bernoulli override — Kepler/RV surveys of Sun-like
+  stars only. Not confirmed across all stellar mass ranges.
+- Flag 34: ε = 0.15 XUV heating efficiency — Solar System calibrated only.
+- Flag 35: R_XUV multipliers (1.0 rocky, 1.1 giant) — empirical, not derived.
+- Flag 36: Isotropic obliquity distribution — theoretically motivated,
+  unconfirmed observationally for exoplanets.
+- Flag 37: Beta eccentricity parameters — Kipping (2013) RV survey; confirmed
+  across multiple surveys but with scatter.
+- Flag 38: Bond albedo placeholders (rocky 0.30, giant 0.50, dwarf 0.10) —
+  Solar System calibrated. Must be revised when Variable 04 runs.
+
+### Flags resolved this session
+- Flag 02: Hill radius — resolved; implemented in hill_radius.py
+
+### Variable 04 unblocked
+Variable 04 (atmosphere) now has all required orbital inputs:
+F_mean, F_XUV, T_eq, M_dot, a, e, R_H. Implementation can proceed.
+
+### Flags still open
+02 (resolved this session), 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14,
+16, 20, 22, 23, 25, 26, 27, 28, 29, 30, 31–38.
+
+### Next step
+Variable 04: Atmosphere — now unblocked. Research was already completed
+in the prior session. Implementation prompt to be written.

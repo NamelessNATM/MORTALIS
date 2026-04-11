@@ -10,14 +10,16 @@ from outputs.manifest import next_version
 from variable_01_mass.variable_01_mass import run as run_variable_01
 from variable_02_composition.variable_02_composition import run as run_variable_02
 from variable_03_stellar.variable_03_stellar import run as run_variable_03
+from variable_05_kinematics.variable_05_kinematics import run as run_variable_05
 
 
 def run(seed: int):
     v01 = run_variable_01(seed)
     v02 = run_variable_02(seed, v01["M_kg"], v01["mu"])
     v03 = run_variable_03(seed)
+    v05 = run_variable_05(seed, v01, v02, v03)
 
-    active_variables = ["v01", "v02", "v03"]
+    active_variables = ["v01", "v02", "v03", "v05"]
     version, npz_path, png_path = next_version(seed, active_variables)
 
     grid, meta = run_coordinate_system(v02, npz_path)
@@ -27,6 +29,7 @@ def run(seed: int):
         "v01": v01,
         "v02": v02,
         "v03": v03,
+        "v05": v05,
         "version": version,
         "npz_path": npz_path,
         "png_path": png_path,
@@ -40,6 +43,7 @@ if __name__ == "__main__":
     v01 = result["v01"]
     v02 = result["v02"]
     v03 = result["v03"]
+    v05 = result["v05"]
 
     M_EARTH_KG = 5.972e24
     M_JUP_KG = 1.8982e27
@@ -78,6 +82,22 @@ if __name__ == "__main__":
     print(f"  t_MS          : {v03['t_MS_Gyr']:.6f} Gyr")
     print(f"  L_XUV/L       : {v03['L_XUV_fraction']:.4e}")
     print(f"  L_XUV         : {v03['L_XUV_W']:.4e} W")
+
+    AU_M = 1.496e11
+
+    print(f"\n--- Variable 05: Kinematics ---")
+    print(f"  a            : {v05['a_m']:.4e} m ({v05['a_m']/AU_M:.4f} AU)")
+    print(f"  e            : {v05['e']:.6f}")
+    print(f"  obliquity    : {v05['obliquity_deg']:.2f} deg")
+    print(f"  T_orb        : {v05['T_orb_s']:.4e} s ({v05['T_orb_s']/86400:.2f} days)")
+    print(f"  <F>          : {v05['F_mean_W_m2']:.4e} W/m^2")
+    print(f"  F_XUV        : {v05['F_XUV_W_m2']:.4e} W/m^2")
+    print(f"  T_eq         : {v05['T_eq_K']:.2f} K")
+    print(f"  albedo       : {v05['albedo']:.2f} (placeholder)")
+    print(f"  R_H          : {v05['R_H_m']:.4e} m")
+    print(f"  M_dot        : {v05['M_dot_kg_s']:.4e} kg/s")
+    print(f"  a_Roche      : {v05['a_roche_m']:.4e} m ({v05['a_roche_m']/AU_M:.6f} AU)")
+    print(f"  a_max        : {v05['a_max_m']:.4e} m ({v05['a_max_m']/AU_M:.2f} AU)")
 
     print(f"\n--- Map Output ---")
     print(f"  Version  : v{result['version']:03d}")
