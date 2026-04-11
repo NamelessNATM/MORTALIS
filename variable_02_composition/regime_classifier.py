@@ -3,6 +3,10 @@
 # Map planetary mass [kg] to a compositional regime string.
 #
 # Regime boundary masses (derived from constants below):
+#   DWARF_ROCKY_BOUNDARY_KG = 1e24 kg — the boundary where internal pressure P_c
+#     begins to exceed ~1% of the bulk modulus K_0 of silicate rock (~200 GPa).
+#     Below this, mean density equals zero-pressure density.
+#     Source: research session 2026-04-11 Section 3.1.
 #   ROCKY_SUBNEPTUNE_BOUNDARY_KG (~4.4 M_earth):
 #     Radius valley / transition between rocky and volatile-rich envelopes in
 #     the exoplanet population (Fulton et al.; demographic threshold).
@@ -23,6 +27,8 @@
 M_EARTH_KG = 5.972e24
 M_JUPITER_KG = 1.8982e27
 
+DWARF_ROCKY_BOUNDARY_KG = 1.0e24  # kg — onset of significant compression
+
 ROCKY_SUBNEPTUNE_BOUNDARY_KG = 4.4 * M_EARTH_KG
 SUBNEPTUNE_GASGIANT_BOUNDARY_KG = 127.0 * M_EARTH_KG
 GASGIANT_BROWNDWARF_BOUNDARY_KG = 13.0 * M_JUPITER_KG
@@ -30,10 +36,12 @@ GASGIANT_BROWNDWARF_BOUNDARY_KG = 13.0 * M_JUPITER_KG
 
 def classify_regime(M_kg: float) -> str:
     """
-    Classify mass into one of four compositional regimes.
+    Classify mass into one of five compositional regimes.
 
-    Returns one of: 'rocky', 'sub_neptune', 'gas_giant', 'brown_dwarf'.
+    Returns one of: 'dwarf', 'rocky', 'sub_neptune', 'gas_giant', 'brown_dwarf'.
     """
+    if M_kg < DWARF_ROCKY_BOUNDARY_KG:
+        return "dwarf"
     if M_kg <= ROCKY_SUBNEPTUNE_BOUNDARY_KG:
         return "rocky"
     if M_kg <= SUBNEPTUNE_GASGIANT_BOUNDARY_KG:

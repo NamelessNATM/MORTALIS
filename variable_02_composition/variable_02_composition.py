@@ -7,6 +7,7 @@
 import logging
 
 from variable_02_composition.regime_classifier import classify_regime
+from variable_02_composition.mass_radius_dwarf import compute_radius_dwarf
 from variable_02_composition.mass_radius_rocky import compute_radius_rocky
 from variable_02_composition.mass_radius_subneptune import compute_radius_subneptune
 from variable_02_composition.mass_radius_gasgiant import compute_radius_gasgiant
@@ -34,7 +35,7 @@ def run(seed: int, M_kg: float, mu: float) -> dict:
     Returns
     -------
     dict with keys:
-        'regime'           — one of rocky, sub_neptune, gas_giant, brown_dwarf
+        'regime'           — one of dwarf, rocky, sub_neptune, gas_giant, brown_dwarf
         'R_m'              — radius [m], or None if brown_dwarf
         'rho_mean_kg_m3'   — mean density [kg/m^3], or None if brown_dwarf
         'g_m_s2'           — surface gravity [m/s^2], or None if brown_dwarf
@@ -57,7 +58,9 @@ def run(seed: int, M_kg: float, mu: float) -> dict:
             "P_c_Pa": None,
         }
 
-    if regime == "rocky":
+    if regime == "dwarf":
+        R_m = compute_radius_dwarf(M_kg)
+    elif regime == "rocky":
         R_m = compute_radius_rocky(M_kg)
     elif regime == "sub_neptune":
         R_m = compute_radius_subneptune(M_kg)

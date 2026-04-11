@@ -167,3 +167,26 @@ mass–radius relations, and derives bulk surface and interior proxy quantities.
 ### Next step
 Variable 03 — Stellar Insolation (research prompt to be written).
 
+---
+## Scaffold 003a — Variable 02 Patch: Dwarf Regime
+**Date:** 2026-04-11
+**Type:** Patch
+
+### Root cause
+Zeng et al. 2016 formula applied six orders of magnitude below its valid domain,
+producing rho_mean = 374 kg/m^3 (physically impossible for rock).
+
+### Fix
+Geometric uncompressed formula R = (3M / (4πρ₀))^(1/3) for the sub-hydrostatic
+dwarf regime (M < 1e24 kg). Formula was already present in research session
+2026-04-11 Section 3.1 — not a new research requirement.
+
+### Flags
+- **Flag 13 opened:** rho_0 defaults to 3500 kg/m^3 (Earth fallback).
+
+### Calibration
+- Ceres: 0.9% error on known radius.
+
+### Expected outcome
+Seed 1 re-run expected to produce physically sensible rho_mean ~3500 kg/m^3.
+
