@@ -1,0 +1,24 @@
+{
+  "seed": 1,
+  "version": 2,
+  "history": [
+    {
+      "version": 1,
+      "active_variables": [
+        "v01",
+        "v02"
+      ],
+      "npz": "outputs/world_1_v001.npz",
+      "png": "outputs/world_1_v001.png"
+    },
+    {
+      "version": 2,
+      "active_variables": [
+        "v01",
+        "v02"
+      ],
+      "npz": "outputs/world_1_v002.npz",
+      "png": "outputs/world_1_v002.png"
+    }
+  ]
+}
