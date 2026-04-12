@@ -1229,3 +1229,118 @@ written before any R_melt correction is implemented.
 Variable 07: Hydrology is the next simulation variable after Flag 66 is
 resolved or deferred. Gemini research prompt required before any V07
 scope is defined.
+
+---
+## Scaffold 009 — Flag 66: Volcanic Melt Rate Formula Correction
+**Date:** 2026-04-13
+**Type:** Correction
+
+### What was corrected
+Two formula errors in variable_06_tectonics/volcanic_melt_rate.py,
+both confirmed by research (Kite et al. 2009 source analysis) and
+validated numerically.
+
+**Error 1 — u denominator dimensionally invalid:**
+Prior implementation: denom_T = T_m - P_c / (rho_mean × g)
+P_c / (rho_mean × g) has units Pa / (kg/m³ × m/s²) = metres.
+Subtracting metres from Kelvin is dimensionally invalid. The function
+collapsed to R_melt = 0 via the denom_T <= 0 guard.
+
+Correct: denominator is a thermal boundary temperature T_c,
+regime-dependent per Kite et al. (2009) Eq. 24:
+  Mobile lid:   T_c = T_s → ratio = (T_m - T_s)/(T_m - T_c) = 1.0 exactly.
+  Stagnant lid: T_c = T_m - 2.23 × (T_m² / A_0)
+                denominator = 2.23 × T_m² / A_0
+                where A_0 = E_a / R_g = 300,000 / 8.314 = 36,083 K
+                Source: Grasset and Parmentier (1998).
+
+**Error 2 — /M_planet division produced wrong units:**
+Prior implementation divided by M (planetary mass, kg), yielding 1/s.
+Kite et al. (2009) Eq. 25 is a normalized rate in yr⁻¹. The /M term
+is the Kite normalization. To obtain kg/s directly, the un-normalized
+form must be used:
+  R_melt = 4πR² × u × rho_mantle × melt_fraction
+Dimensional check: m² × m/s × kg/m³ × [–] = kg/s ✓
+Division by M discarded entirely.
+
+### Files modified
+- variable_06_tectonics/volcanic_melt_rate.py — full rewrite.
+  Function signature: (Nu, T_m, T_eq, R, g, D, rho_mantle,
+  tectonic_regime). Parameters P_c, M, rho_mean removed (fed the
+  invalid prior denominator). tectonic_regime added for T_c branch
+  selection.
+- variable_06_tectonics/variable_06_tectonics.py — call site updated
+  to match new signature.
+
+### Physics implemented (corrected)
+
+| Quantity | Formula | Source |
+|---|---|---|
+| u (mobile) | 2(Nu-1) × κ/D × 1.0 | Kite et al. (2009) Eq. 24 |
+| u (stagnant) | 2(Nu-1) × κ/D × (T_m-T_eq) / (2.23 T_m²/A_0) | Kite (2009) + Grasset & Parmentier (1998) |
+| R_melt | 4πR² × u × rho_mantle × (rho_crust × Z_crust × g / ΔP) | Kite et al. (2009) Eq. 25, un-normalized |
+
+### Numerical validation — Earth (mobile lid, Kite constants)
+Nu=31.2, T_m=1540 K, k=4.18, c=914, rho=3400, D=2.891e6 m,
+R=6.371e6 m, Z_crust=7000 m, P_f=0, P_o=3e9 Pa:
+→ u = 2.81e-11 m/s, melt_fraction = 0.0655, R_melt = 3.19e6 kg/s
+Target: ~3.2e6 kg/s (Kite et al. 2009). ✓
+
+### Calibration note — code constants vs Kite
+Code uses k=3.5 (Flag 67) and C_p=1200 (Flag 52) vs Kite's k=4.18,
+c=914. With code constants, mobile-lid Earth gives R_melt ≈ 2.03e6
+kg/s, ~36% below Kite target. Discrepancy is entirely from differing
+Earth-fallback constants, not from formula error.
+
+### Seed 42 verified (python main.py 42 --world-type rocky)
+- R_melt: 1.275e6 kg/s ✓
+- Arithmetic verified independently: Nu=5.40, rho_mantle=3483 kg/m³,
+  D=2.0414e6 m, u=3.610e-12 m/s, melt_fraction=0.3945 →
+  R_melt = 1.273e6 kg/s. Terminal/manual agree to 0.2%. ✓
+
+### Physical observation — melt_fraction elevated for mobile lid
+melt_fraction = 0.395 for Seed 42 is physically high. Cause: Z_crust
+= 50,000 m (stagnant lid analogue, Flag 56) applied to a mobile_lid
+planet where oceanic crustal thickness should be ~7,000 m. This
+inflates R_melt by ~7× for mobile lid planets. Pre-existing Flag 56
+issue — not introduced by this fix.
+
+### Stagnant lid calibration target
+~1.1e6 kg/s for stagnant lid Earth at 4.5 Gyr. Research notes this
+is an upper-bound total crustal production estimate (including
+intrusive magmatism). Strict one-order-of-magnitude suppression
+relative to mobile lid would give ~3.2e5 kg/s. The 1.1e6 target
+remains geophysically plausible within acknowledged uncertainty.
+
+### Flags opened this session
+- Flag 67: k = 3.5 W/(m·K) thermal conductivity. Kite et al. use
+  4.18. Our value produces R_melt ~36% below Kite calibration target.
+  Earth silicate fallback. Category: Earth fallback.
+- Flag 68: Kite (2009) parameterization invalid above ~3 M_Earth.
+  Dorn et al. (2018), Noack et al. (2017): pressure suppression
+  nonlinearly truncates melting column and raises lower-mantle
+  viscosity. One-dimensional Kite model overestimates melt on massive
+  super-Earths. Flag for review if M_planet > 3 M_Earth and
+  R_melt_kgs used as output. Category: model applicability limit.
+- Flag 69: A_0 = E_a/R_g = 36,083 K activation temperature. Inherits
+  Flag 54 (E_a Earth-calibrated dry peridotite). Category: Earth
+  fallback (derived).
+
+### Flags resolved this session
+- Flag 66: R_melt = 0 dimensional error — resolved.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48, 51, 59, 60, 63, 64
+Earth fallbacks: 04, 09, 13, 23, 39, 41, 50, 52, 54, 55, 56, 57, 58,
+                 62, 65, 67, 69
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44, 53
+Deferred — implementation not yet authorised: 14
+Model applicability limit: 68
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 46, 49
+Model lower bound only: 47
+Empirical GCM calibration: 38B
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Variable 07: Hydrology. Gemini research prompt required before any
+scope is defined.

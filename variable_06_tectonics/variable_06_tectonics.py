@@ -192,7 +192,7 @@ def run_variable_06(v01: dict, v02: dict, v03: dict, v05: dict, v04: dict) -> di
 
     R_melt = (
         compute_volcanic_melt_rate(
-            Nu_final, T_m, T_eq, P_c, R, M, g, D, rho_mantle, rho_mean
+            Nu_final, T_m, T_eq, R, g, D, rho_mantle, tec_regime
         )
         if Ra_result["convecting"]
         else 0.0
