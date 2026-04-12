@@ -1,5 +1,5 @@
 {
-  "seed": 1,
+  "seed": 7,
   "version": 2,
   "history": [
     {
@@ -11,8 +11,8 @@
         "v05",
         "v04"
       ],
-      "npz": "outputs/world_1_v001.npz",
-      "png": "outputs/world_1_v001.png"
+      "npz": "outputs/world_7_v001.npz",
+      "png": "outputs/world_7_v001.png"
     },
     {
       "version": 2,
@@ -23,8 +23,8 @@
         "v05",
         "v04"
       ],
-      "npz": "outputs/world_1_v002.npz",
-      "png": "outputs/world_1_v002.png"
+      "npz": "outputs/world_7_v002.npz",
+      "png": "outputs/world_7_v002.png"
     }
   ]
 }

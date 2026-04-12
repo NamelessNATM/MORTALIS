@@ -11,18 +11,22 @@ from variable_01_mass.variable_01_mass import run as run_variable_01
 from variable_02_composition.variable_02_composition import run as run_variable_02
 from variable_03_stellar.variable_03_stellar import run as run_variable_03
 from variable_05_kinematics.variable_05_kinematics import run as run_variable_05
+from variable_04_atmosphere import variable_04_atmosphere
 
 
 def run(seed: int):
     v01 = run_variable_01(seed)
     v02 = run_variable_02(seed, v01["M_kg"], v01["mu"])
-    v03 = run_variable_03(seed)
-    v05 = run_variable_05(seed, v01, v02, v03)
 
-    active_variables = ["v01", "v02", "v03", "v05"]
+    active_variables = ["v01", "v02", "v03", "v05", "v04"]
     version, npz_path, png_path = next_version(seed, active_variables)
 
     grid, meta = run_coordinate_system(v02, npz_path)
+
+    v03 = run_variable_03(seed)
+    v05 = run_variable_05(seed, v01, v02, v03)
+    v04 = variable_04_atmosphere.run(seed, v01, v02, v03, v05)
+
     run_map_generator(grid, meta, png_path)
 
     return {
@@ -30,6 +34,7 @@ def run(seed: int):
         "v02": v02,
         "v03": v03,
         "v05": v05,
+        "v04": v04,
         "version": version,
         "npz_path": npz_path,
         "png_path": png_path,
@@ -44,6 +49,7 @@ if __name__ == "__main__":
     v02 = result["v02"]
     v03 = result["v03"]
     v05 = result["v05"]
+    v04 = result["v04"]
 
     M_EARTH_KG = 5.972e24
     M_JUP_KG = 1.8982e27
@@ -98,6 +104,24 @@ if __name__ == "__main__":
     print(f"  M_dot        : {v05['M_dot_kg_s']:.4e} kg/s")
     print(f"  a_Roche      : {v05['a_roche_m']:.4e} m ({v05['a_roche_m']/AU_M:.6f} AU)")
     print(f"  a_max        : {v05['a_max_m']:.4e} m ({v05['a_max_m']/AU_M:.2f} AU)")
+
+    print(f"\n--- Variable 04: Atmosphere ---")
+    if v04["T_exo_K"] is None:
+        print(f"  T_exo        : — (K)")
+    else:
+        print(f"  T_exo        : {v04['T_exo_K']:.2f} K")
+    print(f"  atm_class    : {v04['atm_class']}")
+    print(f"  composition  : {v04['composition']}")
+    if v04["P_s_Pa"] is None:
+        print(f"  P_s          : — (Pa)")
+    else:
+        print(f"  P_s          : {v04['P_s_Pa']:.4e} Pa")
+    print(f"  Gamma_d      : {v04['gamma_d_K_m']:.4e} K/m")
+    if v04["H_m"] is None:
+        print(f"  H            : — (m)")
+    else:
+        print(f"  H            : {v04['H_m']:.4e} m")
+    print(f"  notes        : {v04['notes']}")
 
     print(f"\n--- Map Output ---")
     print(f"  Version  : v{result['version']:03d}")

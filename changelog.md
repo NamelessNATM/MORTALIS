@@ -419,3 +419,72 @@ F_mean, F_XUV, T_eq, M_dot, a, e, R_H. Implementation can proceed.
 ### Next step
 Variable 04: Atmosphere — now unblocked. Research was already completed
 in the prior session. Implementation prompt to be written.
+
+---
+## Scaffold 005a — Flag Record Recovery
+**Date:** 2026-04-12
+**Type:** Correction
+
+### What was corrected
+Scaffold 005 close-out listed Flags 26–30 as open but provided no definitions.
+Flag 14 was opened in Scaffold 004 but its definition was not recorded in the
+changelog. Both omissions were Rule 9 violations — work existed in the research
+record that was not captured in the changelog. This entry corrects the record.
+
+### No code was changed
+This entry is a changelog correction only. No implementation files were created
+or modified.
+
+### Flag 14 — defined and recorded
+**File:** No implementation exists. Deferred.
+**What it is:** Eker et al. (2020) BC polynomial coefficients as reproduced in
+the V03 research response fail numerical solar calibration by 1.4 magnitudes
+(research claimed −0.016; independent validation returned +1.4). The polynomial
+is numerically ill-conditioned — large coefficients, high degree, near-total
+cancellation at the solar T_eff value. The BC polynomial was never authorised
+for implementation as a result.
+**Resolution path:** Confirm coefficients directly from Eker et al. (2020)
+paper source and re-validate numerically before any implementation is authorised.
+
+### Flags 26–30 — defined and recorded
+These flags were opened in the V04 research analysis session and marked as
+pre-registered — to be formally entered when V04 is implemented. They exist
+in the research record but not yet in the codebase.
+
+**Flag 26** — Duplicate of Flag 34. ε (XUV heating efficiency) empirical,
+non-universal. Earth/Venus/Mars suggest 0.1–0.3. Solar System only.
+When V04 is implemented, Flags 26 and 34 should be merged into a single entry.
+
+**Flag 27** — λ_crit threshold of 15–20 for Jeans escape is kinetic-theory
+derived but the specific value encodes assumptions about geological timescales.
+Confirmed empirically across Solar System atmospheres only. Not yet in codebase.
+
+**Flag 28** — c_p for rocky planet atmospheres is composition-dependent and
+not derivable from mass alone without volatile inventory and mantle chemistry.
+Not yet in codebase.
+
+**Flag 29** — Rocky planet atmospheric composition underdetermined without
+mantle oxygen fugacity. Deferred to a future disk chemistry or geochemistry
+variable. Not yet in codebase.
+
+**Flag 30** — M_atm (atmospheric column mass) for rocky planets requires
+orbital-dependent escape history. Deferred to post-Variable 05. Not yet in codebase.
+
+### Source
+Flag 14: V03 research analysis session, numerical validation block.
+Flags 26–30: V04 research analysis session, "Flags to open when V04 is
+eventually implemented" section.
+
+### Flags still open (complete list as of this entry)
+Inherent to model: 05, 08, 11, 12, 20, 22, 37
+Earth fallbacks: 04, 09, 13, 23
+Deferred — upstream dependency: 06, 07, 10, 16, 25, 28, 29, 30
+Deferred — implementation not yet authorised: 14, 27
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 38
+Pre-registered duplicates: 26 (= Flag 34)
+
+### Next step
+V04 implementation. All flags are now defined and the record is complete.
+The research for V04 was completed prior to Scaffold 005 and established
+that V05 must run before V04 can produce complete outputs. V05 is complete.
+V04 is now fully unblocked.
