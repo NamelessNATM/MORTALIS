@@ -12,13 +12,14 @@ from variable_03_stellar.variable_03_stellar import run as run_variable_03
 from variable_05_kinematics.variable_05_kinematics import run as run_variable_05
 from variable_05_kinematics.bond_albedo import compute_pass2_albedo
 from variable_04_atmosphere import variable_04_atmosphere
+from variable_06_tectonics.variable_06_tectonics import run_variable_06
 
 
 def run(seed: int, config: dict):
     v01 = run_variable_01(seed, regime=config['regime'])
     v02 = run_variable_02(seed, v01["M_kg"], v01["mu"])
 
-    active_variables = ["v01", "v02", "v03", "v05", "v04"]
+    active_variables = ["v01", "v02", "v03", "v05", "v04", "v06"]
     version, npz_path, png_path = next_version(seed, active_variables)
 
     grid, meta = run_coordinate_system(v02, npz_path)
@@ -39,6 +40,8 @@ def run(seed: int, config: dict):
     v05["albedo_final"] = A_B
     v05["T_eq_K"] = T_eq_final_K
 
+    v06 = run_variable_06(v01, v02, v03, v05, v04)
+
     run_map_generator(grid, meta, png_path)
 
     return {
@@ -47,6 +50,7 @@ def run(seed: int, config: dict):
         "v03": v03,
         "v05": v05,
         "v04": v04,
+        "v06": v06,
         "version": version,
         "npz_path": npz_path,
         "png_path": png_path,
@@ -77,6 +81,7 @@ if __name__ == "__main__":
     v03 = result["v03"]
     v05 = result["v05"]
     v04 = result["v04"]
+    v06 = result["v06"]
 
     M_EARTH_KG = 5.972e24
     M_JUP_KG = 1.8982e27
@@ -153,6 +158,57 @@ if __name__ == "__main__":
     else:
         print(f"  H            : {v04['H_m']:.4e} m")
     print(f"  notes        : {v04['notes']}")
+
+    print("\n--- Variable 06: Tectonics ---")
+    print(f"  Note:            {v06['tectonic_note']}")
+    print(f"  Tectonic regime: {v06['tectonic_regime']}")
+    if v06.get("solidus_K") is not None:
+        print(f"  Solidus (P_cmb): {v06['solidus_K']:.1f} K")
+    if v06.get("solidus_reached") is not None:
+        print(f"  Solidus reached: {v06['solidus_reached']}")
+    if v06["E_acc_J"] is not None:
+        print(f"  E_acc:           {v06['E_acc_J']:.3e} J")
+    else:
+        print("  E_acc:           None")
+    if v06["R_core_m"] is not None:
+        print(f"  R_core:          {v06['R_core_m']/1e3:.1f} km")
+    else:
+        print("  R_core:          None")
+    if v06["P_cmb_Pa"] is not None:
+        print(f"  P_cmb:           {v06['P_cmb_Pa']/1e9:.1f} GPa")
+    else:
+        print("  P_cmb:           None")
+    if v06["H_rad_W"] is not None:
+        print(f"  H_rad:           {v06['H_rad_W']/1e12:.2f} TW")
+    else:
+        print("  H_rad:           None")
+    if v06["T_m_K"] is not None:
+        print(f"  T_m:             {v06['T_m_K']:.1f} K")
+    else:
+        print("  T_m:             None")
+    if v06["Ra"] is not None:
+        print(f"  Ra:              {v06['Ra']:.3e}")
+    else:
+        print("  Ra:              None")
+    if v06["q_s_total_TW"] is not None:
+        print(f"  q_s total:       {v06['q_s_total_TW']:.2f} TW")
+    else:
+        print("  q_s total:       None")
+    if v06["t_lock_Gyr"] is not None:
+        print(f"  t_lock:          {v06['t_lock_Gyr']:.2f} Gyr")
+    else:
+        print("  t_lock:          None")
+    print(f"  is_locked:       {v06['is_locked']}")
+    if v06["P_tidal_W"] is not None:
+        print(f"  P_tidal:         {v06['P_tidal_W']:.3e} W")
+    else:
+        print("  P_tidal:         None")
+    if v06["R_melt_kgs"] is not None:
+        print(f"  R_melt:          {v06['R_melt_kgs']:.3e} kg/s")
+    else:
+        print("  R_melt:          None")
+    print(f"  Speciation:      {v06['speciation']}")
+    print(f"  Outgassed mass:  {v06['outgassed_mass']}")
 
     print(f"\n--- Map Output ---")
     print(f"  Version  : v{result['version']:03d}")

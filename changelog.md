@@ -960,141 +960,80 @@ any scope is defined.
 **Type:** Implementation
 
 ### What was implemented
-Replaced three fixed Solar System placeholder albedos (rocky 0.30,
-giant 0.50, dwarf 0.10) in equilibrium_temperature.py with a physically
-derived two-pass Bond albedo framework. Pass 1 runs before Variable 04
-and produces a pre-atmospheric proxy albedo from cascade inputs alone.
-Pass 2 runs after Variable 04 and refines the albedo using atmospheric
-class and stellar spectrum. T_eq is recomputed after both passes. The
-calibration target is corrected from the legacy pairing (A=0.30,
-T_eq=254.6 K) to the CERES-accurate pairing (A=0.306, T_eq=254.0 K).
+Replaced three fixed Solar System placeholder albedos (rocky 0.30, giant 0.50,
+dwarf 0.10) in equilibrium_temperature.py with a physically derived two-pass
+Bond albedo framework. Pass 1 runs before Variable 04 and produces a
+pre-atmospheric proxy albedo from cascade inputs alone. Pass 2 runs after
+Variable 04 and refines the albedo using atmospheric class and stellar spectrum.
+T_eq is recomputed after both passes. The calibration target is corrected from
+the legacy pairing (A=0.30, T_eq=254.6 K) to the CERES-accurate pairing
+(A=0.306, T_eq=254.0 K).
 
 ### Files created
-- `variable_05_kinematics/bond_albedo.py` — Pass 1 and Pass 2 albedo
-  functions. Pass 1: Sudarsky (2000) piecewise condensate classification
-  for gas_giant / sub_neptune / brown_dwarf; rock-ice surface mix for
-  rocky / dwarf. Pass 2: Del Genio et al. (2019) segmented linear model
-  for rocky planets with retained atmosphere; Pass 1 held for all other
-  regimes.
+- `variable_05_kinematics/bond_albedo.py` — Pass 1 and Pass 2 albedo functions.
+  Pass 1: Sudarsky (2000) piecewise condensate classification for gas_giant /
+  sub_neptune / brown_dwarf; rock-ice surface mix for rocky / dwarf.
+  Pass 2: Del Genio et al. (2019) segmented linear model for rocky planets with
+  retained atmosphere; Pass 1 held for all other regimes.
 
 ### Files modified
-- `variable_05_kinematics/equilibrium_temperature.py` — regime-to-albedo
-  lookup removed. Function now accepts A_proxy as direct input. Earth
-  calibration note updated to Pass 1 values (A=0.15 → T_eq^(0)=266.7 K).
-- `variable_05_kinematics/variable_05_kinematics.py` — Pass 1 call added
-  after stellar flux, before equilibrium temperature. Output dict updated:
-  albedo_proxy, T_eq_proxy_K added; T_eq_K is Pass 1 at V05 stage.
-- `main.py` — Pass 2 call added after V04, before map generator.
-  albedo_final and T_eq_K (Pass 2 final) written back to v05 dict.
-  Print block updated to show all four albedo/temperature lines.
+- `variable_05_kinematics/equilibrium_temperature.py` — regime-to-albedo lookup
+  removed; function now accepts A_proxy as direct input; Earth calibration note
+  updated to Pass 1 values (A=0.15, T_eq^(0)=266.7 K).
+- `variable_05_kinematics/variable_05_kinematics.py` — Pass 1 call added after
+  stellar flux, before equilibrium temperature. Output dict updated: albedo_proxy,
+  T_eq_proxy_K added; T_eq_K is Pass 1 at V05 stage.
+- `main.py` — Pass 2 call added after V04, before map generator. albedo_final and
+  T_eq_K (Pass 2 final) written back to v05 dict. Print block updated.
 
 ### Physics implemented
 
 Pass 1 — Gas giant / sub-Neptune / brown_dwarf (Sudarsky 2000):
-  T0 = (⟨F⟩ / 4σ)^0.25  [zero-albedo blackbody baseline]
-  Piecewise A_proxy by T0 (K):
-    < 150         → 0.57   (NH3 cloud deck)
-    150–250       → 0.57 + (T0-150)/100 × 0.24  (NH3→H2O transition)
-    250–300       → 0.81   (H2O cloud deck)
-    300–400       → 0.81 - (T0-300)/100 × 0.69  (clouds clear)
-    400–900       → 0.12   (cloudless, Rayleigh + CH4 absorption)
-    900–1000      → 0.12 - (T0-900)/100 × 0.09  (alkali transition)
-    1000–1500     → 0.03   (alkali absorption dominant)
-    ≥ 1500        → 0.55   (silicate/iron condensate clouds)
-  Source: Sudarsky et al. 2000, ApJ 538:885.
-  Scope: multi-body confirmed (Solar System giants + exoplanet models).
+  Piecewise A_proxy by zero-albedo blackbody baseline T0 = (⟨F⟩/4σ)^0.25.
+  Source: Sudarsky et al. 2000, ApJ 538:885. Multi-body confirmed.
 
 Pass 1 — Rocky / dwarf:
+  A_proxy = A_rock × (1-f_ice) + A_ice × f_ice
   A_rock = 0.15 (bare silicate-iron regolith baseline)
-    Source: lunar, Mercurian, asteroidal phase integrals.
-    ⚠️ EARTH FALLBACK — Solar System calibrated only.
+  ⚠️ EARTH FALLBACK — Solar System calibrated only.
   A_ice(T_eff) = 0.40 + 0.25 × clamp((T_eff-3000)/4000, 0, 1)
-    Source: Shields et al. 2013, Astrobiology 13:715.
-    Scope: confirmed across multiple planetary bodies/models.
-  f_ice = clamp((270 - T0) / 70, 0, 1); forced to 0 for silicate-iron.
-  A_proxy = A_rock × (1 - f_ice) + A_ice × f_ice
+  Source: Shields et al. 2013, Astrobiology 13:715. Multi-body confirmed.
 
-Pass 2 — Gas giant / sub-Neptune / brown_dwarf:
-  A_B = A_proxy (Pass 1 Sudarsky held).
-  Roman (2023) geometric invariant requires T_surf. Substituting
-  T_eq^(0) collapses numerator to zero identically (proven numerically
-  for Jupiter: predicted A_B = 0.000 vs measured 0.503). Deferral
-  confirmed. Unblocks when Flag 43 resolved.
-
-Pass 2 — Rocky, atm_class in {primary_retained, primary_stripped,
-         secondary_possible}:
-  Del Genio et al. 2019, ApJ 884:75. 29 ROCKE-3D GCM simulations.
-  Scope: confirmed across multiple planetary bodies/models.
-  S_ox = ⟨F⟩ / 1361
+Pass 2 — Rocky with retained atmosphere (Del Genio et al. 2019):
   S_ox ≥ 1.0: A_B = 0.283 + 0.165(S_ox-1) + 0.119(T_eff/5780-1)
   S_ox < 1.0: A_B = 0.283 - 0.211(S_ox-1) + 0.164(T_eff/5780-1)
-  A_B clamped to [0.0, 1.0].
-  ⚠️ Flag 38B: coefficients empirical, ROCKE-3D calibrated. Biased
-  toward N2/CO2/H2O atmospheres. f_land absent — residual vs Earth
-  is 0.023 (0.283 predicted vs 0.306 observed).
+  Source: Del Genio et al. 2019, ApJ 884:75. 29 ROCKE-3D GCM simulations.
+  ⚠️ Flag 38B: empirical GCM calibration. Residual vs Earth: 0.023.
 
-Pass 2 — Rocky, atm_class in {none, exosphere_only}:
-  A_B = A_proxy (no atmosphere to refine with).
+Pass 2 — Gas giant / sub-Neptune: Roman (2023) deferral confirmed;
+  requires T_surf not available without greenhouse correction (Flag 43).
 
-Pass 2 — Dwarf:
-  A_B = A_proxy (Pass 1 held).
+### Calibration verified
+- Pass 1 Earth: A_proxy=0.15, T_eq^(0)=266.7 K ✓
+- Pass 2 Earth: S_ox=1.0, T_eff=5778K → A_B=0.283, T_eq=268.9 K ✓
+- Sudarsky piecewise: continuous at all five transition boundaries ✓
+- Del Genio sign confirmed after targeted follow-up correcting sign error
+  in initial research response.
 
-T_eq recomputed after Pass 2: T_eq = ((1-A_B)⟨F⟩ / 4σ)^0.25
-
-Calibration target corrected:
-  Legacy: A = 0.30 → T_eq = 254.6 K (rounded albedo)
-  CERES:  A = 0.306 → T_eq = 254.0 K (authoritative)
-  Engine now targets CERES pairing.
-
-### Calibration verified (pre-implementation)
-Pass 1 Earth: A_proxy=0.15, T_eq^(0)=266.7 K ✓
-Pass 2 Earth: S_ox=1.0, T_eff=5778K → A_B=0.283, T_eq=268.9 K ✓
-Sudarsky piecewise: continuous at all five transition boundaries ✓
-A_ice: 0.40 at 3000K, 0.574 at 5778K, 0.65 at 7000K ✓
-Del Genio sign confirmed: positive T_eff coefficient. M-dwarf planets
-  lower albedo than G-dwarf at same S_ox. Sign error in initial
-  research response identified and corrected via targeted follow-up
-  prompt before implementation was authorised.
-
-### Seed 42 verified output (python main.py 42 --world-type rocky)
-- Planet: 0.279 M_earth rocky, regime = rocky
-- Star: 0.530 M_sun, T_eff = 3917.90 K, stable
-- ⟨F⟩ = 209.88 W/m², S_ox = 0.154
+### Seed 42 verified (python main.py 42 --world-type rocky)
 - albedo_proxy: 0.1500 (Pass 1 — silicate-iron, f_ice forced to 0)
-- T_eq^(0):     167.47 K
+- T_eq^(0): 167.47 K
 - albedo_final: 0.4086 (Pass 2 — Del Genio, low instellation branch)
-- T_eq:         152.95 K
-- Pass 2 arithmetic verified: 0.283 - 0.211×(-0.846) + 0.164×(-0.322)
-  = 0.283 + 0.178 - 0.053 = 0.4086 ✓
-- V04 T_exo = 279.52 K consistent with T_eq^(0) input ✓
+- T_eq: 152.95 K
+- Pass 2 arithmetic verified: 0.283 - 0.211×(-0.846) + 0.164×(-0.322) = 0.4086 ✓
 
 ### Research path
-Four Gemini research sessions:
-1. Initial Flag 38 prompt — established two-pass architecture and Pass 1
-   derivation in full. Pass 2 contained three gaps.
-2. Pass 2 follow-up — closed Gap 1 (Roman deferral proven); provided Del
-   Genio coefficients with sign error; derived C_Rayleigh = 16.67 bar⁻¹.
-3. Sign correction prompt — confirmed positive T_eff coefficient. Prior
-   response had transcribed negative signs on both T_eff terms. Corrected
-   before any implementation proceeded.
+Four Gemini research sessions: initial Flag 38 prompt; Pass 2 follow-up;
+sign correction prompt; V06 unblocked after Pass 2 confirmed.
 
 ### Flags opened this session
-- Flag 48: Sudarsky albedo framework applied to brown_dwarf regime.
-  Framework assumes stellar insolation dominance. Internal luminosity of
-  brown dwarfs not represented. Flag for review if brown_dwarf albedo
-  outputs behave anomalously. Scope: inherent model limitation.
-- Flag 49: Del Genio (2019) segmented linear model extrapolation.
-  Model calibrated on 29 ROCKE-3D simulations spanning the habitable
-  zone. At S_ox = 0.154 (Seed 42), the engine is extrapolating beyond
-  the calibration range. Albedo predictions at very low S_ox may
-  overestimate ice coverage contribution. Flag for review if rocky
-  planet albedos at S_ox < 0.3 appear anomalously high.
-  Category: survey-scope limitation.
+- Flag 48: Sudarsky albedo applied to brown_dwarf regime — internal
+  luminosity not represented. Category: inherent model limitation.
+- Flag 49: Del Genio (2019) extrapolation at S_ox < 0.3. Category:
+  survey-scope limitation.
 
 ### Flags resolved this session
-- Flag 38: Bond albedo placeholders — resolved. Solar System fixed
-  values replaced with physically derived two-pass framework.
-  Residual limitation recorded as Flag 38B.
+- Flag 38: Bond albedo placeholders — resolved. Residual recorded as Flag 38B.
 
 ### Flags still open after this session
 Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48
@@ -1107,5 +1046,186 @@ Empirical GCM calibration: 38B
 Pre-registered duplicate: 26 (= Flag 34)
 
 ### Next step
-Variable 06: Tectonics. Gemini research prompt to be written before
-any scope is defined.
+Flag 45 (mass sampler) to be resolved before Variable 06.
+
+---
+
+## Scaffold 008a — Variable 06: Tectonics (with viscosity, Nu–Ra, and solidus corrections)
+**Date:** 2026-04-12
+**Type:** Implementation + Correction
+
+### What was implemented
+Variable 06 maps planetary regime and cascade inputs to internal thermal state,
+tectonic regime, tidal locking status, tidal heating, and volcanic melt rate.
+Implementation required four Gemini research sessions and two correction cycles
+before calibration was confirmed. The correction cycle (Scaffold 008a) resolved
+three errors present in the initial implementation.
+
+### Files created
+- `variable_06_tectonics/__init__.py` — empty package marker
+- `variable_06_tectonics/accretional_energy.py` — E_acc = (3/5)GM²/R and
+  dE_core = 0.04 GM²/R
+- `variable_06_tectonics/core_geometry.py` — two-layer density contrast model.
+  R_core = R×(CMF/(CMF+χ(1-CMF)))^(1/3), χ=2.44 (Earth fallback, Flag 50).
+- `variable_06_tectonics/cmb_pressure.py` — hydrostatic integration across
+  uniform-density mantle layer. Formula reconstructed from truncated research
+  response and validated numerically. 9.5% underestimate inherent to uniform-
+  density assumption (Flag 51).
+- `variable_06_tectonics/radiogenic_heating.py` — H_rad = M_m × Σ Cᵢhᵢexp(-t/τᵢ)
+  for ⁴⁰K, ²³²Th, ²³⁵U, ²³⁸U. hᵢ and τᵢ universal (nuclear physics). Cᵢ
+  BSE-calibrated (Flag 55).
+- `variable_06_tectonics/mantle_viscosity.py` — Arrhenius viscosity with
+  corrected pre-exponential η_0 = η_ref × exp(-E_a/(R_g×T_ref)) = 1.606×10¹¹
+  Pa·s; Frank-Kamenetskii parameter θ; Simon-Glatzel solidus T_solidus(P).
+- `variable_06_tectonics/rayleigh_number.py` — Ra from Boussinesq
+  non-dimensionalisation. α and κ Earth-calibrated silicate constants.
+- `variable_06_tectonics/tectonic_regime.py` — stagnant_lid / mobile_lid /
+  sluggish_lid classification from Ra vs Ra_c and Ra_sluggish thresholds.
+- `variable_06_tectonics/surface_heat_flux.py` — regime-dependent Nu–Ra scaling.
+  Stagnant lid: Solomatov (1995), A_p=0.50. Mobile/sluggish: isoviscous scaling,
+  A_mob=0.122 (Earth-calibrated, Flag 62).
+- `variable_06_tectonics/mantle_temperature.py` — forward Euler ODE integration
+  with solidus ceiling. T_m(0)=1700 K canonical cool-start (Flag 57). Q_core=0
+  (Flag 53).
+- `variable_06_tectonics/tidal_locking.py` — t_lock from Peale (1977). Q=100,
+  k₂=0.3, ω₀ = 2π/(10h) — all Earth/Solar System calibrated.
+- `variable_06_tectonics/tidal_heating.py` — P_tidal from orbital eccentricity
+  dissipation. Watson et al. (1981).
+- `variable_06_tectonics/volcanic_melt_rate.py` — R_melt from Kite et al. (2009)
+  decompression melting parameterisation. Currently returns 0 due to dimensional
+  inconsistency in melt fraction denominator (Flag 66). Stub treatment in place.
+- `variable_06_tectonics/variable_06_tectonics.py` — entry point; regime routing;
+  no physics directly.
+
+### Files modified
+- `constants.py` — new root-level file; G and R_GAS as Category A constants.
+- `main.py` — V06 import, call, and print block added. V06 runs after V04 and
+  before map generator.
+
+### Errors identified and corrected during implementation
+
+**Error 1 — Arrhenius pre-exponential (Scaffold 008 → 008a):**
+Initial implementation placed η_ref = 10²¹ Pa·s directly as the Arrhenius
+pre-exponential. This is incorrect — η_ref is the observed viscosity at T_ref,
+not the pre-exponential. Correct value: η_0 = η_ref × exp(-E_a/(R_g×T_ref))
+= 1.606×10¹¹ Pa·s. Error produced η(1,650 K) ≈ 3×10³⁰ Pa·s (nine orders of
+magnitude too high), Ra = 310 (three orders too low), and T_m = 2,889 K (above
+solidus). All corrected in 008a.
+
+**Error 2 — Nu–Ra formula gives Nu < 1 at Earth conditions (Scaffold 008 → 008a):**
+Stagnant lid formula Nu = A_p × Ra^(1/3) × θ^(-4/3) gave Nu = 0.36 for Earth
+inputs — physically impossible. Root cause: Earth is a mobile lid planet; the
+stagnant lid formula cannot calibrate to Earth. Correct scaling for mobile lid
+is Nu = A_mob × Ra^(1/3) with A_mob = 0.122 (Earth-calibrated). Three-regime
+implementation (stagnant / mobile / sluggish) implemented in 008a.
+
+**Error 3 — P_cmb formula truncated in research response:**
+Research response for P_cmb was cut off mid-formula. Formula reconstructed from
+derivation steps provided in the same response, validated numerically against
+Earth (123 GPa, 9.5% below 136 GPa due to uniform-density assumption — confirmed).
+
+### Calibration correction — Q_core = 0 targets
+
+Earth calibration targets were initially set for a full model including Q_core.
+The Q_core = 0 ODE produces different but physically correct values. Earth's
+47 TW surface heat flow includes ~15 TW core heat flux and ~12 TW secular mantle
+cooling that the Q_core = 0 model does not capture. The correct Q_core = 0
+calibration expectations — confirmed by numerical integration — are:
+
+| Quantity | Q_core = 0 result | Full-model Earth | Discrepancy source |
+|---|---|---|---|
+| T_m(4.5 Gyr) | ~1,540 K | ~1,650 K | Q_core raises equilibrium T_m |
+| q_s total | ~24.85 TW | ~47 TW | Q_core + secular excluded |
+| Ra | ~1.67×10⁷ | ~10⁸ | Lower T_m → higher η → lower Ra |
+| Regime | mobile_lid | mobile_lid | ✓ |
+
+All Q_core = 0 outputs are physically self-consistent. Flag 53 updated to
+record quantified consequences.
+
+### Physics implemented
+
+| Quantity | Formula | Source |
+|---|---|---|
+| E_acc | (3/5)GM²/R | Gravitational binding energy |
+| dE_core | 0.04 GM²/R | Analytic differentiation estimate |
+| R_core | R×(CMF/(CMF+χ(1-CMF)))^(1/3) | Two-layer mass-volume conservation |
+| P_cmb | Hydrostatic integral, two uniform layers | Hydrostatic equilibrium |
+| H_rad | M_m × Σ Cᵢhᵢexp(-t/τᵢ) | Nuclear physics + BSE concentrations |
+| η | η_0 exp(E_a/(R_g T_m)) | Arrhenius; η_0 = 1.606×10¹¹ Pa·s |
+| θ | E_a ΔT / (R_g T_m²) | Frank-Kamenetskii linearisation |
+| T_solidus | 1400×(P_GPa/24+1)^0.57 | Simon-Glatzel fit (Fiquet 2010) |
+| Ra | ρ g α ΔT D³ / (κ η) | Boussinesq non-dimensionalisation |
+| Nu (stagnant) | 0.50×(Ra/Ra_c)^(1/3)×θ^(-4/3) | Solomatov (1995) |
+| Nu (mobile) | 0.122×Ra^(1/3) | Isoviscous boundary layer theory |
+| t_lock | ω₀ a⁶ I Q / (3G M★² k₂ R⁵) | Peale (1977); Gladman (1996) |
+| P_tidal | (21/2)(k₂/Q) G M★² R⁵ n e² / a⁶ | Watson et al. (1981) |
+| R_melt | Stub — returns 0. Flag 66. | Kite et al. (2009) — blocked |
+
+### Calibration verified (Earth diagnostic, python diagnostic_v06_earth.py)
+- R_core: 3,493 km (target ~3,480 km, +0.4%) ✓
+- P_cmb: 122.9 GPa (target ~123 GPa) ✓
+- H_rad: 19.82 TW (target 20–24 TW) ✓
+- T_m(4.5 Gyr): 1,540 K (Q_core=0 target ~1,500–1,600 K) ✓
+- Ra: 1.669×10⁷ (target 1×10⁷–1×10⁸) ✓
+- q_s total: 24.85 TW (Q_core=0 target 20–27 TW) ✓
+- tectonic_regime: mobile_lid ✓
+- solidus_reached: False ✓
+- t_lock: 201.8 Gyr (target >50 Gyr) ✓
+
+### Seed 42 verified (python main.py 42 --world-type rocky)
+- T_m: 1,349 K < solidus 2,398.6 K ✓
+- Ra: 8.699×10⁴ > Ra_c = 1,000, mobile_lid ✓
+- solidus_reached: False ✓
+- H_rad: 2.38 TW (physically expected at 11.6 Gyr for 0.279 M_Earth) ✓
+- q_s total: 2.84 TW (physically expected — small planet, low radiogenics) ✓
+- t_lock: 13.49 Gyr, is_locked: False (age 11.63 Gyr < 13.49 Gyr) ✓
+
+### Flags opened this session
+- Flag 50: χ = 2.44 core-mantle density contrast. Earth-calibrated.
+- Flag 51: P_cmb uniform-density assumption. 9.5% underestimate. Inherent.
+- Flag 52: C_p = 1200 J/(kg·K). Earth silicate calibration.
+- Flag 53 (updated): Q_core = 0. Effect quantified: T_m ~110 K lower,
+  q_s ~22 TW lower than observed Earth values. Physically self-consistent
+  at Q_core = 0. Deferred — upstream dependency.
+- Flag 54: E_a = 300,000 J/mol dry peridotite. Earth-calibrated. Assumes
+  dry rheology.
+- Flag 55: Cᵢ BSE-calibrated isotope concentrations. Not universal.
+- Flag 56: ρ_crust, Z_crust, P_f, P_o stagnant lid melt constants.
+  Earth/Venus analogue calibration.
+- Flag 57: T_m(0) = 1,700 K canonical cool-start. Not derivable from
+  cascade without accretion timescale.
+- Flag 58: T_solidus = 1,500 K sub-Neptune magma ocean gate. Earth
+  silicate calibration.
+- Flag 59: Constant T_m(0) across rocky mass range. Inherent to model.
+- Flag 60: ODE self-regulation fails below Ra_c throughout thermal
+  history. Inherent to model for low-mass rocky planets.
+- Flag 61: No solidus ceiling (superseded — ceiling implemented in 008a).
+- Flag 62: A_mob = 0.122 mobile lid prefactor. Earth-calibrated.
+- Flag 63: A_p = 0.50 stagnant lid prefactor. Numerical simulation value.
+  No independent planetary calibration available.
+- Flag 64: Sluggish lid uses mobile lid formula approximation. Inherent.
+- Flag 65: T_solidus Simon-Glatzel fit. Earth peridotite DAC calibration.
+- Flag 66: R_melt = 0. Dimensional inconsistency in Kite et al. melt
+  fraction denominator. Research prompt required. Category: incomplete
+  research — formula transcription error.
+
+### Flags resolved this session
+- Flag 45: Mass sampler architectural problem — resolved (Scaffold 007).
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48, 51, 59, 60, 63, 64
+Earth fallbacks: 04, 09, 13, 23, 39, 41, 50, 52, 54, 55, 56, 57, 58, 62, 65
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44, 53
+Deferred — implementation not yet authorised: 14
+Incomplete research — formula error: 66
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 46, 49
+Model lower bound only: 47
+Empirical GCM calibration: 38B
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Flag 66: R_melt formula dimensional error. Gemini research prompt to be
+written before any R_melt correction is implemented.
+Variable 07: Hydrology is the next simulation variable after Flag 66 is
+resolved or deferred. Gemini research prompt required before any V07
+scope is defined.
