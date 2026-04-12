@@ -15,7 +15,7 @@ from variable_03_stellar.main_sequence_lifetime import compute_main_sequence_lif
 from variable_03_stellar.xuv_luminosity import compute_xuv
 
 
-def run(seed: int) -> dict:
+def run(seed: int, stability: str | None = None) -> dict:
     """
     Execute Variable 03: stellar mass, age, luminosity, radius, temperature, XUV.
 
@@ -23,13 +23,15 @@ def run(seed: int) -> dict:
     ----------
     seed : int
         Cascade seed (mass uses ``seed``; age uses ``seed + 1`` internally).
+    stability : str or None
+        Optional key passed to the stellar mass sampler for draw conditioning.
 
     Returns
     -------
     dict
         Keys as defined in the Variable 03 cascade specification.
     """
-    m_solar, m_kg = sample_stellar_mass(seed)
+    m_solar, m_kg = sample_stellar_mass(seed, stability=stability)
     stab = classify_stellar_stability(m_solar)
     age_gyr, tau_frac = sample_stellar_age(seed, m_solar)
     l_solar, l_w = compute_stellar_luminosity(m_solar)

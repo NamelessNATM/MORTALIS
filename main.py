@@ -2,8 +2,7 @@
 # Entry point. Orchestrates the variable cascade in order.
 # Contains no physics. All physics lives in variable sub-function files.
 
-import sys
-
+from world_config.world_config import build_config
 from coordinate_system.coordinate_system import run as run_coordinate_system
 from map_generator.map_generator import run as run_map_generator
 from outputs.manifest import next_version
@@ -14,8 +13,8 @@ from variable_05_kinematics.variable_05_kinematics import run as run_variable_05
 from variable_04_atmosphere import variable_04_atmosphere
 
 
-def run(seed: int):
-    v01 = run_variable_01(seed)
+def run(seed: int, config: dict):
+    v01 = run_variable_01(seed, regime=config['regime'])
     v02 = run_variable_02(seed, v01["M_kg"], v01["mu"])
 
     active_variables = ["v01", "v02", "v03", "v05", "v04"]
@@ -23,7 +22,7 @@ def run(seed: int):
 
     grid, meta = run_coordinate_system(v02, npz_path)
 
-    v03 = run_variable_03(seed)
+    v03 = run_variable_03(seed, stability=config.get('stability'))
     v05 = run_variable_05(seed, v01, v02, v03)
     v04 = variable_04_atmosphere.run(seed, v01, v02, v03, v05)
 
@@ -42,9 +41,24 @@ def run(seed: int):
 
 
 if __name__ == "__main__":
-    seed = int(sys.argv[1]) if len(sys.argv) > 1 else 42
+    import argparse
 
-    result = run(seed)
+    parser = argparse.ArgumentParser(description='MORTALIS World Generation Engine')
+    parser.add_argument('seed', type=int, nargs='?', default=None,
+                        help='Integer seed. If omitted, a random seed is generated.')
+    parser.add_argument('--world-type', type=str, default=None,
+                        dest='world_type',
+                        help='World type: rocky, sub_neptune, gas_giant, dwarf. '
+                             'Default: unrestricted galactic draw.')
+    args = parser.parse_args()
+
+    import random as _random
+    seed = args.seed if args.seed is not None else _random.randint(0, 2**31 - 1)
+    world_type_arg = args.world_type
+
+    config = build_config(world_type=world_type_arg)
+
+    result = run(seed, config)
     v01 = result["v01"]
     v02 = result["v02"]
     v03 = result["v03"]
@@ -56,6 +70,8 @@ if __name__ == "__main__":
     R_EARTH_M = 6.371e6
 
     print(f"\n=== MORTALIS World Engine — Seed {seed} ===")
+    print(f"\n--- World Config ---")
+    print(f"  world_type : {config['world_type'] or 'unrestricted (galactic draw)'}")
     print(f"\n--- Variable 01: Mass ---")
     print(f"  M        : {v01['M_kg']:.4e} kg")
     print(f"  M_earth  : {v01['M_kg'] / M_EARTH_KG:.4f}")

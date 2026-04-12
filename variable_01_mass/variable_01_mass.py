@@ -19,14 +19,15 @@ from variable_01_mass.mass_sampler import sample_mass
 from variable_01_mass.gravitational_parameter import compute_gravitational_parameter
 
 
-def run(seed: int) -> dict:
+def run(seed: int, regime: str | None = None) -> dict:
     """
     Execute Variable 01: sample planetary mass from seed and compute
     gravitational parameter.
 
     Parameters
     ----------
-    seed : integer seed (from main.py cascade)
+    seed   : integer seed (from main.py cascade)
+    regime : optional regime string for mass sampler conditioning
 
     Returns
     -------
@@ -34,7 +35,7 @@ def run(seed: int) -> dict:
         'M_kg' : planetary mass [kg]
         'mu'   : standard gravitational parameter [m^3 s^-2]
     """
-    M_kg = sample_mass(seed)
+    M_kg = sample_mass(seed, regime=regime)
     mu   = compute_gravitational_parameter(M_kg)
 
     return {

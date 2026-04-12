@@ -488,3 +488,469 @@ V04 implementation. All flags are now defined and the record is complete.
 The research for V04 was completed prior to Scaffold 005 and established
 that V05 must run before V04 can produce complete outputs. V05 is complete.
 V04 is now fully unblocked.
+
+## Scaffold 006 — Variable 04: Atmosphere
+**Date:** 2026-04-12
+**Type:** Implementation
+
+### What was implemented
+Variable 04 maps planetary regime and orbital inputs to an atmospheric
+classification and structure. It runs after Variable 05 in the cascade,
+consuming orbital flux inputs that were unavailable during the original
+V04 research session. A two-pass architecture resolves the circularity
+between T_exo and atmospheric composition.
+
+### Files created
+- `variable_04_atmosphere/exobase_temperature.py` — corrected conduction
+  model T_exo = T_eq + (ε F_XUV α H_0) / K_c with H_0 = k_B T_eq / (m_mean g).
+  Pass-1 m_mean assigned from regime; optional m_mean_kg parameter for
+  Pass-2 refinement. Returns None for dwarf and brown_dwarf regimes.
+- `variable_04_atmosphere/jeans_parameter.py` — Jeans escape parameter
+  lambda per species (H, He, O, H2O, N2, CO2). Returns lambda and
+  retained flag per species.
+- `variable_04_atmosphere/regime_classifier.py` — atmospheric class and
+  dominant composition from regime, Jeans results, and M_dot * age.
+  Classes: none, primary_retained, primary_stripped, secondary_possible,
+  exosphere_only.
+- `variable_04_atmosphere/surface_pressure.py` — P_s = M_atm * g / (4πR²).
+  Returns 0.0 for no atmosphere, None for all other cases (M_atm blocked
+  by Flag 40 for rocky; no solid surface for giants).
+- `variable_04_atmosphere/lapse_rate.py` — Gamma_d = g / c_p per
+  composition class. c_p values: H2/He 12,000 J/(kg·K) (Jupiter/Saturn
+  confirmed); N2/CO2 rocky 1,004 J/(kg·K) (Earth default, Flag 28).
+- `variable_04_atmosphere/scale_height.py` — H = R* T_eq / (mu g).
+  Uses T_eq as temperature approximation (Flag 43). Returns None for
+  no-atmosphere cases.
+- `variable_04_atmosphere/variable_04_atmosphere.py` — entry point.
+  Two-pass flow: Pass 1 with regime-default m_mean; Pass 2 if dominant
+  species fails Jeans retention (H for giants, N2+CO2 for rocky).
+  No physics directly.
+
+### Files modified
+- `variable_04_atmosphere/variable_04_atmosphere.py` — stub replaced
+  with full implementation (listed above as created)
+- `main.py` — Variable 04 import and call added after Variable 05;
+  cascade order: v01 → v02 → coordinate_system → v03 → v05 → v04 →
+  map_generator; active_variables includes v04; print block added.
+
+### Research path
+Three research sessions required for this variable:
+1. Initial V04 research — established that V05 must run before V04;
+   all major outputs deferred pending orbital inputs.
+2. V04 follow-up (post-V05) — supplied full formula set with orbital
+   inputs in scope. T_exo formula contained a length-scale error
+   (R used instead of α H_0). Formula failed Earth calibration by
+   factor ~96.
+3. T_exo correction prompt — established correct characteristic length
+   as α × H_0 (α = 7 pressure depth scale heights). Corrected formula
+   reproduces Earth T_exo ~1,038 K from Earth inputs. ✓
+
+### Physics implemented
+| Quantity | Formula | Source |
+|---|---|---|
+| T_exo | T_eq + (ε F_XUV α H_0) / K_c | Watson et al. 1981; Erkaev et al. 2013 |
+| H_0 | k_B T_eq / (m_mean g) | Ideal gas law + hydrostatic equilibrium |
+| λ per species | v_e² / v_th² | Chamberlain & Hunten 1987 |
+| Γ_d | g / c_p | First Law of Thermodynamics |
+| H | R* T_eq / (μ g) | Ideal gas law + hydrostatic equilibrium |
+| P_s | M_atm g / (4π R²) | Hydrostatic equilibrium |
+
+### Calibration verified
+- T_exo Earth-analog: 1,038 K (target ~1,000–1,200 K) ✓
+- λ_H Earth: 7.29 < 15 (H escapes) ✓
+- λ_N2 Earth: 202.9 > 15 (N2 retained) ✓
+- λ_CO2 Earth: 319 > 15 (CO2 retained) ✓
+- Γ_d Earth: 9.77 K/km (target 9.8 K/km) ✓
+- Γ_d Jupiter: 2.07 K/km (target ~2.0 K/km) ✓
+- H Earth: 7,454 m (T_eq used; lower than 8,500 m surface value,
+  expected per Flag 43) ✓
+
+### Seed outputs verified (post-implementation, python main.py)
+- Seeds 1, 7, 42: all dwarf regime. T_exo = None, P_s = 0.0,
+  atm_class = none, notes correct. No NaN, no crashes. ✓
+- Rocky/gas giant/sub-Neptune branches verified via targeted diagnostic
+  script with Earth-analog, Jupiter-analog, and sub-Neptune inputs.
+
+### Known behaviour note
+T_exo for dwarf bodies is not computed (returns None). In prior
+implementation T_exo was computed for dwarfs and returned physically
+meaningless extreme values (~4,000–95,000 K) because the conduction
+model requires a continuum atmosphere. The corrected implementation
+correctly short-circuits at the dwarf check.
+
+### Flags opened this session
+- Flag 39: K_c (thermospheric thermal conductivity) is gas-dependent,
+  lab-measured. O/N2: 0.05 W/m/K; H2/He: 0.30 W/m/K.
+  Source: Banks & Kockarts (1973).
+- Flag 40: X_vol (mantle volatile fraction) has no cascade origin.
+  M_atm for rocky planets blocked. P_s = None for rocky until disk
+  chemistry variable added.
+- Flag 41: τ_degas (degassing timescale) Earth-calibrated empirical
+  coefficient. Not yet implemented — recorded for when outgassing model
+  is added.
+- Flag 42: Sub-Neptune envelope stripping boundary uses placeholder
+  envelope mass fraction (5% of M). Initial envelope mass requires
+  protoplanetary disk accretion variable.
+- Flag 43: τ_IR greenhouse correction not applied. Scale height and
+  surface T use T_eq as approximation. Surface values underestimated
+  for planets with significant greenhouse warming.
+- Flag 44: Tidal locking atmospheric collapse — confirmed via 3D GCMs,
+  no closed-form correction. Deferred to Variable 06.
+- Flag 45: Mass sampler draws from galactic demographic PDF. Rocky or
+  larger bodies occur with probability ~10⁻¹¹. Engine cannot generate
+  habitable worlds in normal operation. Requires design decision:
+  conditioned draw or two-stage architecture. Research prompt required
+  before any implementation.
+- Flag 46: α = 7 (pressure depth factor) theoretically universal from
+  ln(P_meso/P_XUV) ≈ ln(10³). Empirically confirmed on Earth and Mars
+  only.
+- Flag 47: Gas giant T_exo is a lower bound only. Giant Planet Energy
+  Crisis — internal Joule/auroral heating dominates on stable giants.
+  No cascade variable represents this contribution.
+
+### Flags resolved this session
+- Flag 10: Water phase state — resolved via Jeans retention logic in
+  regime_classifier.py. Phase state follows from T_eq (V05) and
+  atmospheric class.
+- Flag 27: λ_crit = 15–20 — implemented with Flag 27 documentation.
+  Chamberlain & Hunten (1987) threshold applied.
+- Flag 28: c_p for rocky atmospheres — implemented with Earth-mix
+  default and Flag 28 documentation. Known values applied per regime.
+- Flag 30: M_atm deferred — formally stubbed. P_s returns None for
+  rocky with Flag 40 documentation.
+
+### Flags still open
+Inherent to model: 05, 08, 11, 12, 20, 22, 37
+Earth fallbacks: 04, 09, 13, 23, 39, 41
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44
+Deferred — design decision required: 45
+Deferred — implementation not yet authorised: 14
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 38, 46
+Model lower bound only: 47
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Flag 45 requires a design decision before Variable 06 can be built on
+a functional engine. The mass sampler must be addressed — either via a
+conditioned draw for game world generation or a two-stage architecture.
+Research prompt to be written before any implementation proceeds.
+
+## Scaffold 006 — Variable 04: Atmosphere
+**Date:** 2026-04-12
+**Type:** Implementation
+
+### What was implemented
+Variable 04 maps planetary regime and orbital inputs to an atmospheric
+classification and structure. It runs after Variable 05 in the cascade,
+consuming orbital flux inputs that were unavailable during the original
+V04 research session. A two-pass architecture resolves the circularity
+between T_exo and atmospheric composition.
+
+### Files created
+- `variable_04_atmosphere/exobase_temperature.py` — corrected conduction
+  model T_exo = T_eq + (ε F_XUV α H_0) / K_c with H_0 = k_B T_eq / (m_mean g).
+  Pass-1 m_mean assigned from regime; optional m_mean_kg parameter for
+  Pass-2 refinement. Returns None for dwarf and brown_dwarf regimes.
+- `variable_04_atmosphere/jeans_parameter.py` — Jeans escape parameter
+  lambda per species (H, He, O, H2O, N2, CO2). Returns lambda and
+  retained flag per species.
+- `variable_04_atmosphere/regime_classifier.py` — atmospheric class and
+  dominant composition from regime, Jeans results, and M_dot * age.
+  Classes: none, primary_retained, primary_stripped, secondary_possible,
+  exosphere_only.
+- `variable_04_atmosphere/surface_pressure.py` — P_s = M_atm * g / (4πR²).
+  Returns 0.0 for no atmosphere, None for all other cases (M_atm blocked
+  by Flag 40 for rocky; no solid surface for giants).
+- `variable_04_atmosphere/lapse_rate.py` — Gamma_d = g / c_p per
+  composition class. c_p values: H2/He 12,000 J/(kg·K) (Jupiter/Saturn
+  confirmed); N2/CO2 rocky 1,004 J/(kg·K) (Earth default, Flag 28).
+- `variable_04_atmosphere/scale_height.py` — H = R* T_eq / (mu g).
+  Uses T_eq as temperature approximation (Flag 43). Returns None for
+  no-atmosphere cases.
+- `variable_04_atmosphere/variable_04_atmosphere.py` — entry point.
+  Two-pass flow: Pass 1 with regime-default m_mean; Pass 2 if dominant
+  species fails Jeans retention. No physics directly.
+
+### Files modified
+- `variable_04_atmosphere/variable_04_atmosphere.py` — stub replaced
+  with full implementation (listed above as created)
+- `main.py` — Variable 04 import and call added after Variable 05;
+  cascade order: v01 → v02 → coordinate_system → v03 → v05 → v04 →
+  map_generator; active_variables includes v04; print block added.
+
+### Research path
+Three research sessions required for this variable:
+1. Initial V04 research — established that V05 must run before V04;
+   all major outputs deferred pending orbital inputs.
+2. V04 follow-up (post-V05) — supplied full formula set with orbital
+   inputs in scope. T_exo formula contained a length-scale error
+   (R used instead of α H_0). Formula failed Earth calibration by
+   factor ~96.
+3. T_exo correction prompt — established correct characteristic length
+   as α × H_0 (α = 7 pressure depth scale heights). Corrected formula
+   reproduces Earth T_exo ~1,038 K from Earth inputs. ✓
+
+### Physics implemented
+| Quantity | Formula | Source |
+|---|---|---|
+| T_exo | T_eq + (ε F_XUV α H_0) / K_c | Watson et al. 1981; Erkaev et al. 2013 |
+| H_0 | k_B T_eq / (m_mean g) | Ideal gas law + hydrostatic equilibrium |
+| λ per species | v_e² / v_th² | Chamberlain & Hunten 1987 |
+| Γ_d | g / c_p | First Law of Thermodynamics |
+| H | R* T_eq / (μ g) | Ideal gas law + hydrostatic equilibrium |
+| P_s | M_atm g / (4π R²) | Hydrostatic equilibrium |
+
+### Calibration verified
+- T_exo Earth-analog: 1,038 K (target ~1,000–1,200 K) ✓
+- λ_H Earth: 7.29 < 15 (H escapes) ✓
+- λ_N2 Earth: 202.9 > 15 (N2 retained) ✓
+- λ_CO2 Earth: 319 > 15 (CO2 retained) ✓
+- Γ_d Earth: 9.77 K/km (target 9.8 K/km) ✓
+- Γ_d Jupiter: 2.07 K/km (target ~2.0 K/km) ✓
+- H Earth: 7,454 m (T_eq used; lower than 8,500 m surface value,
+  expected per Flag 43) ✓
+
+### Seed outputs verified
+- Seeds 1, 7, 42: all dwarf regime. T_exo = None, P_s = 0.0,
+  atm_class = none, notes correct. No NaN, no crashes. ✓
+- Rocky/gas giant/sub-Neptune branches verified via targeted diagnostic
+  script with Earth-analog, Jupiter-analog, and sub-Neptune inputs.
+
+### Known behaviour note
+T_exo for dwarf bodies returns None. Prior implementation computed T_exo
+for dwarfs and returned physically meaningless extreme values (~4,000–95,000 K)
+because the conduction model requires a continuum atmosphere. The corrected
+implementation correctly short-circuits at the dwarf check.
+
+### Flags opened this session
+- Flag 39: K_c (thermospheric thermal conductivity) is gas-dependent,
+  lab-measured. O/N2: 0.05 W/m/K; H2/He: 0.30 W/m/K.
+  Source: Banks & Kockarts (1973).
+- Flag 40: X_vol (mantle volatile fraction) has no cascade origin.
+  M_atm for rocky planets blocked. P_s = None for rocky until disk
+  chemistry variable added.
+- Flag 41: τ_degas (degassing timescale) Earth-calibrated empirical
+  coefficient. Not yet implemented — recorded for when outgassing model
+  is added.
+- Flag 42: Sub-Neptune envelope stripping boundary uses placeholder
+  envelope mass fraction (5% of M). Initial envelope mass requires
+  protoplanetary disk accretion variable.
+- Flag 43: τ_IR greenhouse correction not applied. Scale height and
+  surface T use T_eq as approximation. Surface values underestimated
+  for planets with significant greenhouse warming.
+- Flag 44: Tidal locking atmospheric collapse — confirmed via 3D GCMs,
+  no closed-form correction. Deferred to Variable 06.
+- Flag 45: Mass sampler draws from galactic demographic PDF. Rocky or
+  larger bodies occur with probability ~10⁻¹¹. Engine cannot generate
+  habitable worlds in normal operation. Requires design decision.
+  Resolved in Scaffold 007.
+- Flag 46: α = 7 (pressure depth factor) theoretically universal from
+  ln(P_meso/P_XUV) ≈ ln(10³). Empirically confirmed on Earth and Mars
+  only.
+- Flag 47: Gas giant T_exo is a lower bound only. Giant Planet Energy
+  Crisis — internal Joule/auroral heating dominates on stable giants.
+  No cascade variable represents this contribution.
+
+### Flags resolved this session
+- Flag 10: Water phase state — resolved via Jeans retention logic in
+  regime_classifier.py. Phase state follows from T_eq (V05) and
+  atmospheric class.
+- Flag 27: λ_crit = 15–20 — implemented with Flag 27 documentation.
+  Chamberlain & Hunten (1987) threshold applied.
+- Flag 28: c_p for rocky atmospheres — implemented with Earth-mix
+  default and Flag 28 documentation. Known values applied per regime.
+- Flag 30: M_atm deferred — formally stubbed. P_s returns None for
+  rocky with Flag 40 documentation.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37
+Earth fallbacks: 04, 09, 13, 23, 39, 41
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44
+Deferred — design decision required: 45 (resolved Scaffold 007)
+Deferred — implementation not yet authorised: 14
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 38, 46
+Model lower bound only: 47
+Pre-registered duplicate: 26 (= Flag 34)
+
+---
+
+## Scaffold 007 — World Config: User Input Layer and Mass Sampler Conditioning
+**Date:** 2026-04-12
+**Type:** Implementation
+
+### What was implemented
+Flag 45 identified that the mass sampler draws from the full galactic
+demographic PDF, making habitable world generation effectively impossible
+in normal operation (probability ~10⁻¹¹ for rocky or larger). The
+resolution is a user input layer that conditions the mass sampler on a
+user-selected world type without modifying any physics.
+
+The world_config module is the sole channel between user selections and
+the simulation. main.py passes a config dict into the cascade. Variable
+sub-functions never see user inputs directly. This pattern is established
+here for all future user-facing parameters (stellar preference, fantasy
+distortion level, race requirements, etc.).
+
+### Architectural note — GUI
+CLI args are the current interface. A GUI will be built later that
+supplies the same parameters to world_config at the backend. The
+world_config module does not need to change when the interface changes —
+it accepts parameters regardless of their source. main.py is not the
+permanent interface; it is the current interface.
+
+### Files created
+- `world_config/__init__.py` — empty package marker
+- `world_config/world_type.py` — valid world types, WORLD_TYPE_TO_REGIME
+  mapping, validate_world_type(). Valid types: rocky, sub_neptune,
+  gas_giant, dwarf. brown_dwarf excluded (outside atmospheric domain).
+  None = unrestricted galactic draw (default).
+- `world_config/world_config.py` — build_config() entry point. Accepts
+  world_type, validates it, returns config dict with world_type and
+  regime keys. No physics. No imports from variable folders.
+
+### Files modified
+- `variable_01_mass/mass_sampler.py` — optional regime parameter added
+  to sample_mass(). When supplied, m_min and m_max are clamped to that
+  regime's mass boundaries using constants imported from
+  regime_classifier.py. _REGIME_BOUNDS dict maps regime strings to
+  (lo, hi) boundary pairs. Unrestricted behaviour unchanged when
+  regime=None.
+- `variable_03_stellar/stellar_mass_sampler.py` — optional stability
+  parameter added to sample_stellar_mass(). _STABILITY_BOUNDS dict maps
+  stability strings to (lo, hi) M☉ pairs. _build_truncated_segments()
+  and _build_cdf_tables() refactored to accept draw_lo and draw_hi as
+  parameters. Module-level CDF cache used when stability=None (no
+  performance regression on unrestricted draws). 5,000-seed validation
+  confirmed all conditioned draws stay within [0.5, 1.5] M☉ for
+  stability='stable'.
+- `variable_01_mass/variable_01_mass.py` — run() accepts regime=None;
+  passes through to sample_mass().
+- `variable_03_stellar/variable_03_stellar.py` — run() accepts
+  stability=None; passes through to sample_stellar_mass().
+- `main.py` — build_config imported; --world-type CLI argument parsed;
+  config dict assembled before cascade; regime passed to v01 run;
+  stability passed to v03 run via config.get('stability') (always None
+  until stellar conditioning is wired to a CLI arg); world config print
+  block added.
+
+### Known gap — stellar stability not yet CLI-wired
+config.get('stability') is always None at this stage. The conditioning
+infrastructure in stellar_mass_sampler is complete and validated, but
+build_config does not yet accept or expose a stellar stability input and
+no --stellar-type CLI argument exists. This is intentional — stellar
+conditioning was not in scope for this scaffold. It is the next
+user-input parameter to be added to world_config when required.
+
+### Verified runs
+- python main.py 42 — unrestricted galactic draw, all variables execute
+  cleanly. ✓
+- python main.py 42 --world-type rocky — mass conditioned to rocky
+  regime, all variables execute cleanly. ✓
+- Invalid --world-type raises ValueError with descriptive message. ✓
+- 5,000 seeds with stability='stable' confirmed in [0.5, 1.5] M☉. ✓
+
+### Flags resolved this session
+- Flag 45: Mass sampler architectural problem — resolved. Conditioned
+  draw implemented via world_config user input layer. Unrestricted
+  galactic draw remains the default and is preserved for diagnostic and
+  research use.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37
+Earth fallbacks: 04, 09, 13, 23, 39, 41
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44
+Deferred — implementation not yet authorised: 14
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 38, 46
+Model lower bound only: 47
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Stellar stability conditioning needs a --stellar-type CLI argument and
+a corresponding key in build_config. This is a small addition to
+world_config and main.py — no variable sub-function changes required.
+After that, Variable 06: Tectonics is the next simulation variable.
+A Gemini research prompt is required before any Variable 06 scope is
+defined.
+
+## Scaffold 007a — Argument Parser Fix and Stellar Conditioning Design Decision
+**Date:** 2026-04-12
+**Type:** Patch + Design Decision
+
+### What was fixed
+The manual argv parser in main.py assumed the first argument was always
+an integer seed. Passing --world-type as the first argument without a
+seed caused a ValueError on int() conversion. Replaced manual argv
+handling with argparse.
+
+### Files modified
+- `main.py` — replaced manual sys.argv parsing with argparse.
+  seed is now an optional positional argument (type=int, nargs='?',
+  default=None). --world-type is a named optional argument. When seed
+  is omitted, a random seed is generated via random.randint(0, 2**31-1).
+  import sys removed as it was no longer needed.
+
+### New valid call signatures
+- `python main.py` — random seed, unrestricted galactic draw
+- `python main.py 42` — fixed seed, unrestricted galactic draw
+- `python main.py --world-type rocky` — random seed, rocky regime
+- `python main.py 42 --world-type rocky` — fixed seed, rocky regime
+
+### Verified runs
+Three seedless conditioned draws executed with --world-type rocky:
+- Seed 42 (prior fixed run): M_star = 0.530 M☉, stable ✓
+- Seed 1090036121: M_star = 0.742 M☉, stable ✓
+- Seed 1973543832: M_star = 1.852 M☉, unstable_high. T_exo = 7.2×10⁶ K.
+  Atmosphere fully stripped. atm_class = exosphere_only. Engine
+  reported this correctly and without error.
+
+### Design decision — stellar draw not conditioned on world type
+The third run produced an A-type star (1.85 M☉, unstable_high) paired
+with a user-selected rocky world. The engine processed this without
+complaint and correctly identified the consequence: extreme XUV, total
+atmospheric stripping, exosphere only.
+
+The decision was made to leave the stellar draw unconstrained for all
+world types. Reasons:
+
+1. MORTALIS worlds are not required to be habitable in the Earth sense.
+   The fantasy distortion layer will push parameters beyond realistic
+   ranges regardless. An A-type star with a stripped rocky world is a
+   physically valid and characterful starting point — white-blue sky,
+   extreme radiation, scorched surface. Constraining the stellar draw
+   would silently remove this entire class of world from the possibility
+   space.
+
+2. The engine already handles the consequence correctly. The simulation
+   identifies the star as unstable, computes the XUV flux accurately,
+   strips the atmosphere via Jeans and hydrodynamic escape, and reports
+   the result honestly. The physical consistency is present regardless
+   of stellar type.
+
+3. Stellar type variation produces meaningfully different world
+   characters — different sky colours, stellar spectra, XUV
+   environments, atmospheric outcomes — all of which are desirable
+   inputs for fantasy world generation.
+
+The infrastructure for stellar stability conditioning (stability
+parameter in sample_stellar_mass, _STABILITY_BOUNDS, build_config
+stability key) remains in the codebase and is fully functional. It
+is available if a future use case requires it — for example, a
+'habitable' world type preset that constrains both regime and stellar
+stability simultaneously. That use case does not exist yet and is not
+implemented.
+
+### Flags
+No new flags opened. No flags resolved.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37
+Earth fallbacks: 04, 09, 13, 23, 39, 41
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44
+Deferred — implementation not yet authorised: 14
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 38, 46
+Model lower bound only: 47
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Variable 06: Tectonics. Gemini research prompt to be written before
+any scope is defined.

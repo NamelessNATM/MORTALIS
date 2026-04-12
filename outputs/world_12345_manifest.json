@@ -1,0 +1,18 @@
+{
+  "seed": 12345,
+  "version": 1,
+  "history": [
+    {
+      "version": 1,
+      "active_variables": [
+        "v01",
+        "v02",
+        "v03",
+        "v05",
+        "v04"
+      ],
+      "npz": "outputs/world_12345_v001.npz",
+      "png": "outputs/world_12345_v001.png"
+    }
+  ]
+}
