@@ -10,6 +10,7 @@ from variable_01_mass.variable_01_mass import run as run_variable_01
 from variable_02_composition.variable_02_composition import run as run_variable_02
 from variable_03_stellar.variable_03_stellar import run as run_variable_03
 from variable_05_kinematics.variable_05_kinematics import run as run_variable_05
+from variable_05_kinematics.bond_albedo import compute_pass2_albedo
 from variable_04_atmosphere import variable_04_atmosphere
 
 
@@ -25,6 +26,18 @@ def run(seed: int, config: dict):
     v03 = run_variable_03(seed, stability=config.get('stability'))
     v05 = run_variable_05(seed, v01, v02, v03)
     v04 = variable_04_atmosphere.run(seed, v01, v02, v03, v05)
+
+    # Bond albedo Pass 2 — post-atmospheric refinement (Flag 38)
+    A_B, T_eq_final_K = compute_pass2_albedo(
+        A_proxy=v05["albedo_proxy"],
+        atm_class=v04["atm_class"],
+        composition=v04["composition"],
+        F_mean_W_m2=v05["F_mean_W_m2"],
+        T_eff_K=v03["T_eff_K"],
+        regime=v02["regime"],
+    )
+    v05["albedo_final"] = A_B
+    v05["T_eq_K"] = T_eq_final_K
 
     run_map_generator(grid, meta, png_path)
 
@@ -114,8 +127,10 @@ if __name__ == "__main__":
     print(f"  T_orb        : {v05['T_orb_s']:.4e} s ({v05['T_orb_s']/86400:.2f} days)")
     print(f"  <F>          : {v05['F_mean_W_m2']:.4e} W/m^2")
     print(f"  F_XUV        : {v05['F_XUV_W_m2']:.4e} W/m^2")
+    print(f"  albedo_proxy : {v05['albedo_proxy']:.4f}  (Pass 1)")
+    print(f"  T_eq^(0)     : {v05['T_eq_proxy_K']:.2f} K")
+    print(f"  albedo_final : {v05['albedo_final']:.4f}  (Pass 2)")
     print(f"  T_eq         : {v05['T_eq_K']:.2f} K")
-    print(f"  albedo       : {v05['albedo']:.2f} (placeholder)")
     print(f"  R_H          : {v05['R_H_m']:.4e} m")
     print(f"  M_dot        : {v05['M_dot_kg_s']:.4e} kg/s")
     print(f"  a_Roche      : {v05['a_roche_m']:.4e} m ({v05['a_roche_m']/AU_M:.6f} AU)")

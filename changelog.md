@@ -954,3 +954,158 @@ Pre-registered duplicate: 26 (= Flag 34)
 ### Next step
 Variable 06: Tectonics. Gemini research prompt to be written before
 any scope is defined.
+
+## Scaffold 008 — Flag 38: Bond Albedo Two-Pass Architecture
+**Date:** 2026-04-12
+**Type:** Implementation
+
+### What was implemented
+Replaced three fixed Solar System placeholder albedos (rocky 0.30,
+giant 0.50, dwarf 0.10) in equilibrium_temperature.py with a physically
+derived two-pass Bond albedo framework. Pass 1 runs before Variable 04
+and produces a pre-atmospheric proxy albedo from cascade inputs alone.
+Pass 2 runs after Variable 04 and refines the albedo using atmospheric
+class and stellar spectrum. T_eq is recomputed after both passes. The
+calibration target is corrected from the legacy pairing (A=0.30,
+T_eq=254.6 K) to the CERES-accurate pairing (A=0.306, T_eq=254.0 K).
+
+### Files created
+- `variable_05_kinematics/bond_albedo.py` — Pass 1 and Pass 2 albedo
+  functions. Pass 1: Sudarsky (2000) piecewise condensate classification
+  for gas_giant / sub_neptune / brown_dwarf; rock-ice surface mix for
+  rocky / dwarf. Pass 2: Del Genio et al. (2019) segmented linear model
+  for rocky planets with retained atmosphere; Pass 1 held for all other
+  regimes.
+
+### Files modified
+- `variable_05_kinematics/equilibrium_temperature.py` — regime-to-albedo
+  lookup removed. Function now accepts A_proxy as direct input. Earth
+  calibration note updated to Pass 1 values (A=0.15 → T_eq^(0)=266.7 K).
+- `variable_05_kinematics/variable_05_kinematics.py` — Pass 1 call added
+  after stellar flux, before equilibrium temperature. Output dict updated:
+  albedo_proxy, T_eq_proxy_K added; T_eq_K is Pass 1 at V05 stage.
+- `main.py` — Pass 2 call added after V04, before map generator.
+  albedo_final and T_eq_K (Pass 2 final) written back to v05 dict.
+  Print block updated to show all four albedo/temperature lines.
+
+### Physics implemented
+
+Pass 1 — Gas giant / sub-Neptune / brown_dwarf (Sudarsky 2000):
+  T0 = (⟨F⟩ / 4σ)^0.25  [zero-albedo blackbody baseline]
+  Piecewise A_proxy by T0 (K):
+    < 150         → 0.57   (NH3 cloud deck)
+    150–250       → 0.57 + (T0-150)/100 × 0.24  (NH3→H2O transition)
+    250–300       → 0.81   (H2O cloud deck)
+    300–400       → 0.81 - (T0-300)/100 × 0.69  (clouds clear)
+    400–900       → 0.12   (cloudless, Rayleigh + CH4 absorption)
+    900–1000      → 0.12 - (T0-900)/100 × 0.09  (alkali transition)
+    1000–1500     → 0.03   (alkali absorption dominant)
+    ≥ 1500        → 0.55   (silicate/iron condensate clouds)
+  Source: Sudarsky et al. 2000, ApJ 538:885.
+  Scope: multi-body confirmed (Solar System giants + exoplanet models).
+
+Pass 1 — Rocky / dwarf:
+  A_rock = 0.15 (bare silicate-iron regolith baseline)
+    Source: lunar, Mercurian, asteroidal phase integrals.
+    ⚠️ EARTH FALLBACK — Solar System calibrated only.
+  A_ice(T_eff) = 0.40 + 0.25 × clamp((T_eff-3000)/4000, 0, 1)
+    Source: Shields et al. 2013, Astrobiology 13:715.
+    Scope: confirmed across multiple planetary bodies/models.
+  f_ice = clamp((270 - T0) / 70, 0, 1); forced to 0 for silicate-iron.
+  A_proxy = A_rock × (1 - f_ice) + A_ice × f_ice
+
+Pass 2 — Gas giant / sub-Neptune / brown_dwarf:
+  A_B = A_proxy (Pass 1 Sudarsky held).
+  Roman (2023) geometric invariant requires T_surf. Substituting
+  T_eq^(0) collapses numerator to zero identically (proven numerically
+  for Jupiter: predicted A_B = 0.000 vs measured 0.503). Deferral
+  confirmed. Unblocks when Flag 43 resolved.
+
+Pass 2 — Rocky, atm_class in {primary_retained, primary_stripped,
+         secondary_possible}:
+  Del Genio et al. 2019, ApJ 884:75. 29 ROCKE-3D GCM simulations.
+  Scope: confirmed across multiple planetary bodies/models.
+  S_ox = ⟨F⟩ / 1361
+  S_ox ≥ 1.0: A_B = 0.283 + 0.165(S_ox-1) + 0.119(T_eff/5780-1)
+  S_ox < 1.0: A_B = 0.283 - 0.211(S_ox-1) + 0.164(T_eff/5780-1)
+  A_B clamped to [0.0, 1.0].
+  ⚠️ Flag 38B: coefficients empirical, ROCKE-3D calibrated. Biased
+  toward N2/CO2/H2O atmospheres. f_land absent — residual vs Earth
+  is 0.023 (0.283 predicted vs 0.306 observed).
+
+Pass 2 — Rocky, atm_class in {none, exosphere_only}:
+  A_B = A_proxy (no atmosphere to refine with).
+
+Pass 2 — Dwarf:
+  A_B = A_proxy (Pass 1 held).
+
+T_eq recomputed after Pass 2: T_eq = ((1-A_B)⟨F⟩ / 4σ)^0.25
+
+Calibration target corrected:
+  Legacy: A = 0.30 → T_eq = 254.6 K (rounded albedo)
+  CERES:  A = 0.306 → T_eq = 254.0 K (authoritative)
+  Engine now targets CERES pairing.
+
+### Calibration verified (pre-implementation)
+Pass 1 Earth: A_proxy=0.15, T_eq^(0)=266.7 K ✓
+Pass 2 Earth: S_ox=1.0, T_eff=5778K → A_B=0.283, T_eq=268.9 K ✓
+Sudarsky piecewise: continuous at all five transition boundaries ✓
+A_ice: 0.40 at 3000K, 0.574 at 5778K, 0.65 at 7000K ✓
+Del Genio sign confirmed: positive T_eff coefficient. M-dwarf planets
+  lower albedo than G-dwarf at same S_ox. Sign error in initial
+  research response identified and corrected via targeted follow-up
+  prompt before implementation was authorised.
+
+### Seed 42 verified output (python main.py 42 --world-type rocky)
+- Planet: 0.279 M_earth rocky, regime = rocky
+- Star: 0.530 M_sun, T_eff = 3917.90 K, stable
+- ⟨F⟩ = 209.88 W/m², S_ox = 0.154
+- albedo_proxy: 0.1500 (Pass 1 — silicate-iron, f_ice forced to 0)
+- T_eq^(0):     167.47 K
+- albedo_final: 0.4086 (Pass 2 — Del Genio, low instellation branch)
+- T_eq:         152.95 K
+- Pass 2 arithmetic verified: 0.283 - 0.211×(-0.846) + 0.164×(-0.322)
+  = 0.283 + 0.178 - 0.053 = 0.4086 ✓
+- V04 T_exo = 279.52 K consistent with T_eq^(0) input ✓
+
+### Research path
+Four Gemini research sessions:
+1. Initial Flag 38 prompt — established two-pass architecture and Pass 1
+   derivation in full. Pass 2 contained three gaps.
+2. Pass 2 follow-up — closed Gap 1 (Roman deferral proven); provided Del
+   Genio coefficients with sign error; derived C_Rayleigh = 16.67 bar⁻¹.
+3. Sign correction prompt — confirmed positive T_eff coefficient. Prior
+   response had transcribed negative signs on both T_eff terms. Corrected
+   before any implementation proceeded.
+
+### Flags opened this session
+- Flag 48: Sudarsky albedo framework applied to brown_dwarf regime.
+  Framework assumes stellar insolation dominance. Internal luminosity of
+  brown dwarfs not represented. Flag for review if brown_dwarf albedo
+  outputs behave anomalously. Scope: inherent model limitation.
+- Flag 49: Del Genio (2019) segmented linear model extrapolation.
+  Model calibrated on 29 ROCKE-3D simulations spanning the habitable
+  zone. At S_ox = 0.154 (Seed 42), the engine is extrapolating beyond
+  the calibration range. Albedo predictions at very low S_ox may
+  overestimate ice coverage contribution. Flag for review if rocky
+  planet albedos at S_ox < 0.3 appear anomalously high.
+  Category: survey-scope limitation.
+
+### Flags resolved this session
+- Flag 38: Bond albedo placeholders — resolved. Solar System fixed
+  values replaced with physically derived two-pass framework.
+  Residual limitation recorded as Flag 38B.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48
+Earth fallbacks: 04, 09, 13, 23, 39, 41
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44
+Deferred — implementation not yet authorised: 14
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 46, 49
+Model lower bound only: 47
+Empirical GCM calibration: 38B
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Variable 06: Tectonics. Gemini research prompt to be written before
+any scope is defined.
