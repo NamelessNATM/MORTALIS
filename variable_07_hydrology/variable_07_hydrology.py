@@ -4,6 +4,7 @@
 
 from variable_07_hydrology.budyko_partitioning import compute_budyko_ratio
 from variable_07_hydrology.crustal_porosity import compute_compaction_depth
+from variable_07_hydrology.ice_line_latitude import compute_ice_line_latitude
 from variable_07_hydrology.fluvial_gravity_scaling import compute_fluvial_gravity_scaling
 from variable_07_hydrology.glacial_gravity_scaling import compute_glacial_gravity_scaling
 from variable_07_hydrology.latent_heat_transport import compute_latent_heat_transport
@@ -25,6 +26,12 @@ def _null_hydrology(note: str) -> dict:
         "fluvial_Q_scaling": None,
         "glacial_U_scaling": None,
         "Q_latent_max_W": None,
+        "ice_line_lat_deg": None,
+        "ice_line_state": None,
+        "ice_line_T0_C": None,
+        "ice_line_T2_C": None,
+        "ice_line_T_f_K": None,
+        "ice_line_notes": None,
         "hydrology_note": note,
     }
 
@@ -54,6 +61,12 @@ def run_variable_07(v01: dict, v02: dict, v03: dict, v04: dict, v05: dict, v06: 
             "fluvial_Q_scaling": None,
             "glacial_U_scaling": None,
             "Q_latent_max_W": None,
+            "ice_line_lat_deg": None,
+            "ice_line_state": None,
+            "ice_line_T0_C": None,
+            "ice_line_T2_C": None,
+            "ice_line_T_f_K": None,
+            "ice_line_notes": None,
             "hydrology_note": (
                 "Dwarf — volatile phase state only (P_s = 0 Pa); "
                 "full hydrology deferred for non-rocky surface context"
@@ -99,6 +112,15 @@ def run_variable_07(v01: dict, v02: dict, v03: dict, v04: dict, v05: dict, v06: 
     pet_rate = pet["PET_kg_m2_s"] if pet else 0.0
     latent = compute_latent_heat_transport(PET_kg_m2_s=pet_rate, R_m=R_m)
 
+    ice_line = compute_ice_line_latitude(
+        F_mean_W_m2=v05["F_mean_W_m2"],
+        T_eq_K=v05["T_eq_K"],
+        obliquity_deg=v05["obliquity_deg"],
+        albedo_final=v05.get("albedo_final", v05.get("albedo_proxy", 0.30)),
+        atm_class=v04.get("atm_class", "secondary_possible"),
+        phase_states=phase_states,
+    )
+
     return {
         "phase_states": phase_states,
         "z_subsurface_liquid_m": subsurface,
@@ -111,5 +133,11 @@ def run_variable_07(v01: dict, v02: dict, v03: dict, v04: dict, v05: dict, v06: 
         "fluvial_Q_scaling": fluvial["Q_scaling"],
         "glacial_U_scaling": glacial["U_ice_scaling"],
         "Q_latent_max_W": latent["Q_latent_max_W"],
+        "ice_line_lat_deg": ice_line["ice_line_lat_deg"],
+        "ice_line_state": ice_line["ice_line_state"],
+        "ice_line_T0_C": ice_line["T0_C"],
+        "ice_line_T2_C": ice_line["T2_C"],
+        "ice_line_T_f_K": ice_line["T_f_K"],
+        "ice_line_notes": ice_line["ice_line_notes"],
         "hydrology_note": "Regime: rocky or sub_neptune — full Variable 07 assembly",
     }

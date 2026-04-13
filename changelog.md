@@ -1689,3 +1689,144 @@ documented; Weertman sliding law and gravity multiplier correction were
 the focus of the most recent V08 session). Review prior research before
 determining whether a new Gemini prompt is required or whether
 implementation can proceed from existing validated formulas.
+
+---
+## Scaffold 010b — Flag 92: Ice-Line Latitude (Variable 07)
+**Date:** 2026-04-13
+**Type:** Implementation + Correction
+
+### What was implemented
+A new sub-function computing the annual-mean ice-line latitude via a
+one-dimensional analytical Energy Balance Model with Legendre polynomial
+decomposition. Resolves Flag 92.
+
+### Files created
+- `variable_07_hydrology/ice_line_latitude.py` — analytical P2 EBM
+  ice-line solver. Inputs: F_mean_W_m2, T_eq_K, obliquity_deg,
+  albedo_final, atm_class, phase_states. Outputs: ice_line_lat_deg,
+  ice_line_state, T0_C, T2_C, T_f_K, s2, ice_line_notes.
+
+### Files modified
+- `variable_07_hydrology/variable_07_hydrology.py` — import added;
+  compute_ice_line_latitude called in rocky/sub_neptune path after
+  latent heat transport; six ice_line keys added to rocky/sub_neptune
+  return dict, _null_hydrology dict, and dwarf return dict.
+- `main.py` — V07 print block extended with ice_line_state,
+  ice_line_lat_deg, and truncated ice_line_notes.
+
+### Physics implemented
+**Budyko-Sellers-North analytical EBM (North et al. 1981)**
+
+Insolation distribution expanded in Legendre polynomials:
+  S(x, β) = Q [1 + s2(β) P2(x)]
+  s2(β) = -(5/8)(3cos²β - 1)/2
+  Q = F_mean / 4
+
+OLR linearisation (Budyko 1969):
+  OLR(x) = A + B·T(x)
+
+Meridional diffusion (Sellers 1969):
+  ∇·F_heat = -D d/dx[(1-x²) dT/dx]
+
+Analytical P2 solution:
+  T(x) = T0 + T2·P2(x)
+  T0 = (σ T_eq⁴ - A) / B
+  T2 = Q(1-α)s2 / (B + 6D)
+  P2(x_ice) = (T_f - T0) / T2
+  x_ice = sqrt((2·P2 + 1) / 3)
+  φ_ice = arcsin(x_ice)
+
+Ice-line states returned: polar_caps | tropical_belt | ice_free |
+full_glaciation | no_condensable.
+
+High-obliquity inversion (β > 54.74°) handled correctly: s2 > 0,
+T2 > 0, poles warmer than equator, formula returns tropical ice belt
+boundary rather than polar cap boundary.
+
+### Calibration verified numerically (pre-implementation, by Claude)
+- Earth case (β=23.44°, T_eq=255 K, F=1361, α=0.30):
+  s2=-0.477, T0=14.85°C, T2=-20.28°C, φ_ice=65.0° (target ~70°) ✓
+- High obliquity (β=90°): p2_ice=-1.117 → ice_free ✓
+- Zero obliquity (β=0°): φ_ice=57.1° ✓
+
+### Runtime correction — domain check sign error
+First run against seed 42 returned ice_line_state=ice_free when
+full_glaciation was correct (T_eq=152.95 K, T0=-89.5°C, T_f=0.01°C).
+
+Root cause: the out-of-domain p2_ice guards were sign-independent.
+The physical meaning of p2_ice < -0.5 and p2_ice > 1.0 inverts with
+the sign of T2 (equivalently, the sign of s2):
+
+  s2 < 0 (β < 54.74°): equator warmest
+    p2_ice < -0.5 → full_glaciation
+    p2_ice > 1.0  → ice_free
+
+  s2 > 0 (β > 54.74°): poles warmest
+    p2_ice < -0.5 → ice_free
+    p2_ice > 1.0  → full_glaciation
+
+Corrected in ice_line_latitude.py before changelog was written per
+Rule 9. Re-run confirmed correct output on both benchmark seeds.
+
+### Verified runs
+- python main.py 1 --world-type rocky:
+  atm_class=exosphere_only → ice_line_state=no_condensable,
+  ice_line_lat_deg=None. Correct — no condensable volatile on a
+  stripped atmosphere world. ✓
+- python main.py 42 --world-type rocky:
+  T_eq=152.95 K, obliquity=39.06°, atm_class=secondary_possible
+  → ice_line_state=full_glaciation, ice_line_lat_deg=None.
+  T0=-89.5°C, T_f=0.01°C — entire surface below freezing. ✓
+
+### Flags opened this session
+Flag 94: A = 210 W/m² — OLR linear intercept. Budyko (1969).
+  Earth-calibrated empirical coefficient. Fails for dense CO2 or
+  H2/He atmospheres. Universal applicability not confirmed.
+  Category: Earth fallback.
+Flag 95: B = 2.0 W/m²/K — OLR temperature sensitivity. Earth-
+  calibrated. Encodes water-vapour feedback; wrong for non-H2O
+  atmospheres. Category: Earth fallback.
+Flag 96: D = 0.6 W/m²/K — meridional thermal diffusion coefficient.
+  Earth-calibrated. Must scale with rotation rate (∝ Ω⁻²) and
+  atmospheric column mass. Rotation rate absent from cascade entirely.
+  Two resolution gates: (1) rotation rate research + V05 extension;
+  (2) D scaling law derivation and numerical validation.
+  Category: Earth fallback + deferred upstream dependency.
+Flag 97: β = 54.74° singularity — s2 = 0, T2 = 0, formula undefined.
+  Handled via explicit branch: if T0 > T_f → ice_free; else →
+  full_glaciation. Category: model limitation.
+Flag 98: P2 Legendre truncation — 3–7% error on φ_ice as function
+  of obliquity. Not patchable without spatial grid.
+  Category: model limitation.
+Flag 99: Ice-albedo feedback absent. Global mean albedo used at
+  ice-edge; local albedo step not modelled. Underestimates ice extent
+  near runaway glaciation. Category: model limitation.
+Flag 100: EBM annual-mean assumption breaks down at e > 0.3.
+  Apoastron winters may drive volatile condensation or atmospheric
+  collapse. Formula underestimates maximum glaciation extent on highly
+  eccentric worlds. Category: model limitation.
+
+### Flags resolved this session
+- Flag 92: Ice-line latitude — resolved and implemented.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48, 51, 59, 60, 63, 64,
+                   97, 98, 99, 100
+Earth fallbacks: 04, 09, 13, 23, 39, 41, 50, 52, 54, 55, 56, 57, 58,
+                 62, 65, 67, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
+                 79, 80, 81, 82, 83, 84, 85, 86, 87, 94, 95
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44,
+                                  53, 90, 91, 96
+Model applicability limit: 68
+Model limitation: 88, 89, 93
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 46, 49
+Model lower bound only: 47
+Empirical GCM calibration: 38B
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Variable 08: Sediment Transport. Prior research exists (FLAGS 1–8
+documented; Weertman sliding law and gravity multiplier correction
+were the focus of the most recent V08 session). Review prior research
+record before determining whether a new Gemini prompt is required or
+whether implementation can proceed from validated formulas.

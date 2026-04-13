@@ -257,6 +257,14 @@ if __name__ == "__main__":
         f"Budyko ET/P: {v07['budyko_ET_over_P']} "
         f"(blocked — M_vol pending)"
     )
+    print(f"  ice_line_state   : {v07.get('ice_line_state')}")
+    ice_lat = v07.get("ice_line_lat_deg")
+    if ice_lat is not None:
+        print(f"  ice_line_lat_deg : {ice_lat:.1f}°")
+    else:
+        print(f"  ice_line_lat_deg : None")
+    _ice_notes = v07.get("ice_line_notes") or ""
+    print(f"  ice_line_notes   : {_ice_notes[:120]}")
 
     print(f"\n--- Map Output ---")
     print(f"  Version  : v{result['version']:03d}")
