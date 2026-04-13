@@ -119,6 +119,10 @@ if __name__ == "__main__":
     else:
         print(f"  log_g         : {v03['log_g']:.4f} (cgs dex)")
     print(f"  T_eff         : {v03['T_eff_K']:.2f} K")
+    if v03["BC_V"] is None:
+        print(f"  BC_V          : domain exceeded")
+    else:
+        print(f"  BC_V          : {v03['BC_V']:.4f} mag")
     print(f"  t_MS          : {v03['t_MS_Gyr']:.6f} Gyr")
     print(f"  L_XUV/L       : {v03['L_XUV_fraction']:.4e}")
     print(f"  L_XUV         : {v03['L_XUV_W']:.4e} W")

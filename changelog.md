@@ -1344,3 +1344,101 @@ Pre-registered duplicate: 26 (= Flag 34)
 ### Next step
 Variable 07: Hydrology. Gemini research prompt required before any
 scope is defined.
+
+---
+## Scaffold 010 — Flag 14: Eker et al. (2020) Bolometric Correction
+**Date:** 2026-04-13
+**Type:** Correction / Implementation
+
+### What was resolved
+Flag 14 was opened during the V03 research session when the Eker et al.
+(2020) bolometric correction polynomial failed numerical validation by
+1.4 magnitudes and was pulled before implementation. This scaffold
+resolves that flag through a targeted research cycle that identified
+two distinct failure modes — neither of which was an error in the
+polynomial itself.
+
+### Failure mode 1 — Catastrophic cancellation (original 1.4 mag error)
+At solar temperatures the polynomial's positive and negative terms
+inflate to opposing values of approximately ±13,000 before cancelling
+to a residual near zero. Single-precision floating point (7 significant
+digits) cannot preserve this residual and produces garbage output. The
+1.4 mag error was entirely an implementation failure, not a physics
+failure. The polynomial was always correct.
+
+### Failure mode 2 — Wrong calibration target (convention mismatch)
+The engine's original calibration target of BC☉ = −0.07 ± 0.05 mag at
+5778 K belongs to the pre-IAU 2015 arbitrary zero-point convention,
+under which bolometric corrections were artificially forced negative by
+shifting the zero-point. Eker et al. (2020) was built explicitly to
+conform to the IAU 2015 Resolution B2 absolute bolometric magnitude
+scale (zero-point constant = 71.197425). Under IAU 2015 the solar BC
+is not −0.07. The discrepancy was entirely attributable to comparing
+incompatible standards.
+
+### Correct IAU 2015 calibration derived
+M_Bol,☉ = −2.5 × log₁₀(3.828×10²⁶) + 71.197425 = 4.7400 mag
+BC☉ = M_Bol,☉ − M_V,☉ = 4.7400 − 4.756 = −0.0160 mag
+Source: IAU 2015 Resolutions B2 and B3. M_V,☉ = 4.756 from Eker
+et al. (2020) — empirically adopted (Flag 70).
+
+### Zero-point shift confirmed numerically
+Pre-IAU shift: −0.016 − (−0.07) = +0.054 mag
+Temperature input shift (5778 K vs 5772 K): +0.004 − (−0.016) = +0.020
+Total: +0.074 mag. Check: −0.07 + 0.074 = +0.004 mag ✓
+The discrepancy is fully and exactly explained. No polynomial error.
+
+### Calibration verified
+Polynomial at T_eff = 5772 K (Horner, double precision): −0.01619 mag
+IAU 2015 target: −0.0160 mag
+Deviation: 0.000 mag ✓
+
+### Implementation
+- Double precision mandatory throughout — catastrophic cancellation
+  occurs with single precision at solar temperatures
+- Evaluation variable is log₁₀(T_eff) — natural log produces
+  catastrophic divergence (x ≈ 8.66 at solar temperature)
+- Horner's method mandatory — prevents cancellation by accumulating
+  from the inside out
+
+### Files created
+- `variable_03_stellar/bolometric_correction.py` — Eker et al. (2020)
+  fourth-degree polynomial. Coefficients from Table 5 to full five
+  decimal precision. Domain guard [3100, 36000] K with ValueError
+  outside bounds. Horner evaluation. Full documentation block.
+
+### Files modified
+- `variable_03_stellar/variable_03_stellar.py` — BC_V computed after
+  T_eff; ValueError caught for domain exceedance; BC_V and BC_V_note
+  added to output dict.
+- `main.py` — BC_V printed in V03 block; "domain exceeded" if None.
+
+### Verified run (python main.py 1 --world-type rocky)
+- T_eff = 3398.96 K → BC_V = −1.8507 mag ✓
+  (Large negative correction expected for late M-dwarf;
+  flux peaks in near-IR, almost nothing in visual band)
+- All downstream variables execute cleanly. No NaN, no crashes. ✓
+
+### Flags opened this session
+- Flag 70: M_V,☉ = 4.756 mag — empirically adopted solar visual
+  magnitude used to anchor the IAU 2015 calibration target.
+  Not derivable from Category A constants.
+  Category: Earth/Solar System fallback.
+
+### Flags resolved this session
+- Flag 14: Eker et al. (2020) BC polynomial — resolved.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48, 51, 59, 60, 63, 64
+Earth fallbacks: 04, 09, 13, 23, 39, 41, 50, 52, 54, 55, 56, 57, 58,
+                 62, 65, 67, 69, 70
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44, 53
+Model applicability limit: 68
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 46, 49
+Model lower bound only: 47
+Empirical GCM calibration: 38B
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Variable 07: Hydrology. Gemini research prompt to be written before
+any scope is defined.

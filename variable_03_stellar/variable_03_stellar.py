@@ -11,6 +11,7 @@ from variable_03_stellar.mass_radius_lowmass import compute_radius_lowmass
 from variable_03_stellar.surface_gravity_evolution import compute_log_g
 from variable_03_stellar.stellar_radius_highmass import compute_radius_highmass
 from variable_03_stellar.stellar_temperature import compute_temperature
+from variable_03_stellar.bolometric_correction import compute_bolometric_correction
 from variable_03_stellar.main_sequence_lifetime import compute_main_sequence_lifetime
 from variable_03_stellar.xuv_luminosity import compute_xuv
 
@@ -29,7 +30,9 @@ def run(seed: int, stability: str | None = None) -> dict:
     Returns
     -------
     dict
-        Keys as defined in the Variable 03 cascade specification.
+        Keys as defined in the Variable 03 cascade specification, including
+        ``BC_V`` (float or None) and ``BC_V_note`` (str or None) when the Eker
+        et al. (2020) temperature domain is exceeded.
     """
     m_solar, m_kg = sample_stellar_mass(seed, stability=stability)
     stab = classify_stellar_stability(m_solar)
@@ -44,6 +47,15 @@ def run(seed: int, stability: str | None = None) -> dict:
         r_solar, r_m = compute_radius_highmass(m_solar, log_g)
 
     t_eff = compute_temperature(l_w, r_m)
+    try:
+        bc_v = compute_bolometric_correction(t_eff)
+        bc_v_note = None
+    except ValueError:
+        bc_v = None
+        bc_v_note = (
+            "BC_V unavailable: T_eff outside Eker et al. (2020) domain "
+            "[3100, 36000] K (polynomial diverges outside this range)."
+        )
     t_ms = compute_main_sequence_lifetime(m_solar)
     lxuv_frac, lxuv_w = compute_xuv(age_gyr, l_w)
 
@@ -60,6 +72,8 @@ def run(seed: int, stability: str | None = None) -> dict:
         "R_star_m": r_m,
         "log_g": log_g,
         "T_eff_K": t_eff,
+        "BC_V": bc_v,
+        "BC_V_note": bc_v_note,
         "t_MS_Gyr": t_ms,
         "L_XUV_fraction": lxuv_frac,
         "L_XUV_W": lxuv_w,

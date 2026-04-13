@@ -1,0 +1,19 @@
+{
+  "seed": 1,
+  "version": 1,
+  "history": [
+    {
+      "version": 1,
+      "active_variables": [
+        "v01",
+        "v02",
+        "v03",
+        "v05",
+        "v04",
+        "v06"
+      ],
+      "npz": "outputs/world_1_v001.npz",
+      "png": "outputs/world_1_v001.png"
+    }
+  ]
+}
