@@ -1440,5 +1440,252 @@ Empirical GCM calibration: 38B
 Pre-registered duplicate: 26 (= Flag 34)
 
 ### Next step
-Variable 07: Hydrology. Gemini research prompt to be written before
-any scope is defined.
+Variable 08+ as authorised.
+
+---
+
+## Scaffold 009 — Variable 07: Hydrology
+**Date:** 2026-04-13
+**Type:** Implementation
+
+### Rule 9 correction note
+The initial Scaffold 009 entry was written by Cursor as part of the same
+implement pass, before terminal output was verified and before a changelog
+prompt was issued. This violates Rule 9. This entry replaces that premature
+entry. No code was changed as part of this correction.
+
+### What was implemented
+Variable 07 maps cascade inputs from V01–V06 to a set of hydrological
+outputs: volatile phase states, subsurface liquid horizon depth, crustal
+porosity profile, energy-limited precipitation ceiling, Budyko partitioning
+ratio (blocked pending M_vol), fluvial and glacial gravity scaling
+multipliers, and latent heat transport ceiling.
+
+### Files created
+- `variable_07_hydrology/__init__.py` — exports run_variable_07
+- `variable_07_hydrology/volatile_phase_state.py` — SPECIES_DATA dict
+  (H2O, CO2, SO2, CH4, NH3, H2); Antoine vapor pressure evaluation;
+  Clausius-Clapeyron fallback below Antoine lower bound; phase state
+  logic returning solid/liquid/gas/supercritical_fluid/gas_permanent/
+  liquid_possible; evaluate_all_species assembles per-species dict
+- `variable_07_hydrology/subsurface_liquid_horizon.py` — Fourier
+  conduction T(z) = T_s + (q_s/k)*z; lithostatic P(z) = P_s + rho*g*z;
+  Ice Ih Clapeyron melt curve T_melt(P); analytic linear solve for z*
+- `variable_07_hydrology/crustal_porosity.py` — Athy's Law
+  phi(z) = phi_0 * exp(-c*z), c = rho_b*g/K_comp; e-folding depth z_e
+- `variable_07_hydrology/precipitation_energy_limit.py` — net surface
+  radiation R_n = F_mean*(1-albedo); PET = R_n/lambda; lambda from
+  dH_vap/M_mol
+- `variable_07_hydrology/budyko_partitioning.py` — MCY equation
+  ET/P = DI/(1+DI^n)^(1/n); returns None when P unavailable (M_vol
+  blocked, Flag 90)
+- `variable_07_hydrology/fluvial_gravity_scaling.py` — U_scaling =
+  sqrt(g/g_Earth); Darcy-Weisbach derivation
+- `variable_07_hydrology/glacial_gravity_scaling.py` — U_ice_scaling =
+  (g/g_Earth)^3; Glen's Flow Law SIA derivation
+- `variable_07_hydrology/latent_heat_transport.py` — Q_latent_max =
+  lambda * PET * 4*pi*R^2
+- `variable_07_hydrology/variable_07_hydrology.py` — regime routing;
+  gas_giant/brown_dwarf return null; dwarf runs phase state only;
+  rocky/sub_neptune run full V07 treatment
+
+### Files modified
+- `main.py` — run_variable_07 called after run_variable_06; v07 added
+  to active_variables; V07 output block printed with None-safe formatting
+
+### Physics implemented
+
+**Antoine equation — volatile phase state**
+log10(P_sat / bar) = A - B / (T + C)
+Source: Giauque & Egan (1937) CO2; Stull (1947) SO2; standard NIST for
+H2O, CH4, NH3; van Itterbeek et al. via Yaws/NIST for H2.
+All coefficients are intrinsic molecular properties.
+
+**Clausius-Clapeyron fallback (below Antoine lower bound)**
+ln(P / P_ref) = -(dH_sub / R) * (1/T - 1/T_ref)
+Source: Clausius-Clapeyron integration, constant dH_sub approximation.
+R = 8.314 J/mol/K (Category A). dH_sub values from NIST (flagged).
+
+**Fourier conduction + lithostatic pressure (subsurface horizon)**
+T(z) = T_s + (q_s / k_crust) * z
+P(z) = P_s + rho_crust * g * z
+T_melt(P) = 273.16 * (1 - (P - 611.7) / 1.35e8)   [Ice Ih, linearised]
+z* solved analytically by equating T(z*) = T_melt(P(z*))
+Sources: Fourier (1822); Wagner et al. (1994) Ice Ih melting curve.
+
+**Athy's Law (crustal porosity)**
+phi(z) = phi_0 * exp(-c * z),  c = rho_b * g / K_comp
+Source: Athy (1930). Gravitational scaling c ∝ g is planet-general.
+
+**Precipitation energy limit**
+R_n = F_mean * (1 - albedo_final)
+PET = R_n / lambda,  lambda = dH_vap / M_mol
+Source: energy balance, Clausius-Clapeyron. Planet-general.
+
+**Budyko MCY partitioning**
+ET/P = DI / (1 + DI^n)^(1/n),  DI = PET / P
+Source: Mezentsev (1955), Choudhury (1999), Yang et al. (2008).
+
+**Fluvial gravity scaling**
+U_scaling = sqrt(g / g_Earth)
+Source: Darcy-Weisbach equation, Navier-Stokes derived. Planet-general.
+Validated: Earth, Mars, Titan.
+
+**Glacial gravity scaling**
+U_ice_scaling = (g / g_Earth)^3
+Source: Glen (1955), Paterson (1994) SIA. Stress exponent n=3 universal
+for dislocation creep in crystalline solids.
+
+**Latent heat transport ceiling**
+Q_latent_max = lambda * PET * 4*pi*R^2
+Source: energy balance. Planet-general upper bound.
+
+### Verified runs
+
+**python main.py 1 --world-type rocky**
+- Subsurface liquid horizon: 1304.45 m
+  Verified: z* = (273.161 - 213.14) / (0.02082 + 0.02521) = 1303.8 m ✓
+- Crustal compaction depth: 2786.5 m
+  Verified: 31e6 / (2500 × 4.4501) = 2786.5 m ✓
+- Net surface radiation: 468.03 W/m²
+  Verified: 550.62 × (1 - 0.15) = 468.03 W/m² ✓
+- PET ceiling: 6,547,945 mm/yr
+  Verified: 468.03 / 2,255,827 × 1000 × 3.156e7 = 6,547,800 mm/yr ✓
+- Fluvial scaling: 0.6735 × Earth
+  Verified: sqrt(4.4501 / 9.81) = 0.6735 ✓
+- Glacial scaling: 0.0933 × Earth
+  Verified: (4.4501 / 9.81)^3 = 0.0933 ✓
+- Latent heat ceiling: 9.480e16 W
+  Verified: 468.03 × 4π × (4.0149e6)^2 / lambda = 9.475e16 W ✓
+- Phase states: deferred (speciation None — see known behaviour)
+- Budyko ET/P: None (blocked — correct behaviour)
+- No NaN, no crashes ✓
+
+**python main.py 42 --world-type rocky**
+- Subsurface liquid horizon: 3409.05 m
+  Verified: z* = (273.161 - 152.95) / (0.004431 + 0.030830) = 3409.2 m ✓
+- Crustal compaction depth: 2278.8 m
+  Verified: 31e6 / (2500 × 5.4414) = 2278.8 m ✓
+- Net surface radiation: 124.12 W/m²
+  Verified: 209.88 × (1 - 0.4086) = 124.12 W/m² ✓
+- PET ceiling: 1,736,484 mm/yr
+  Verified: 124.12 / 2,255,827 × 1000 × 3.156e7 = 1,736,747 mm/yr ✓
+- Fluvial scaling: 0.7448 × Earth
+  Verified: sqrt(5.4414 / 9.81) = 0.7448 ✓
+- Glacial scaling: 0.1707 × Earth
+  Verified: (5.4414 / 9.81)^3 = 0.1707 ✓
+- Latent heat ceiling: 3.185e16 W
+  Verified: 124.12 × 4π × (4.5191e6)^2 / lambda = 3.183e16 W ✓
+- Phase states: deferred (speciation None — see known behaviour)
+- Budyko ET/P: None (blocked — correct behaviour)
+- No NaN, no crashes ✓
+
+### Known behaviour — phase state evaluation deferred on all seeds
+V06 speciation returns None for all seeds because fO2 and volatile
+inventory are absent from the cascade (existing blocked output).
+V07 correctly handles this with a deferred note rather than crashing.
+Consequence: the primary V07 output — which volatile condenses at the
+surface — is deferred for all seeds until a mantle chemistry / volatile
+inventory variable supplies the speciation dict. This is the most
+consequential blocked path in the current cascade and will remain so
+until that upstream variable is implemented.
+
+### Known behaviour — PET on atmosphere-stripped worlds
+Seed 1 reports PET = 6.5 million mm/yr. This is arithmetically correct
+— it is the energy-limited ceiling on evaporation given 468 W/m² net
+surface flux. However, seed 1 has atm_class = exosphere_only and no
+surface liquid. On such worlds PET is physically vacuous: there is
+nothing to evaporate. The correct gate — skip PET output when phase
+states confirm no surface liquid — cannot be applied until speciation
+is resolved and phase state evaluation runs. Recorded as Flag 93.
+Not patched. The value is honest physics; the regime routing is
+incomplete pending the upstream volatile inventory variable.
+
+### Obliquity now in cascade — ice-line latitude unblocked upstream
+The ice-line latitude was deferred in the V07 research session on the
+grounds that obliquity was absent from the cascade. V05 output for both
+benchmark seeds confirms obliquity is now a cascade output (seed 1:
+75.77°; seed 42: 39.06°). The upstream dependency is therefore
+satisfied. Ice-line latitude remains unimplemented — the EBM formula
+has not been researched or numerically validated for this project.
+A targeted Gemini research prompt is the remaining gate before
+implementation. This is not authorised in the current scaffold.
+Flag 92 (ice-line latitude blocked — obliquity missing) status updated:
+upstream dependency resolved; research prompt outstanding.
+
+### Flags opened this session
+Flag 71: H2O Antoine coefficients — Earth-measured molecular constant,
+  intrinsic molecular physics, universal.
+Flag 72: CO2 Antoine coefficients (sublimation) — Giauque & Egan (1937)
+  via NIST. Earth-measured, universal molecular physics.
+Flag 73: SO2 Antoine coefficients — Stull (1947) via NIST. 4.7%
+  discontinuity at 263 K handoff documented; not patched.
+  SO2 triple point pressure: NIST value 1670 Pa used; Antoine-derived
+  value gives 1440 Pa (14% deviation at boundary — known Antoine limit).
+Flag 74: CH4, NH3 Antoine coefficients — standard NIST.
+  Earth-measured molecular constants, universal.
+Flag 75: dH_sub H2O 51,000 J/mol — NIST. Earth-measured molecular constant.
+Flag 76: dH_sub CO2 26,100 J/mol — NIST. Earth-measured molecular constant.
+Flag 77: dH_sub SO2 24,900 J/mol — NIST. Not returned by research;
+  sourced directly from NIST thermochemical tables.
+Flag 78: dH_vap H2O 40,650 J/mol at 373 K — NIST.
+  Earth-measured molecular constant.
+Flag 79: Ice Ih Clapeyron slope 1.35e8 Pa — Wagner et al. (1994).
+  Intrinsic to H2O crystal structure; Earth-measured, universal.
+Flag 80: k_crust = 2.5 W/m/K — terrestrial silicate rock. Earth fallback.
+  Universal applicability not confirmed.
+Flag 81: rho_crust = 2800 kg/m³ — terrestrial continental crust.
+  Earth fallback.
+Flag 82: phi_0 = 0.4 — Athy's Law initial porosity, Earth shale/
+  sedimentary baseline. Earth fallback.
+Flag 83: K_comp = 31 MPa — Athy's Law compaction modulus, Earth shale/
+  sedimentary baseline. Earth fallback.
+Flag 84: rho_b = 2500 kg/m³ — Athy's Law bulk crustal density.
+  Earth fallback.
+Flag 85: N_BUDYKO = 2.0 — MCY shape parameter. Earth-fitted; varies
+  1.5–3.0 with biology. Abiotic bare-rock default used. Earth fallback.
+Flag 86: f_Darcy = 0.05 — Darcy-Weisbach friction factor. Validated
+  rocky channels: Earth, Mars, Titan. Earth fallback with multi-body
+  partial confirmation.
+Flag 87: A_GLEN = 2.4e-15 kPa⁻³ s⁻¹ — Glen's flow parameter, Earth
+  H2O ice (Paterson 1994). Different values required for CO2/CH4 ice.
+  Earth fallback.
+Flag 88: CO2 liquid-vapor window (216.58–304.18 K, P_s > 5.185 bar):
+  Span-Wagner EOS deferred; engine returns liquid_possible.
+  Model limitation.
+Flag 89: CO2 Antoine lower bound 154.26 K; Clausius-Clapeyron fallback
+  below this. ~20% overshoot confirmed at 149 K extrapolation.
+  Model limitation.
+Flag 90: M_vol total volatile inventory blocked — primordial accretion
+  fraction / snow-line variable missing. Budyko absolute rates deferred.
+  Deferred — upstream dependency.
+Flag 91: Ocean volume and depth blocked — topographic variance sigma_h
+  missing. Deferred — upstream dependency.
+Flag 92: Ice-line latitude — obliquity now confirmed in cascade (V05).
+  Upstream dependency resolved. Research prompt outstanding.
+  Status updated from deferred-upstream to research-outstanding.
+Flag 93: PET output on atmosphere-stripped worlds is physically vacuous
+  when phase state evaluation is deferred. Correct gate cannot be applied
+  until speciation is resolved. Model limitation — not patched.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48, 51, 59, 60, 63, 64
+Earth fallbacks: 04, 09, 13, 23, 39, 41, 50, 52, 54, 55, 56, 57, 58,
+                 62, 65, 67, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
+                 79, 80, 81, 82, 83, 84, 85, 86, 87
+Deferred — upstream dependency: 06, 07, 16, 25, 29, 40, 42, 43, 44,
+                                  53, 90, 91
+Research outstanding: 92
+Model applicability limit: 68
+Model limitation: 88, 89, 93
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 46, 49
+Model lower bound only: 47
+Empirical GCM calibration: 38B
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Variable 08: Sediment Transport — partial prior work exists (Flags 1–8
+documented; Weertman sliding law and gravity multiplier correction were
+the focus of the most recent V08 session). Review prior research before
+determining whether a new Gemini prompt is required or whether
+implementation can proceed from existing validated formulas.

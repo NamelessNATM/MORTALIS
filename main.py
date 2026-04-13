@@ -13,13 +13,14 @@ from variable_05_kinematics.variable_05_kinematics import run as run_variable_05
 from variable_05_kinematics.bond_albedo import compute_pass2_albedo
 from variable_04_atmosphere import variable_04_atmosphere
 from variable_06_tectonics.variable_06_tectonics import run_variable_06
+from variable_07_hydrology.variable_07_hydrology import run_variable_07
 
 
 def run(seed: int, config: dict):
     v01 = run_variable_01(seed, regime=config['regime'])
     v02 = run_variable_02(seed, v01["M_kg"], v01["mu"])
 
-    active_variables = ["v01", "v02", "v03", "v05", "v04", "v06"]
+    active_variables = ["v01", "v02", "v03", "v05", "v04", "v06", "v07"]
     version, npz_path, png_path = next_version(seed, active_variables)
 
     grid, meta = run_coordinate_system(v02, npz_path)
@@ -41,6 +42,7 @@ def run(seed: int, config: dict):
     v05["T_eq_K"] = T_eq_final_K
 
     v06 = run_variable_06(v01, v02, v03, v05, v04)
+    v07 = run_variable_07(v01, v02, v03, v04, v05, v06)
 
     run_map_generator(grid, meta, png_path)
 
@@ -51,6 +53,7 @@ def run(seed: int, config: dict):
         "v05": v05,
         "v04": v04,
         "v06": v06,
+        "v07": v07,
         "version": version,
         "npz_path": npz_path,
         "png_path": png_path,
@@ -82,6 +85,7 @@ if __name__ == "__main__":
     v05 = result["v05"]
     v04 = result["v04"]
     v06 = result["v06"]
+    v07 = result["v07"]
 
     M_EARTH_KG = 5.972e24
     M_JUP_KG = 1.8982e27
@@ -213,6 +217,46 @@ if __name__ == "__main__":
         print("  R_melt:          None")
     print(f"  Speciation:      {v06['speciation']}")
     print(f"  Outgassed mass:  {v06['outgassed_mass']}")
+
+    print(f"\n--- Variable 07: Hydrology ---")
+    print(f"Phase states: {v07['phase_states']}")
+    z_sub = v07["z_subsurface_liquid_m"]
+    if z_sub is None:
+        print(f"Subsurface liquid horizon: None m")
+    else:
+        print(f"Subsurface liquid horizon: {z_sub} m")
+    z_comp = v07["z_compaction_depth_m"]
+    if z_comp is not None:
+        print(f"Crustal compaction depth: {z_comp:.1f} m")
+    else:
+        print(f"Crustal compaction depth: —")
+    pet_mm = v07["PET_mm_yr"]
+    if pet_mm is not None:
+        print(f"PET ceiling: {pet_mm:.1f} mm/yr")
+    else:
+        print(f"PET ceiling: —")
+    r_n = v07["R_n_Wm2"]
+    if r_n is not None:
+        print(f"Net surface radiation: {r_n:.2f} W/m²")
+    else:
+        print(f"Net surface radiation: —")
+    f_u = v07["fluvial_U_scaling"]
+    g_u = v07["glacial_U_scaling"]
+    if f_u is not None and g_u is not None:
+        print(f"Fluvial velocity scaling: {f_u:.4f} × Earth")
+        print(f"Glacial velocity scaling: {g_u:.4f} × Earth")
+    else:
+        print(f"Fluvial velocity scaling: —")
+        print(f"Glacial velocity scaling: —")
+    q_lat = v07["Q_latent_max_W"]
+    if q_lat is not None:
+        print(f"Latent heat transport ceiling: {q_lat:.3e} W")
+    else:
+        print(f"Latent heat transport ceiling: —")
+    print(
+        f"Budyko ET/P: {v07['budyko_ET_over_P']} "
+        f"(blocked — M_vol pending)"
+    )
 
     print(f"\n--- Map Output ---")
     print(f"  Version  : v{result['version']:03d}")
