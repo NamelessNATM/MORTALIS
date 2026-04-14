@@ -1830,3 +1830,327 @@ documented; Weertman sliding law and gravity multiplier correction
 were the focus of the most recent V08 session). Review prior research
 record before determining whether a new Gemini prompt is required or
 whether implementation can proceed from validated formulas.
+
+---
+## Scaffold 011 — Variable 08: Volatile Inventory
+**Date:** 2026-04-14
+**Type:** Implementation
+
+### What was implemented
+Variable 08 maps cascade inputs from V01–V06 to a complete volatile
+inventory: snow line positions, bulk volatile mass fraction, elemental
+partitioning, core-mantle stripping, late veneer delivery, nebular
+hydrogen ingassing, mantle oxygen fugacity, Gibbs free energy outgassing
+speciation, melt fraction, time-integrated outgassing, atmospheric
+column mass, and surface pressure. This variable resolves the
+speciation: None block that has prevented V07 phase state evaluation
+since Scaffold 009.
+
+Sediment transport, previously designated Variable 08, is renumbered
+Variable 09. No V09 files exist yet. This renaming has no code
+consequence at this time.
+
+### Cascade insertion
+V08 runs between V06 and V07.
+New execution order: v01 → v02 → v03 → v05 → v04 → v06 → v08 → v07
+
+### Files created
+variable_08_volatile_inventory/__init__.py
+variable_08_volatile_inventory/snow_lines.py
+  — R_snow,H2O = 2.7×(M_star/M_☉)² AU; R_snow,i = R_snow,H2O×(170/T_cond,i)²
+  — Sources: viscously-heated disk power-law; solar system architecture calibration
+  — Calibrated: H2O=2.7 AU, CO2=10.08 AU, CO/CH4/N2=38.5 AU at 1 M_☉ ✓
+
+variable_08_volatile_inventory/bulk_volatile_fraction.py
+  — X_vol = X_dry + Σ X_max,i / (1 + exp(−0.44×(a_m−R_snow,i)/R_H))
+  — Source: logistic snow-line model; k=0.44 from 10 R_H oligarchic
+    feeding zone (Kokubo & Ida 1998)
+  — X_dry=1e-3, X_max: H2O=0.45, CO2=0.10, N2=0.02
+
+variable_08_volatile_inventory/elemental_partitioning.py
+  — X_bulk,i = X_dry×f_i,dry + X_ice,i(a_m)
+  — EH3 fractions: f_S=0.916, f_C=0.067, f_H=0.008, f_N=0.008, f_Ar=2e-7
+  — Source: EH3 unequilibrated enstatite chondrites
+
+variable_08_volatile_inventory/core_mantle_partitioning.py
+  — D_i = (K_D−1)/[1+CMF×(K_D−1)]; X_mantle,i = X_bulk,i×(1−D_i×CMF)
+  — K_D Earth (135 GPa): H=29, C=107, N=14, S=100
+  — K_D Mars (14 GPa): H=1, C=500, N=14 (fallback), S=100 (fallback)
+  — Log-linear interpolation in P_cmb between anchors
+  — Sources: Armstrong et al. (2019), Deng et al. (2020)
+  — Earth calibration: C=1.89 ppm, N=1.53 ppm, S=27.66 ppm, H=0.79 ppm ✓
+
+variable_08_volatile_inventory/late_veneer.py
+  — M_LV = M_kg × 10^(−2.3 + 0.3×N(seed+8_000_000))
+  — 80% EH3 / 20% CI chondrite mixing
+  — Mixed fractions: H=0.004006, C=0.006494, N=0.000626, S=0.01155
+  — Sources: N-body Monte Carlo simulations; Ru isotopic constraints
+    (Wasson & Kallemeyn 1988; Lodders 2003)
+  — Earth calibration: post-veneer C≈50 ppm ✓, N≈6.17 ppm (see Flag 133)
+
+variable_08_volatile_inventory/nebular_ingassing.py
+  — t_disk = 5×(M_star/M_☉)^−0.5 Myr
+  — f_env = 1.06e-5×(M/M_⊕)³×t_disk
+  — P_env = f_env×M×g/(4πR²)
+  — ΔX_H = 0.419×(P_env/1e5) ppm; ΔX_H2O = ΔX_H×8.936
+  — Sources: Ikoma & Genda (2006); Mamajek (2009); Ribas et al. (2015)
+  — Earth calibration: ΔX_H2O=228 ppm → closes 272+228=500 ppm ✓
+  — Mars calibration: ΔX_H2O=0.04 ppm (negligible) ✓
+
+variable_08_volatile_inventory/oxygen_fugacity.py
+  — ΔIW = 2.54×log10(P_cmb/1e9) − 1.91
+  — IW buffer: log10(fO2,IW) = 6.776 − 27215/T (O'Neill 1987)
+  — Sources: Armstrong et al. (2019), Deng et al. (2020)
+  — Calibration: Vesta ΔIW=−1.91 ✓, Mars ΔIW=+1.00 ✓, Earth ΔIW=+3.50 ✓
+
+variable_08_volatile_inventory/equilibrium_speciation.py
+  — log10(K_i) = A_i + B_i/T; NIST-JANAF, valid 1200–2500 K
+  — K1 H2O/H2: A=−2.324, B=12628
+  — K2 CO2/CO: A=−4.517, B=14780
+  — K3 CH4: A=−0.277, B=41912
+  — K4 SO2: A=−3.713, B=15501
+  — K5 H2S: A=−0.287, B=11552
+  — K6 NH3: A=−5.173, B=2397
+  — Earth calibration (T=1600K, ΔIW=+3.5): H2O/H2=159 ✓, CO2/CO=22.6 ✓
+  — Mars calibration (T=1500K, ΔIW=+1.0): H2O/H2=8.14 ✓, CO2/CO=1.42 ✓
+
+variable_08_volatile_inventory/melt_fraction.py
+  — P_i=(T_m−1400)/(100−10) GPa; ΔT_rh=2.2×T_m²×R/E_a (E_a=300,000 J/mol)
+  — D_lid=k×(T_m−ΔT_rh−T_eq)/q_s (stagnant lid only)
+  — F̄=0.5×0.12×(P_i−P_f); ε_mobile=1.0; ε_stagnant Gaussian (Dorn 2018)
+  — Sources: Langmuir (1992); Katz et al. (2003); Solomatov & Moresi (2000)
+  — Earth calibration: F̄=12.7% ✓
+  — Mars calibration: P_f=1.818 GPa > P_i=1.111 GPa → F̄=0 ✓
+
+variable_08_volatile_inventory/outgassing_integral.py
+  — M_outgassed,i = R_melt×X_melt,i×ε×age×3.154e16; X_melt,i=X_mantle,i/F_bar
+  — Mass partitioning via molar mass weighting of speciation fractions
+  — Earth calibration: M_outgassed,N2=3.83e18 kg ✓, M_outgassed,H2O=1.37e21 kg ✓
+
+variable_08_volatile_inventory/atmospheric_mass.py
+  — M_atm = M_outgassed − M_escaped − M_sequestered
+  — H2O sequestration: Clausius-Clapeyron condensation at T_eq
+  — CO2 sequestration: Walker (1981) weathering (Earth-empirical, flagged)
+  — P_s = M_atm×g/(4πR²)
+  — Earth calibration (abiotic): M_atm=3.88e18 kg, P_s=74,780 Pa ✓
+
+variable_08_volatile_inventory/giant_planet_composition.py
+  — E_Z = 6.3×(M/M_J)^−0.71; Z_planet = E_Z×Z_star; X_H=0.711, Y_He=0.274
+  — Sources: Thorngren et al. (2016); Welbanks et al. (2019)
+  — Jupiter: E_Z=6.3 ✓; Saturn: E_Z=14.9 ✓; Uranus/Neptune: E_Z~56 ✓
+
+variable_08_volatile_inventory/variable_08_volatile_inventory.py
+  — Entry point; regime routing; no physics; assembles outputs
+  — Signature: run_variable_08(seed, v01, v02, v03, v04, v05, v06)
+    Note: v04 added to original prompt spec — required for atm_class
+    to drive sub-Neptune primary_retained routing and atmospheric logic.
+    Architecturally justified; recorded here as unlisted deviation.
+
+### Files modified
+main.py
+  — run_variable_08 imported
+  — "v08" added to active_variables
+  — v08 = run_variable_08(seed, v01, v02, v03, v04, v05, v06) called
+    after v06 and before v07
+  — run_variable_07 call updated to receive v08
+  — V08 print block added
+  — "v08" added to return dict
+
+variable_07_hydrology/variable_07_hydrology.py
+  — run_variable_07 signature updated to accept v08
+  — speciation_dict argument to evaluate_all_species replaced with
+    v08.get("speciation")
+  — P_s fallback added: if v04["P_s_Pa"] is None, V07 uses
+    v08.get("P_s_Pa") so phase states can evaluate against the
+    computed secondary atmosphere pressure.
+    Note: this V07 modification was not in the original implement
+    prompt. It is physically correct — V08 is the authoritative source
+    of P_s for rocky planets (Flag 40 blocked V04 from computing it).
+    Recorded here as unlisted deviation.
+
+### Verified runs
+python main.py 1 --world-type rocky
+  — Delta_IW = 1.6508 (target: 2.54×log10(25.2)−1.91 = 1.650) ✓
+  — F_bar = 0.1326 (target: 0.5×0.12×(2.309−0.1) = 0.1325) ✓
+  — X_vol = 0.001108 (inside H2O snow line at 0.1097 AU) ✓
+  — Speciation: non-null dict with H2O, CO2, CO, H2, N2, SO2, H2S ✓
+  — Phase states: H2O solid, CO2 solid, H2 gas_permanent, SO2 liquid ✓
+  — Deferred speciation note: absent ✓
+
+python main.py 42 --world-type rocky
+  — T_m = 1349 K < T_sol,0 = 1400 K → P_i < 0 → F_bar = 0 ✓
+  — M_atm = 0, P_s = 0 (no melt, no outgassing) ✓
+  — Speciation: non-null dict produced from fO2 at T_m ✓
+  — Phase states: all species "gas — no atmosphere" ✓
+  — Deferred speciation note: absent ✓
+
+### Known behaviour — M_atm on exosphere_only worlds (Flag 134)
+Seed 1 has atm_class = exosphere_only (V04: heavy species do not meet
+Jeans retention threshold) but V08 computes M_atm = 1.648e20 kg and
+P_s = 3.62 MPa. This is a model coupling limitation: V08's escape term
+strips only H2 and H2O; non-hydrogen species (CO2, CO, N2, H2S) are
+not stripped. V04's exosphere_only classification implies all species
+escape, but V08 does not gate on atm_class when computing M_atm. The
+secondary atmosphere on exosphere_only worlds is therefore unphysical.
+Recorded as Flag 134. Not patched — correction requires a research
+prompt establishing the coupling between atm_class, M_dot, and
+secondary atmosphere survival timescale.
+
+### Known behaviour — N post-veneer overshoot (Flag 133)
+Late veneer delivers ~6 ppm N to the mantle vs 1–2 ppm MORB-source
+target. Known tension with Ru isotopic constraints on the NC/CC mixing
+ratio. Atmosphere will be slightly N2-richer than modern Earth.
+Recorded as Flag 133. Not patched.
+
+### Flags opened this session
+Flag 101: X_dry = 1e-3 — EH3 enstatite chondrite hydration.
+  Solar System meteoritic measurement. Earth fallback.
+  File: bulk_volatile_fraction.py
+Flag 102: R_snow,H2O 2.7 AU coefficient — solar system snow line
+  calibration. Solar System specific. Earth fallback.
+  File: snow_lines.py
+Flag 103: T_cond values (170 K, 88 K, 45 K) — nebular-pressure
+  condensation temperatures. Solar System calibrated.
+  File: snow_lines.py
+Flag 104: M² scaling breaks down above ~5 M_☉.
+  Model applicability limit.
+  File: snow_lines.py
+Flag 105: k = 0.44 — oligarchic feeding zone width (Kokubo & Ida 1998).
+  Solar System calibrated. Earth fallback.
+  File: bulk_volatile_fraction.py
+Flag 106: X_max values from Lodders (2003) protosolar abundances.
+  Solar-metallicity calibration.
+  File: bulk_volatile_fraction.py
+Flag 107: EH3 fractions f_i — Solar System meteoritic measurements.
+  Earth fallback.
+  File: elemental_partitioning.py
+Flag 108: K_D,H = 29 at Earth P_cmb — diamond anvil cell + SIMS.
+  Lab measurement. Earth fallback.
+  File: core_mantle_partitioning.py
+Flag 109: K_D,C = 107 at Earth P_cmb — experimental petrology.
+  Earth fallback.
+  File: core_mantle_partitioning.py
+Flag 110: K_D,N = 14 at Earth P_cmb — experimental petrology.
+  Earth fallback.
+  File: core_mantle_partitioning.py
+Flag 111: K_D,S = 100 at Earth P_cmb — thermodynamic models.
+  Earth fallback.
+  File: core_mantle_partitioning.py
+Flag 112: K_D,H = 1 at Mars P_cmb (14 GPa) — H approaches neutral
+  below 20 GPa. Lab data.
+  File: core_mantle_partitioning.py
+Flag 113: K_D,C = 500 at Mars P_cmb (14 GPa) — C inversely pressure
+  dependent. Lab data.
+  File: core_mantle_partitioning.py
+Flag 114: K_D,N and K_D,S pressure scaling at Mars P_cmb not resolved.
+  Earth anchor values used as fallback. Earth fallback pending
+  low-pressure experimental data.
+  File: core_mantle_partitioning.py
+Flag 115: Late veneer log-normal μ=−2.3, σ=0.3 — N-body Monte Carlo
+  calibration. Solar System calibration.
+  File: late_veneer.py
+Flag 116: 80/20 NC/CC mixing ratio — Ru isotopic anomaly constraint.
+  Solar System specific.
+  File: late_veneer.py
+Flag 117: CI chondrite fractions — Wasson & Kallemeyn (1988), Lodders
+  (2003). Multi-meteorite confirmed.
+  File: late_veneer.py
+Flag 118: k_H = 0.419 ppm/bar — Henry's Law for H2 in peridotitic melt.
+  Lab measurement. Earth fallback.
+  File: nebular_ingassing.py
+Flag 119: f_env coefficient 1.06e-5 — Ikoma & Genda (2006).
+  Solar-analog calibration. Earth fallback.
+  File: nebular_ingassing.py
+Flag 120: t_disk = 5×(M_star/M_☉)^−0.5 Myr — Mamajek (2009),
+  Ribas et al. (2015). Multi-stellar empirical fit.
+  Model applicability limit at extreme stellar masses.
+  File: nebular_ingassing.py
+Flag 121: ΔIW coefficients 2.54 and −1.91 — Armstrong et al. (2019),
+  Deng et al. (2020). Confirmed Earth, Mars, Vesta. Multi-body confirmed.
+  File: oxygen_fugacity.py
+Flag 122: No saturation above ~200 GPa — extrapolation beyond
+  experimental dataset. Model applicability limit.
+  File: oxygen_fugacity.py
+Flag 123: K1–K6 A, B coefficients — NIST-JANAF. Universal molecular
+  thermodynamics. Valid 1200–2500 K only.
+  Model applicability limit outside this range.
+  File: equilibrium_speciation.py
+Flag 124: T_sol,0 = 1400 K — anhydrous peridotite solidus.
+  Lab measurement. Earth fallback.
+  File: melt_fraction.py
+Flag 125: γ = 100 K/GPa — solidus Clapeyron slope.
+  Lab measurement. Earth fallback.
+  File: melt_fraction.py
+Flag 126: Γ = 10 K/GPa — mantle adiabatic gradient. Earth fallback.
+  File: melt_fraction.py
+Flag 127: dF/dP = 0.12 GPa^−1 — Katz et al. (2003).
+  Anhydrous peridotite. Earth fallback.
+  File: melt_fraction.py
+Flag 128: ε_stagnant Gaussian — analytical fit to Dorn et al. (2018)
+  + Noack et al. (2017). Earth fallback.
+  File: melt_fraction.py
+Flag 129: ε_mobile = 1.0 — degassing efficiency of melt.
+  Idealised upper bound. Earth fallback.
+  File: melt_fraction.py
+Flag 130: Walker (1981) weathering constants — W_0=3.3e14 mol/yr,
+  P_CO2_0=3e-4 bar, T_0=285 K, exponent=0.3, sensitivity=13.7 K.
+  Earth-empirical. Not applicable without liquid water. Earth fallback.
+  File: atmospheric_mass.py
+Flag 131: FeO supply treated as non-limiting — 8 wt% FeO assumed.
+  FeO content not a cascade variable. Earth fallback.
+  File: nebular_ingassing.py
+Flag 132: Equilibrium dissolution assumed — convective mixing
+  timescale (days) << disk lifetime (Myr). Model applicability limit
+  if magma ocean solidifies before disk dispersal.
+  File: nebular_ingassing.py
+Flag 133: N post-veneer overshoot — 80/20 mixing delivers ~6 ppm N
+  vs 1–2 ppm MORB-source target. Known Ru isotopic tension.
+  Model limitation — not patched.
+  File: late_veneer.py
+Flag 134: M_atm on exosphere_only worlds unphysical — V08 escape
+  strips H2 and H2O only; V04 exosphere_only implies all species
+  escape. Secondary atmosphere on exosphere_only worlds is not credible.
+  Research prompt required to establish coupling between atm_class,
+  M_dot, and secondary atmosphere survival. Model limitation — not patched.
+  File: atmospheric_mass.py
+
+### Flags resolved this session
+Flag 6: Speciation — resolved. Speciation dict now produced by V08
+  and passed to V07. Phase states evaluate for all seeds.
+Flag 29: Rocky atmospheric composition underdetermined without mantle
+  fO2 — resolved. fO2 computed in oxygen_fugacity.py from P_cmb_Pa.
+Flag 40: X_vol (mantle volatile fraction) has no cascade origin —
+  resolved. X_vol computed in bulk_volatile_fraction.py.
+Flag 90: M_vol blocked — resolved. M_vol computable as X_vol × M_kg.
+
+### Flags updated this session
+Flag 93: PET on atmosphere-stripped worlds physically vacuous —
+  primary blocker (speciation=None) removed. Flag 93 remains open
+  as a model limitation for the case where atm_class=exosphere_only
+  produces non-zero PET. See also Flag 134 for the related M_atm issue.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48, 51, 59, 60,
+                   63, 64, 97, 98, 99, 100
+Earth fallbacks: 04, 09, 13, 23, 39, 41, 50, 52, 54, 55, 56, 57,
+                 58, 62, 65, 67, 69, 70, 71, 72, 73, 74, 75, 76,
+                 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 94,
+                 95, 101, 102, 103, 105, 106, 107, 108, 109, 110,
+                 111, 112, 113, 114, 115, 116, 118, 119, 124, 125,
+                 126, 127, 128, 129, 130, 131
+Deferred — upstream dependency: 07, 16, 25, 42, 43, 44, 53, 91, 96
+Model applicability limit: 68, 104, 120, 122, 123, 132
+Model limitation: 88, 89, 93, 97, 98, 99, 100, 133, 134
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 46, 49
+Model lower bound only: 47
+Empirical GCM calibration: 38B
+Solar System calibration: 117
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step
+Variable 09 (formerly Variable 08): Sediment Transport.
+Prior research exists (FLAGS 1–8 documented; Weertman sliding law
+and gravity multiplier correction were the focus of the most recent
+session). Review prior research before determining whether a new
+Gemini prompt is required or whether implementation can proceed from
+existing validated formulas.

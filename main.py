@@ -14,13 +14,14 @@ from variable_05_kinematics.bond_albedo import compute_pass2_albedo
 from variable_04_atmosphere import variable_04_atmosphere
 from variable_06_tectonics.variable_06_tectonics import run_variable_06
 from variable_07_hydrology.variable_07_hydrology import run_variable_07
+from variable_08_volatile_inventory import run_variable_08
 
 
 def run(seed: int, config: dict):
     v01 = run_variable_01(seed, regime=config['regime'])
     v02 = run_variable_02(seed, v01["M_kg"], v01["mu"])
 
-    active_variables = ["v01", "v02", "v03", "v05", "v04", "v06", "v07"]
+    active_variables = ["v01", "v02", "v03", "v05", "v04", "v06", "v08", "v07"]
     version, npz_path, png_path = next_version(seed, active_variables)
 
     grid, meta = run_coordinate_system(v02, npz_path)
@@ -42,7 +43,8 @@ def run(seed: int, config: dict):
     v05["T_eq_K"] = T_eq_final_K
 
     v06 = run_variable_06(v01, v02, v03, v05, v04)
-    v07 = run_variable_07(v01, v02, v03, v04, v05, v06)
+    v08 = run_variable_08(seed, v01, v02, v03, v04, v05, v06)
+    v07 = run_variable_07(v01, v02, v03, v04, v05, v06, v08)
 
     run_map_generator(grid, meta, png_path)
 
@@ -53,6 +55,7 @@ def run(seed: int, config: dict):
         "v05": v05,
         "v04": v04,
         "v06": v06,
+        "v08": v08,
         "v07": v07,
         "version": version,
         "npz_path": npz_path,
@@ -85,6 +88,7 @@ if __name__ == "__main__":
     v05 = result["v05"]
     v04 = result["v04"]
     v06 = result["v06"]
+    v08 = result["v08"]
     v07 = result["v07"]
 
     M_EARTH_KG = 5.972e24
@@ -217,6 +221,17 @@ if __name__ == "__main__":
         print("  R_melt:          None")
     print(f"  Speciation:      {v06['speciation']}")
     print(f"  Outgassed mass:  {v06['outgassed_mass']}")
+
+    print(f"\n--- Variable 08: Volatile Inventory ---")
+    print(f"  X_vol              : {v08.get('X_vol')}")
+    print(f"  Delta_IW           : {v08.get('delta_IW')}")
+    print(f"  X_mantle_H2O (ppm) : {v08.get('X_mantle_H2O_ppm')}")
+    print(f"  F_bar              : {v08.get('F_bar')}")
+    print(f"  Speciation         : {v08.get('speciation')}")
+    print(f"  M_atm (kg)         : {v08.get('M_atm_kg')}")
+    print(f"  P_s (Pa)           : {v08.get('P_s_Pa')}")
+    print(f"  M_ocean (kg)       : {v08.get('M_ocean_kg')}")
+    print(f"  Volatile note      : {v08.get('volatile_note')}")
 
     print(f"\n--- Variable 07: Hydrology ---")
     print(f"Phase states: {v07['phase_states']}")

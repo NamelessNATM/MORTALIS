@@ -36,7 +36,9 @@ def _null_hydrology(note: str) -> dict:
     }
 
 
-def run_variable_07(v01: dict, v02: dict, v03: dict, v04: dict, v05: dict, v06: dict) -> dict:
+def run_variable_07(
+    v01: dict, v02: dict, v03: dict, v04: dict, v05: dict, v06: dict, v08: dict
+) -> dict:
     _ = (v01, v03)
     regime = v02["regime"]
 
@@ -45,7 +47,7 @@ def run_variable_07(v01: dict, v02: dict, v03: dict, v04: dict, v05: dict, v06: 
 
     if regime == "dwarf":
         phase_states = evaluate_all_species(
-            speciation_dict=v06["speciation"],
+            speciation_dict=v08.get("speciation"),
             T_eq_K=v05["T_eq_K"],
             P_s_Pa=0.0,
         )
@@ -78,9 +80,11 @@ def run_variable_07(v01: dict, v02: dict, v03: dict, v04: dict, v05: dict, v06: 
     R_m = v02["R_m"]
     rho_mean = v02["rho_mean_kg_m3"]
     P_s = v04["P_s_Pa"]
+    if P_s is None:
+        P_s = v08.get("P_s_Pa")
 
     phase_states = evaluate_all_species(
-        speciation_dict=v06["speciation"],
+        speciation_dict=v08.get("speciation"),
         T_eq_K=v05["T_eq_K"],
         P_s_Pa=P_s,
     )
