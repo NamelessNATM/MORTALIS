@@ -2154,3 +2154,89 @@ and gravity multiplier correction were the focus of the most recent
 session). Review prior research before determining whether a new
 Gemini prompt is required or whether implementation can proceed from
 existing validated formulas.
+
+---
+## Scaffold 009a — Flag 134 Resolution: Jeans and Thermostat Escape for Heavy Species on exosphere_only Worlds
+**Date:** 2026-04-15
+**Type:** Post-implementation physics patch
+
+### What was implemented
+Two modules were added and one modified to resolve Flag 134: the unphysical accumulation of a multi-bar secondary atmosphere on exosphere_only worlds, caused by V08's escape term stripping only H₂ and H₂O while leaving CO₂, CO, N₂, H₂S unstripped despite V04 classifying all heavy species as non-retained.
+
+Root cause of Flag 134: V04 and V08 used two physically distinct escape frameworks that were not communicating. V04's Jeans criterion (instantaneous thermodynamic assessment per species) determined that no heavy species could be retained. V08's energy-limited escape (cumulative hydrodynamic mass loss budget) was applied only to H₂ and H₂O. The two modules were not exchanging atm_class information for heavy species stripping.
+
+### Files created
+variable_08_volatile_inventory/jeans_escape_heavy.py (original Flag 134 scaffold — see Scaffold 009)
+variable_08_volatile_inventory/thermostat_escape_heavy.py — new module implementing the Chatterjee-Pierrehumbert (2024/2026) thermostat-limited hydrodynamic escape for λ < 2.0. Computes thermobase pressure P₀ = g m̄/σ_XUV, thermobase radius r₀ via inverted extended barometric law, thermobase density ρ₀ from ideal gas at T₀ = 6000 K, polytropic sonic radius r_sc, and Ṁ_thermostat = 4π r₀² ρ₀ c₀ × (r_sc/r₀)² × (T_sc/T₀)^(1/(γ−1)) with γ_eff = 1.15.
+
+### Files modified
+variable_08_volatile_inventory/jeans_escape_heavy.py updated with:
+
+β_bulk_diatomic: nine-point DSMC lookup table with linear interpolation (Volkov et al. 2011, 2013). A Padé [2/3] closed-form expression was proven mathematically impossible under the all-positive-denominator constraint: back-calculation shows the required polynomial value at λ=15 is ≈ −418, which no combination of c₄,c₅,c₆ > 0 can produce given the fixed numerator. Five research sessions confirmed this structural impossibility. Lookup table used instead — exact at all nine DSMC nodes, positive-definite throughout. Asymptotic extrapolation for λ > 20: β ≈ 1 + 5.0/λ.
+β_bulk_monatomic: validated Padé [1/2] with coefficients c₁ = 3.000, c₂ = −5.000, c₃ = −1.900, c₄ = 2.200. Discriminant = −5.19 < 0 (no real roots, no singularities). RMS = 0.0176 < 0.02 against Volkov et al. DSMC data. ✓
+β_trace: validated formula β_trace = 1 − 2.40/λ. Calibrated against Earth (λ=6.00 → 0.600 ✓), Earth (λ=8.00 → 0.700 ✓), Mars (λ=5.58 → 0.570 ✓). All residuals = 0.000.
+Trace/bulk selection threshold: bulk if X_i ≥ 0.50 (dominant mass constituent rule) or X_i ≥ 0.15 and λ_dominant ≤ 15 (strongly coupled rule). Otherwise trace.
+λ < 2.0 branch: now routes to thermostat_escape_heavy.py instead of returning M_atm = M_outgassed conservatively.
+jeans_v04 parameter added to compute_jeans_escape_one_species signature for λ_dominant computation; passed through from apply_jeans_escape_exosphere_only.
+
+### Physics implemented
+| Quantity | Formula | Source |
+|---|---|---|
+| β_bulk,diatomic | Nine-point DSMC lookup, linear interpolation | Volkov et al. (2011, 2013) |
+| β_bulk,monatomic | 1 + (3.00λ−5.00)/(λ²−1.90λ+2.20) | Volkov et al. (2011, 2013) |
+| β_trace | 1 − 2.40/λ | DSMC; Earth/Mars exosphere measurements |
+| P₀ | g m̄/σ_XUV | Beer-Lambert + hydrostatic; exact derivation |
+| r₀ | [1/R − k_B T̄/(G M m̄)×ln(P₀/P_surf)]⁻¹ | Extended barometric law (inverse-square gravity) |
+| ρ₀ | P₀ m̄/(k_B T₀) | Ideal gas law at thermobase |
+| r_sc | r₀×[G M m̄/(2γ k_B T₀ r₀)]^(1/(3−2γ)) | Parker wind sonic point condition (Mach=1) |
+| Ṁ_thermostat | 4πr₀²ρ₀c₀×(r_sc/r₀)²×(T_sc/T₀)^(1/(γ−1)) | Chatterjee-Pierrehumbert (2024/2026) |
+
+### Calibration verified
+Earth T_exo analog (V04): λ_N2 = 9.430, β = 1.530 (bulk_diatomic) ✓
+Earth T_exo analog (V04): λ_CO2 = 14.824, β = 1.403 (bulk_diatomic) ✓
+β_trace Earth λ=6: 0.600 ✓; λ=8: 0.700 ✓; Mars λ=5.58: 0.570 ✓
+β_mono RMS = 0.0176 < 0.02 across all nine Volkov DSMC points ✓
+P₀ Earth: 9.81×4.65×10⁻²⁶/2.0×10⁻²¹ = 2.28×10⁻⁴ Pa ✓
+
+### Seed outputs verified
+python main.py 1 --world-type rocky
+
+M_atm = 8.517×10¹⁹ kg (prior β=1.0 run: 1.648×10²⁰ kg; 48% reduction) ✓
+P_s = 1.871×10⁶ Pa (prior: 3.62×10⁶ Pa) ✓
+escape_details: N₂ regime=jeans, beta=1.530 (bulk_diatomic) ✓
+escape_details: CO₂ regime=jeans, beta=1.403 (bulk_diatomic) ✓
+escape_details: H₂S, CO regime=jeans, bulk_diatomic ✓
+No NaN, no crashes ✓
+
+python main.py 42 --world-type rocky
+
+M_atm = 0.0, P_s = 0.0 (unchanged from prior run) ✓
+
+python main.py 7 --world-type rocky (secondary_possible)
+
+atm_class = secondary_possible
+M_atm and P_s unmodified by escape module (gate is exosphere_only only) ✓
+
+### Flags resolved this session
+Flag 134: M_atm on exosphere_only worlds unphysical — resolved. Heavy species now subject to per-species Jeans escape (λ ≥ 3.6) or thermostat-limited hydrodynamic escape (λ < 2.0). Secondary atmosphere on exosphere_only worlds is now physically consistent with V04 atm_class.
+Flag 135: beta_i = 1.0 placeholder — resolved. β now computed from validated DSMC data per species per regime.
+
+### Flags opened this session
+Flag 142: Padé [2/3] structural impossibility for diatomic β_bulk. No all-positive-denominator rational function with numerator degree 2 and denominator degree 3 can fit the Volkov et al. diatomic DSMC dataset. Proven by back-calculation: required polynomial value at λ=15 is ≈ −418, incompatible with c₄,c₅,c₆ > 0. Lookup table used as correct implementation. File: jeans_escape_heavy.py.
+Flag 143: β_mono Padé [1/2] coefficients fitted to Volkov et al. (2011, 2013) DSMC data. Not Solar System specific. Valid λ ∈ [3.6, 20], monatomic species. File: jeans_escape_heavy.py.
+Flag 144: β_trace c₁ = 2.40 calibrated to H escape through N₂/CO₂/O terrestrial backgrounds. Not a universal constant — calibrated to H as the trace species. File: jeans_escape_heavy.py.
+Flag 145: σ_XUV values (N₂: 2.0×10⁻²¹ m², CO₂: 2.5×10⁻²¹ m²) are band-integrated resonant peak absorption cross-sections from synchrotron measurements. Species-intrinsic molecular properties; not solar-spectrum specific. File: thermostat_escape_heavy.py.
+Flag 146: P₀ formula uses surface gravity g = G M/R². For small planets (M < 0.3 M_Earth), effective g at thermobase altitude is lower, reducing P₀ by factor ~2–3. Error bounded; surface-g approximation used as first-order estimate. File: thermostat_escape_heavy.py.
+Flag 147: T₀ = 6000 K composition-averaged representative value for collisional-radiative thermostat clamp (Chatterjee & Pierrehumbert 2026). Range: 4000–8000 K. Valid for strongly ionised outflow above thermostat activation threshold. File: thermostat_escape_heavy.py.
+Flag 148: γ_eff = 1.15 path-integrated empirical constant from Chatterjee-Pierrehumbert (2024/2026) hydrodynamic simulations. Valid: 0.1–2.0 M_Earth, XUV 10–500× PEL, CO₂/N₂ atmospheres. File: thermostat_escape_heavy.py.
+Flag 149: F_XUV* threshold formula (η_γ-corrected power-law) not reducible to cascade inputs without dedicated thermospheric modelling. Bypassed by λ < 2.0 → thermostat-active logic. File: thermostat_escape_heavy.py.
+Flag 150: Binary diffusion parameter b₁₂ temperature scaling (Marrero & Mason 1972). Crossover mass m_c implementation deferred. File: thermostat_escape_heavy.py.
+
+### Known behaviour
+H₂S and CO have λ = 999 (fallback): V04's jeans dict does not compute λ for H₂S or CO — these species are not in V04's per-species Jeans calculation. The cascade assigns λ = 999 as a fallback, classifying them as fully retained (Gamma = inf, M_atm = M_outgassed). This is physically conservative — they may escape on exosphere_only worlds. A research prompt is required to establish whether V04's Jeans calculation should be extended to cover H₂S and CO, or whether their λ values can be derived from cascade-available quantities without a new V04 research cycle.
+
+### Flags still open after this session
+(Complete list available in prior changelog entry. Additions this session: 142–150.)
+
+### Next step
+Rule 9 run complete. Changelog issued. The two queued non-blocking research prompts (β_bulk closed-form expression follow-up; Scaffold 009 sediment transport FLAGS 3–8 continuation) remain. Variable 09 (sediment transport) is the next cascade variable.

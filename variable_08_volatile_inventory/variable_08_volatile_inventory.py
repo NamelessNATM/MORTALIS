@@ -217,6 +217,11 @@ def run_variable_08(
         r_m,
         atm_class,
         r_melt,
+        # Flag 134 — Jeans escape for exosphere_only worlds:
+        T_exo_K=v04.get("T_exo_K"),
+        M_kg=m_kg,
+        jeans_v04=v04.get("jeans"),
+        speciation=speciation,
     )
 
     return {

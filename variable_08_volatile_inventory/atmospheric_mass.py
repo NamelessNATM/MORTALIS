@@ -11,6 +11,10 @@
 
 import math
 
+from variable_08_volatile_inventory.jeans_escape_heavy import (
+    apply_jeans_escape_exosphere_only,
+)
+
 R_GAS = 8.314  # J/mol/K (Category A)
 DH_VAP_H2O = 40650.0  # J/mol — Flag 78 (already in codebase)
 T_REF_H2O = 373.15  # K
@@ -38,7 +42,12 @@ def compute_atmospheric_mass(
     g: float,
     R_m: float,
     atm_class: str,
-    R_melt_kgs: float | None,
+    R_melt_kgs: float | None = None,
+    # New parameters for Flag 134 resolution:
+    T_exo_K: float | None = None,
+    M_kg: float | None = None,
+    jeans_v04: dict | None = None,
+    speciation: dict | None = None,
 ) -> dict:
     """Net atmospheric mass and surface pressure after escape and sequestration."""
     species = {k: float(v) for k, v in M_outgassed_per_species.items()}
@@ -99,6 +108,36 @@ def compute_atmospheric_mass(
             m_co2_seq = max(0.0, m_co2_out - m_co2_atm)
 
     species["CO2"] = max(0.0, m_co2_out - m_co2_seq)
+
+    # ── Flag 134 resolution: Jeans escape for heavy species ──────────────
+    # When atm_class == "exosphere_only", V04 has determined that even
+    # heavy species (N2, CO2) fail the Jeans retention criterion. Apply
+    # per-species Jeans escape to all remaining outgassed inventory.
+    # The existing H2/H2O stripping above handles light species; this
+    # block handles everything else.
+    if atm_class == "exosphere_only":
+        P_surf_pass1 = sum(species.values()) * g / (4.0 * math.pi * R_m**2)
+        if (
+            T_exo_K is not None
+            and T_exo_K > 0.0
+            and M_kg is not None
+            and M_kg > 0.0
+            and age_Gyr > 0.0
+        ):
+            jeans_result = apply_jeans_escape_exosphere_only(
+                M_outgassed_per_species={k: v for k, v in species.items()},
+                jeans_v04=jeans_v04,
+                T_exo_K=T_exo_K,
+                T_eq_K=T_eq_K,
+                M_kg=M_kg,
+                R_m=R_m,
+                age_Gyr=age_Gyr,
+                P_surf_pass1_Pa=P_surf_pass1,
+                speciation=speciation,
+            )
+            for sp, m_surviving in jeans_result["surviving_mass"].items():
+                if sp in species:
+                    species[sp] = m_surviving
 
     m_atm = sum(species.values())
     m_atm = max(0.0, m_atm)
