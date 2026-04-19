@@ -169,6 +169,23 @@ if __name__ == "__main__":
         print(f"  H            : — (m)")
     else:
         print(f"  H            : {v04['H_m']:.4e} m")
+    _hi = v04["h_identity"]
+    _hn = _hi["notes"]
+    _htail = "..." if len(_hn) > 60 else ""
+    print(
+        f"  h_identity:         {_hi['dominant_h_species']} "
+        f"({_hn[:60]}{_htail})"
+    )
+    if v04["jeans"] is not None:
+        for sp in ("H", "H2", "He", "O", "H2O", "N2", "CO", "CO2", "H2S", "SO2"):
+            entry = v04["jeans"].get(sp, {})
+            if entry.get("flag") == "photochemically_limited":
+                print(f"    {sp:6s} photochemically_limited (Flag 154)")
+            elif entry.get("lambda") is not None:
+                print(
+                    f"    {sp:6s} lambda={entry['lambda']:.2f} "
+                    f"retained={entry['retained']}"
+                )
     print(f"  notes        : {v04['notes']}")
 
     print("\n--- Variable 06: Tectonics ---")
@@ -232,6 +249,29 @@ if __name__ == "__main__":
     print(f"  P_s (Pa)           : {v08.get('P_s_Pa')}")
     print(f"  M_ocean (kg)       : {v08.get('M_ocean_kg')}")
     print(f"  Volatile note      : {v08.get('volatile_note')}")
+    esc = v08.get("escape")
+    if esc:
+        print("  Escape (per-species):")
+        for sp, det in esc.get("escape_details", {}).items():
+            regime = det.get("regime", "unknown")
+            if regime == "photochemically_limited":
+                print(f"    {sp:6s} photochemically_limited (Flag 154)")
+            elif regime == "crossover_mass_entrained":
+                cm_info = det.get("crossover_mass_info", {})
+                m_c = cm_info.get("m_c_amu")
+                src = cm_info.get("b12_info", {}).get("source_flag", "")
+                if m_c is not None:
+                    print(f"    {sp:6s} entrained (m_c={m_c:.1f} amu; {src})")
+                else:
+                    print(f"    {sp:6s} entrained (m_c=None; {src})")
+            else:
+                m_atm = det.get("M_atm_i_kg")
+                if m_atm is None:
+                    print(f"    {sp:6s} M_atm=None")
+                else:
+                    print(
+                        f"    {sp:6s} M_atm={m_atm:.3e} kg (regime={regime})"
+                    )
 
     print(f"\n--- Variable 07: Hydrology ---")
     print(f"Phase states: {v07['phase_states']}")

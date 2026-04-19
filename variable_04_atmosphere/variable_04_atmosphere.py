@@ -24,6 +24,7 @@
 #   P_s_Pa        — surface pressure [Pa] or None if blocked or no atmosphere
 #   gamma_d_K_m   — dry adiabatic lapse rate [K/m]
 #   H_m           — scale height [m] or None
+#   h_identity    — dominant hydrogen species at exobase (hydrogen_identity)
 #   notes         — flag summary string
 
 from variable_04_atmosphere.exobase_temperature import (
@@ -31,11 +32,15 @@ from variable_04_atmosphere.exobase_temperature import (
     M_MEAN_ROCKY_KG,
     M_MEAN_GIANT_KG,
 )
+from variable_04_atmosphere.hydrogen_identity import select_dominant_hydrogen
 from variable_04_atmosphere.jeans_parameter import (
     compute_all_species,
     SPECIES_MASS_KG,
 )
-from variable_04_atmosphere.regime_classifier import classify_atmosphere
+from variable_04_atmosphere.regime_classifier import (
+    attach_photochemically_limited_species,
+    classify_atmosphere,
+)
 from variable_04_atmosphere.surface_pressure import get_surface_pressure
 from variable_04_atmosphere.lapse_rate import compute_lapse_rate
 from variable_04_atmosphere.scale_height import compute_scale_height
@@ -85,7 +90,7 @@ def run(seed: int,
     Returns
     -------
     dict with keys: T_exo_K, jeans, atm_class, composition,
-                    P_s_Pa, gamma_d_K_m, H_m, notes
+                    P_s_Pa, gamma_d_K_m, H_m, h_identity, notes
     """
     M_kg       = v01['M_kg']
     regime     = v02['regime']
@@ -107,6 +112,7 @@ def run(seed: int,
             'P_s_Pa':      None,
             'gamma_d_K_m': 0.0,
             'H_m':         None,
+            'h_identity':  select_dominant_hydrogen(None),
             'notes':       'Brown dwarf — outside planetary atmosphere domain.',
         }
 
@@ -120,6 +126,7 @@ def run(seed: int,
             'P_s_Pa':      0.0,
             'gamma_d_K_m': 0.0,
             'H_m':         None,
+            'h_identity':  select_dominant_hydrogen(None),
             'notes':       'Dwarf regime; gravity insufficient to retain any '
                            'species. Conduction model does not apply.',
         }
@@ -141,7 +148,18 @@ def run(seed: int,
         jeans = jeans_pass1
         pass2_applied = False
 
-    atm     = classify_atmosphere(regime, jeans, M_kg, M_dot_kg_s, age_Gyr)
+    h_identity = select_dominant_hydrogen(T_exo)
+
+    atm = classify_atmosphere(regime, jeans, M_kg, M_dot_kg_s, age_Gyr)
+    # H2S/SO2: Flag 154 — attach for all rocky atm classes that carry a Jeans
+    # table (secondary_possible per spec; exosphere_only shares the same
+    # outgassed species and needs the same V04 markers for V08 escape).
+    if regime == "rocky" and atm["atm_class"] in (
+        "secondary_possible",
+        "exosphere_only",
+    ):
+        jeans = attach_photochemically_limited_species(jeans)
+
     P_s     = get_surface_pressure(atm['atm_class'], g_m_s2, R_m)
     gamma_d = compute_lapse_rate(g_m_s2, atm['composition'])
     H       = compute_scale_height(T_eq_K, g_m_s2, atm['composition'])
@@ -158,5 +176,6 @@ def run(seed: int,
         'P_s_Pa':      P_s,
         'gamma_d_K_m': gamma_d,
         'H_m':         H,
+        'h_identity':  h_identity,
         'notes':       notes,
     }

@@ -2240,3 +2240,230 @@ H₂S and CO have λ = 999 (fallback): V04's jeans dict does not compute λ for 
 
 ### Next step
 Rule 9 run complete. Changelog issued. The two queued non-blocking research prompts (β_bulk closed-form expression follow-up; Scaffold 009 sediment transport FLAGS 3–8 continuation) remain. Variable 09 (sediment transport) is the next cascade variable.
+
+---
+## Scaffold 012 — V04 Species Scope Extension, Hydrogen Identity, Crossover Mass, H₂S/SO₂ Photochemistry Deferral
+**Date:** 2026-04-19
+**Type:** Implementation
+
+### What was implemented
+Two research cycles (atmospheric escape species scope; binary diffusion
+literature coverage) produced the framework to replace V04's and V08's
+fallback handling for H₂, CO, H₂S, and SO₂. This scaffold implements the
+full scope:
+
+- V04 now computes Jeans parameters for H₂ and CO natively.
+- V04 emits an explicit `h_identity` output selecting atomic H or
+  molecular H₂ as the exobase-dominant hydrogen species, based on T_exo
+  and a 400 K heuristic threshold.
+- V04 emits `photochemically_limited` flags for H₂S and SO₂ on rocky
+  worlds (both `secondary_possible` and `exosphere_only`), deferring
+  retention evaluation to a future photochemistry cascade variable.
+- V08 implements the Hunten-Pepin-Owen (1987) crossover mass formalism
+  for CO entrainment by escaping H or H₂ in the hydrodynamic blow-off
+  regime (λ < 2.0).
+- V08's escape module detects the photochemistry flag and returns
+  M_atm_i = None (Decision A3) for H₂S and SO₂, rather than zero or
+  full preservation.
+
+### Files created
+- `variable_04_atmosphere/hydrogen_identity.py` — 400 K identity rule.
+  Returns `dominant_h_species` ("H" / "H2" / "none"), effective mass,
+  and diagnostic notes. Flag 151.
+- `variable_08_volatile_inventory/b12_coefficients.py` — binary diffusion
+  parameter lookup. Covered pairs: H₂-N₂ (Flag 150), H₂-CO₂ (Flag 150),
+  H₂-CO (Flag 152, isosteric from H₂-N₂), H-O (Flag 153, Zahnle &
+  Kasting 1986). Uncovered: H-CO, H-S, H₂-S, H₂-O — return None with
+  Flag 156.
+- `variable_08_volatile_inventory/crossover_mass.py` — m_c formula;
+  F_1 = Ṁ / (4πR²m_1); altitude-independent evaluation per research
+  cycle Gap 5c; X_1 → 1 Hunten-Pepin-Owen simplifying assumption for
+  hydrogen-dominated blow-off (Flag 155).
+
+### Files modified
+- `variable_04_atmosphere/jeans_parameter.py` — SPECIES_MASS_KG extended
+  with H₂ (3.34×10⁻²⁷ kg) and CO (4.65×10⁻²⁶ kg). Earth calibration
+  updated in header: λ_H₂ = 15.14, λ_CO = 210.7 at T_exo = 1000 K.
+- `variable_04_atmosphere/regime_classifier.py` — new helper
+  `attach_photochemically_limited_species` adds H₂S and SO₂ entries
+  to the jeans dict with structured None values and flag string.
+- `variable_04_atmosphere/variable_04_atmosphere.py` — hydrogen_identity
+  called after Pass-2 T_exo; attach helper called for rocky worlds with
+  `atm_class ∈ {secondary_possible, exosphere_only}`; h_identity added
+  to all return paths.
+- `variable_08_volatile_inventory/jeans_escape_heavy.py` — photochemistry
+  flag detection at top of per-species evaluation; CO crossover-mass
+  check before thermostat dispatch when λ_CO < 2.0; λ_dominant guard
+  when V04 returns lambda=None for a species; None-safe handling in
+  `apply_jeans_escape_exosphere_only`.
+- `variable_08_volatile_inventory/atmospheric_mass.py` — mass-balance
+  accounting updated to propagate None from surviving_mass rather than
+  treating None as zero.
+- `variable_08_volatile_inventory/variable_08_volatile_inventory.py` —
+  receives g_m_s2 and h_identity from V02/V04; passes to escape
+  aggregator; returns escape = None on null/giant/dwarf paths.
+- `variable_08_volatile_inventory/thermostat_escape_heavy.py` — Flag 148
+  header note extended: γ_eff = 1.15 path-integrated index confirmed
+  applicable to C⁺, O⁺, S⁺ heavy-ion thermostat outflows. No logic
+  change.
+- `main.py` — V04 print block extended with h_identity; V04 Jeans print
+  shows photochemically_limited flag for H₂S and SO₂; V08 escape block
+  shows crossover_mass_entrained regime with m_c and source flag when
+  the branch fires.
+
+### Implementation adjustments from plan
+Two wiring adjustments were made during implementation to ensure Rule 9
+diagnostics match real rocky outputs. Both are methodology-consistent
+(no physics changes):
+1. Flag 154 attach applied to both `secondary_possible` AND
+   `exosphere_only` rocky world paths. The original plan specified
+   `secondary_possible` only. Seed 1 is `exosphere_only`, so without
+   this adjustment the photochemistry flag would not have surfaced on
+   that benchmark seed. H₂S/SO₂ retention is blocked on both world
+   types — the underlying research logic does not differ by atm_class.
+2. Secondary-escape diagnostics scan
+   `set(M_outgassed_per_species) | {"H2S", "SO2"}` to ensure the
+   photochemistry flag is surfaced even when V08 produces no outgassed
+   H₂S or SO₂ (seed 42).
+
+### Research path
+Three research sessions required for this scaffold:
+1. Initial scope extension prompt — produced framework covering all
+   four species. Five components contested during Claude validation
+   (Titan λ_H₂ 20× calibration miss; γ_eff = 5/3 contradicting Flag 148;
+   "effective λ of photoproducts" Jeans substitution; b₁₂ s = 1.75 for
+   H₂-heavy pairs; F₁ source).
+2. First follow-up — resolved Titan calibration (λ ≈ 5.6, transition
+   regime), γ_eff reconciliation (1.15 path-integrated per Flag 148),
+   b₁₂ exponent reconciliation (0.74–0.75), F₁ = Ṁ/(4πR²m_1); returned
+   clean deferral for H₂S/SO₂ altitude photochemistry.
+3. Second follow-up (source-proximate H₂S/SO₂ retention) — confirmed
+   deferral: source-proximate retention blocked on T_surface, OH, and
+   ocean volume — all cascade-missing.
+4. Third follow-up (b₁₂ literature coverage beyond Marrero & Mason
+   1972) — resolved H₂-CO (isosteric, Ivakin & Suetin 1964 <2%
+   validation) and H-O (Zahnle & Kasting 1986); confirmed H-CO, H-S,
+   H₂-S, H₂-O not available in primary literature.
+
+### Physics implemented
+| Quantity | Formula | Source |
+|---|---|---|
+| λ per species | v_e² / v_th² | Chamberlain & Hunten (1987); Scaffold 006 (extended) |
+| h_identity rule | T_exo ≥ 400 K → H; T_exo < 400 K → H₂ | Earth/Solar-System heuristic; Flag 151 |
+| m_c (crossover mass) | m₁ + k_B T_exo F₁ / (b₁₂ g X₁) | Hunten, Pepin & Owen (1987) |
+| F₁ | Ṁ / (4π R² m₁) | Derived from V05 Ṁ; altitude-independent |
+| b₁₂ (H₂-N₂) | 2.80×10¹⁷ T^0.74 | Marrero & Mason (1972); Flag 150 |
+| b₁₂ (H₂-CO₂) | 3.1×10¹⁶ T^0.75 exp(−11.7/T) | Marrero & Mason (1972); Flag 150 |
+| b₁₂ (H₂-CO) | 2.80×10¹⁷ T^0.74 | H₂-N₂ isosteric; Flag 152 |
+| b₁₂ (H-O) | 4.8×10¹⁷ T^0.75 | Zahnle & Kasting (1986); Flag 153 |
+
+### Calibration verified numerically (pre-implementation)
+- λ_H₂ Earth, T_exo = 1000 K: 15.14 (retained — correct ✓)
+- λ_CO Earth, T_exo = 1000 K: 210.7 (retained — correct ✓)
+- λ_H₂ Titan, T_exo = 150 K: 5.62 (transition regime — consistent with
+  observed continuous H₂ loss ✓)
+- m_c ancient Earth (Ṁ = 10⁹ kg/s, T_exo = 8000 K, H-O pair):
+  ~196 amu — consistent with Mars-history entrainment of CO₂ and
+  noble gases ✓
+- m_c modern Mars (Ṁ = 10⁶ kg/s, T_exo = 2000 K, H-O pair):
+  ~1.4 amu — consistent with modern Mars losing only H ✓
+
+### Seed outputs verified numerically (post-implementation)
+- Seed 1 (rocky, exosphere_only): T_exo = 6379.82 K → h_identity = H;
+  V04 Jeans block shows H₂ and CO with numerical λ; H₂S and SO₂ show
+  as `photochemically_limited`; V08 escape lists H₂S and SO₂ with
+  Flag 154. ✓
+- Seed 42 (rocky, secondary_possible equivalent): T_exo = 279.52 K →
+  h_identity = H₂ (below 400 K threshold); same Jeans/photochem
+  pattern; V08 escape shows H₂S/SO₂ Flag 154. ✓
+- CO crossover branch (crossover_mass_entrained) installed but not
+  exercised by benchmark seeds. Seed 1 (exosphere_only) has no CO
+  column; seed 42 has λ_CO > 2 (no hydrodynamic blow-off). Future
+  seeds in the hot-irradiated-rocky regime will exercise this branch.
+
+### Flags opened this session
+Flag 151: H₂/H identity-rule transition at T_exo = 400 K. Earth/Solar-
+  System calibrated heuristic. First-principles route blocked on
+  K_eddy (photochemistry variable). File: hydrogen_identity.py.
+Flag 152: H₂-CO via H₂-N₂ isosteric approximation. Ivakin & Suetin
+  (1964) <2% validation per Marrero & Mason (1972). Earth fallback.
+  File: b12_coefficients.py.
+Flag 153: H-O binary diffusion from Zahnle & Kasting (1986). Chapman-
+  Enskog with Lennard-Jones parameters. Earth/Solar-System calibrated.
+  File: b12_coefficients.py.
+Flag 154: H₂S and SO₂ retention not computable from current cascade.
+  Blocked on T_surface, tropospheric OH concentration, and ocean
+  volume. Deferred upstream dependency. File: regime_classifier.py;
+  jeans_escape_heavy.py.
+Flag 155: Multi-species H / H₂ F₁ decomposition requires dissociation
+  fraction at homopause. Not in cascade. Deferred upstream dependency.
+  File: crossover_mass.py.
+Flag 156: Binary diffusion coefficients missing for H-CO, H-S, H₂-S,
+  H₂-O pairs. Not located in Marrero & Mason (1972), Zahnle & Kasting
+  (1986), Tian (2015), Wordsworth et al. (2018), Hu & Seager (2013,
+  2014), Loftus et al. (2019), Poling Prausnitz & O'Connell (2001).
+  Crossover mass returns None for these pairs. Incomplete empirical
+  data. File: b12_coefficients.py; crossover_mass.py.
+
+### Flags updated this session
+Flag 148: Scope extended — γ_eff = 1.15 path-integrated index confirmed
+  applicable to C⁺, O⁺, S⁺ heavy-ion thermostat outflows in addition
+  to the original CO₂/N₂ validation. 5/3 adiabatic index is not the
+  correct parameterisation for the thermostat regime; thermostat flow
+  is radiatively clamped (nearly isothermal, γ_eff → 1), not adiabatic.
+  File: thermostat_escape_heavy.py.
+
+### Flags resolved this session
+None. All flag activity this session is opening new flags or extending
+existing ones. The prior "Known behaviour" entry from Scaffold 009a
+(H₂S and CO λ = 999 fallback) is superseded by Flag 154 (for H₂S and
+SO₂) and Flag 152/156 (for CO coverage).
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48, 51, 59, 60,
+                   63, 64, 97, 98, 99, 100
+Earth fallbacks: 04, 09, 13, 23, 39, 41, 50, 52, 54, 55, 56, 57,
+                 58, 62, 65, 67, 69, 70, 71, 72, 73, 74, 75, 76,
+                 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 94,
+                 95, 101, 102, 103, 105, 106, 107, 108, 109, 110,
+                 111, 112, 113, 114, 115, 116, 118, 119, 124, 125,
+                 126, 127, 128, 129, 130, 131, 151, 152, 153
+Deferred — upstream dependency: 07, 16, 25, 42, 43, 44, 53, 91, 96,
+                                  154, 155
+Model applicability limit: 68, 104, 120, 122, 123, 132
+Model limitation: 88, 89, 93, 97, 98, 99, 100, 133, 134
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 46, 49
+Model lower bound only: 47
+Empirical GCM calibration: 38B
+Solar System calibration: 117
+Incomplete empirical data: 156
+Pre-registered duplicate: 26 (= Flag 34)
+
+### Next step — PHOTOCHEMISTRY VARIABLE IS THE GATE
+
+Variable 09 (Sediment Transport) CANNOT be started until the
+photochemistry cascade variable is scoped and implemented.
+
+Flag 154's blockers — T_surface, tropospheric OH concentration, and
+ocean volume — are dependencies that also bear on V09's water cycle
+and sediment transport pathways. Starting V09 before photochemistry
+is resolved would mean:
+1. H₂S and SO₂ retention remains blocked (Flag 154 unresolved).
+2. V09 may require the same missing quantities (T_surface in
+   particular is a prerequisite for evaluating sediment weathering
+   rates on planets with thick atmospheres — Venus-type T_eq /
+   T_surface decoupling applies here too, per Flag 157 territory).
+3. Multiple downstream deferrals (Flags 93, 134, 154) all route
+   through the same missing photochemistry / T_surface module.
+
+The photochemistry cascade variable must be scoped next. Its outputs
+should include at minimum:
+- Surface temperature T_surface (from greenhouse treatment)
+- Tropospheric OH concentration (from H₂O photolysis)
+- Photolysis rates and lifetimes for condensable volatile species
+  (H₂S, SO₂, CH₄, NH₃, H₂O)
+- Aerosol microphysics parameters where tractable
+
+A Gemini deep research prompt for this variable is the next authored
+output from Claude. Implementation of V09 is deferred until that
+variable is complete and cascade-integrated.

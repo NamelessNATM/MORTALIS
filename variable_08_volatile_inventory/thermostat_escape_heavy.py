@@ -66,13 +66,17 @@
 #
 # Effective polytropic index γ_eff:
 #   γ_eff = 1.15
-#   ⚠️ Flag 148: Path-integrated, volume-averaged empirical constant from
-#   Chatterjee-Pierrehumbert (2024/2026) hydrodynamic simulations.
+#   ⚠️ Flag 148 (scope extended): Empirical from Chatterjee-Pierrehumbert
+#   (2024/2026). Valid: 0.1-2.0 M_Earth, XUV 10-500× PEL, CO₂/N₂
+#   atmospheres. Confirmed applicable to C⁺, O⁺, S⁺ heavy-ion thermostat
+#   outflows per research cycle 2026-04-17. The path-integrated effective
+#   polytropic index is not the local thermodynamic adiabatic index (5/3);
+#   it parameterises the radiatively clamped flow, which is nearly
+#   isothermal by construction.
 #   Physical basis: CO₂ 15 µm cooling forces near-isothermal lower
 #   thermosphere (γ → 1); LTE breakdown in rarefied upper flow drives
 #   toward adiabatic (γ → 1.4). γ_eff = 1.15 is the spatial average
 #   from thermobase to sonic point.
-#   Valid: 0.1-2.0 M_Earth, XUV 10-500× PEL, CO₂/N₂ atmospheres.
 #   Above 1000× PEL (full molecular dissociation): γ_eff → 1.25-1.30.
 #
 # Sonic radius r_sc:

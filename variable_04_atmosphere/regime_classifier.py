@@ -31,6 +31,38 @@
 SUB_NEPTUNE_ENVELOPE_FRACTION = 0.05
 
 
+def attach_photochemically_limited_species(jeans: dict) -> dict:
+    """
+    Attach photochemically-limited entries for H2S and SO2 to the jeans
+    dict. These species do not reach the exobase intact on any planet
+    with a thick atmosphere — altitude photochemistry and source-proximate
+    chemistry both destroy them faster than vertical transport.
+
+    ⚠️ Flag 154: H2S and SO2 retention not computable from current cascade.
+      Blocked on T_surface, tropospheric OH concentration, and ocean
+      volume. Requires downstream photochemistry cascade variable.
+      Decision A3 per research cycle: return None (not zero, not preserved)
+      to force downstream None-safe handling.
+
+    Parameters
+    ----------
+    jeans : dict
+        Existing jeans dict from compute_all_species().
+
+    Returns
+    -------
+    dict with H2S and SO2 entries added, each of form:
+        {"lambda": None, "retained": None, "flag": "photochemically_limited"}
+    """
+    for species in ("H2S", "SO2"):
+        jeans[species] = {
+            "lambda": None,
+            "retained": None,
+            "flag": "photochemically_limited",
+        }
+    return jeans
+
+
 def classify_atmosphere(regime: str,
                          jeans: dict,
                          M_kg: float,

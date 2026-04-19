@@ -19,6 +19,8 @@
 #   v_e = 11,186 m/s, T_exo = 1,000 K
 #   H:  v_th = 4,064 m/s → lambda = 7.57  (escapes — correct ✓)
 #   O:  v_th = 1,019 m/s → lambda = 120.3 (retained — correct ✓)
+#   H2: v_th = 2,874 m/s → lambda = 15.14 (retained — correct ✓)
+#   CO: v_th = 772 m/s  → lambda = 210.7  (retained — correct ✓)
 
 # Fundamental physical constant (Rule 1 Category A)
 K_B = 1.381e-23  # J/K — Boltzmann constant
@@ -26,10 +28,12 @@ K_B = 1.381e-23  # J/K — Boltzmann constant
 # Molecular masses [kg] — confirmed universal atomic/molecular masses
 SPECIES_MASS_KG = {
     "H":   1.67e-27,
+    "H2":  3.34e-27,   # molecular hydrogen
     "He":  6.65e-27,
     "O":   2.66e-26,
     "H2O": 2.99e-26,
     "N2":  4.65e-26,
+    "CO":  4.65e-26,   # carbon monoxide; identical mass to N2
     "CO2": 7.31e-26,
 }
 

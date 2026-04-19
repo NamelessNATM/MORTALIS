@@ -19,6 +19,9 @@
 #           Flag 6 (speciation now produced — partial resolution)
 
 from variable_08_volatile_inventory.atmospheric_mass import compute_atmospheric_mass
+from variable_08_volatile_inventory.jeans_escape_heavy import (
+    escape_result_photochemically_limited,
+)
 from variable_08_volatile_inventory.bulk_volatile_fraction import X_DRY, compute_bulk_volatile_fraction
 from variable_08_volatile_inventory.core_mantle_partitioning import compute_core_partitioning
 from variable_08_volatile_inventory.elemental_partitioning import compute_elemental_bulk
@@ -45,6 +48,7 @@ def _null_output(note: str) -> dict:
         "M_ocean_kg": None,
         "X_mantle_H2O_ppm": None,
         "outgassed_mass": "Blocked — " + note,
+        "escape": None,
     }
 
 
@@ -89,6 +93,7 @@ def _giant_assembly(seed: int, v01: dict, v02: dict) -> dict:
         "delta_IW": None,
         "F_bar": None,
         "epsilon": None,
+        "escape": None,
     }
     return base
 
@@ -175,6 +180,7 @@ def run_variable_08(
             "M_ocean_kg": None,
             "M_escaped_kg": None,
             "outgassed_mass": "Dwarf — no atmosphere formation in V08",
+            "escape": None,
         }
 
     t_m = v06.get("T_m_K")
@@ -222,7 +228,33 @@ def run_variable_08(
         M_kg=m_kg,
         jeans_v04=v04.get("jeans"),
         speciation=speciation,
+        dominant_h_species=v04["h_identity"]["dominant_h_species"],
     )
+
+    escape = atm.get("escape")
+    jeans_v04 = v04.get("jeans")
+    if (
+        escape is None
+        and atm_class == "secondary_possible"
+        and isinstance(jeans_v04, dict)
+    ):
+        out_species = outg.get("M_outgassed_per_species") or {}
+        sec_details: dict = {}
+        sec_surviving: dict = {}
+        for sp in set(out_species) | {"H2S", "SO2"}:
+            entry = jeans_v04.get(sp, {})
+            if (
+                isinstance(entry, dict)
+                and entry.get("flag") == "photochemically_limited"
+            ):
+                sec_surviving[sp] = None
+                sec_details[sp] = escape_result_photochemically_limited(sp)
+        if sec_details:
+            escape = {
+                "surviving_mass": sec_surviving,
+                "escape_details": sec_details,
+                "total_escaped_kg": 0.0,
+            }
 
     return {
         "volatile_note": "full V08 chain — rocky / cool envelope",
@@ -258,4 +290,5 @@ def run_variable_08(
         "CO2_CO_ratio": spec_pack.get("CO2_CO_ratio"),
         "nebular": neb,
         "melt_note": melt["melt_note"],
+        "escape": escape,
     }

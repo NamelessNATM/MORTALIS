@@ -48,9 +48,11 @@ def compute_atmospheric_mass(
     M_kg: float | None = None,
     jeans_v04: dict | None = None,
     speciation: dict | None = None,
+    dominant_h_species: str = "H",
 ) -> dict:
     """Net atmospheric mass and surface pressure after escape and sequestration."""
     species = {k: float(v) for k, v in M_outgassed_per_species.items()}
+    escape = None
 
     m_esc_budget = M_dot_kg_s * age_Gyr * S_PER_GYR
     avail = species.get("H2", 0.0) + species.get("H2O", 0.0)
@@ -134,9 +136,13 @@ def compute_atmospheric_mass(
                 age_Gyr=age_Gyr,
                 P_surf_pass1_Pa=P_surf_pass1,
                 speciation=speciation,
+                M_dot_kg_s=M_dot_kg_s,
+                g_m_s2=g,
+                dominant_h_species=dominant_h_species,
             )
+            escape = jeans_result
             for sp, m_surviving in jeans_result["surviving_mass"].items():
-                if sp in species:
+                if sp in species and m_surviving is not None:
                     species[sp] = m_surviving
 
     m_atm = sum(species.values())
@@ -151,4 +157,5 @@ def compute_atmospheric_mass(
         "M_escaped_kg": m_escaped,
         "M_ocean_kg": m_h2o_seq,
         "atmospheric_mass_note": "mass balance closed",
+        "escape": escape,
     }

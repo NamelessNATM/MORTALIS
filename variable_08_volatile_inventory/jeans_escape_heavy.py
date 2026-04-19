@@ -463,6 +463,27 @@ def _n_exo_degenerate(P_surf_Pa: float, T_eq_K: float) -> float:
     return P_surf_Pa / (_K_B * T_eq_K)
 
 
+def escape_result_photochemically_limited(species_name: str) -> dict:
+    """Per-species escape dict for Flag 154 (photochemistry cascade deferred)."""
+    return {
+        "regime": "photochemically_limited",
+        "lambda_i": None,
+        "R_outgas_kg_s": None,
+        "L_esc_max_kg_s": None,
+        "Gamma_i": None,
+        "M_atm_i_kg": None,
+        "t_deplete_s": None,
+        "R_exo_m": None,
+        "n_exo_m3": None,
+        "Phi_J": None,
+        "notes": (
+            f"{species_name}: photochemically_limited per V04. "
+            "Retention not computable from current cascade — requires "
+            "T_surface, tropospheric OH, ocean volume. Flag 154."
+        ),
+    }
+
+
 def compute_jeans_escape_one_species(
     species_name: str,
     lambda_i: float,
@@ -475,6 +496,9 @@ def compute_jeans_escape_one_species(
     P_surf_pass1_Pa: float,
     composition: dict,
     jeans_v04: dict | None = None,
+    M_dot_kg_s: float = 0.0,
+    g_m_s2: float | None = None,
+    dominant_h_species: str = "H",
 ) -> dict:
     """
     Compute Jeans escape flux and Gamma_i retention parameter for one
@@ -528,12 +552,61 @@ def compute_jeans_escape_one_species(
             "notes": f"{species_name}: zero mass or unknown species — skipped.",
         }
 
+    # Photochemistry gate — Decision A3 (Flag 154)
+    if jeans_v04 is not None:
+        v04_entry = jeans_v04.get(species_name, {})
+        if (
+            isinstance(v04_entry, dict)
+            and v04_entry.get("flag") == "photochemically_limited"
+        ):
+            return escape_result_photochemically_limited(species_name)
+
     age_s = age_Gyr * _S_PER_GYR
     R_outgas = M_outgassed_i_kg / age_s if age_s > 0.0 else 0.0
     degenerate = P_surf_pass1_Pa < _P_SURF_COLLISIONLESS_THRESHOLD_PA
 
     # ── Regime switch ────────────────────────────────────────────────────
     if lambda_i < _LAMBDA_HYDRO_MAX:
+        # CO crossover-mass entrainment (Hunten-Pepin-Owen 1987) before thermostat
+        if species_name == "CO" and g_m_s2 is not None and g_m_s2 > 0.0:
+            light_sp = (
+                dominant_h_species
+                if dominant_h_species in ("H", "H2")
+                else "H"
+            )
+            m_1 = 1.67e-27 if light_sp == "H" else 3.34e-27
+            from variable_08_volatile_inventory.crossover_mass import (
+                compute_crossover_mass,
+            )
+
+            cm_result = compute_crossover_mass(
+                m_1_kg=m_1,
+                T_exo_K=T_exo_K,
+                M_dot_kg_s=M_dot_kg_s,
+                R_m=R_m,
+                g_m_s2=g_m_s2,
+                light_species=light_sp,
+                heavy_species=species_name,
+            )
+            if cm_result["m_c_kg"] is not None and cm_result["entrains"]:
+                return {
+                    "regime": "crossover_mass_entrained",
+                    "lambda_i": lambda_i,
+                    "R_outgas_kg_s": R_outgas,
+                    "L_esc_max_kg_s": 0.0,
+                    "Gamma_i": 0.0,
+                    "M_atm_i_kg": 0.0,
+                    "t_deplete_s": 0.0,
+                    "R_exo_m": R_m,
+                    "n_exo_m3": 0.0,
+                    "Phi_J": 0.0,
+                    "crossover_mass_info": cm_result,
+                    "notes": (
+                        f"{species_name}: entrained by {light_sp} hydrodynamic "
+                        f"blow-off. {cm_result['notes']}"
+                    ),
+                }
+
         # Thermostat-limited hydrodynamic blow-off for heavy secondary
         # atmosphere species. Energy-limited M_dot (V05) does NOT apply —
         # CO2/N2 atmospheres activate the collisional-radiative thermostat
@@ -635,14 +708,16 @@ def compute_jeans_escape_one_species(
     # lambda_dominant: smallest lambda among species with X >= 0.15
     # (proxy for the dominant background gas lambda)
     if jeans_v04 and composition:
-        lambda_dominant = min(
-            (
-                jeans_v04[sp].get("lambda", 999.0)
-                for sp in jeans_v04
-                if isinstance(jeans_v04[sp], dict) and composition.get(sp, 0.0) >= 0.15
-            ),
-            default=lambda_i,
-        )
+        _dom_lambdas = []
+        for sp in jeans_v04:
+            if not isinstance(jeans_v04[sp], dict):
+                continue
+            if composition.get(sp, 0.0) < 0.15:
+                continue
+            lj = jeans_v04[sp].get("lambda", 999.0)
+            if lj is not None:
+                _dom_lambdas.append(lj)
+        lambda_dominant = min(_dom_lambdas, default=lambda_i) if _dom_lambdas else lambda_i
     else:
         lambda_dominant = lambda_i
 
@@ -707,6 +782,9 @@ def apply_jeans_escape_exosphere_only(
     age_Gyr: float,
     P_surf_pass1_Pa: float,
     speciation: dict | None,
+    M_dot_kg_s: float = 0.0,
+    g_m_s2: float | None = None,
+    dominant_h_species: str = "H",
 ) -> dict:
     """
     Apply Jeans escape to all heavy species on an exosphere_only world.
@@ -760,7 +838,12 @@ def apply_jeans_escape_exosphere_only(
         if jeans_v04 is None:
             return 999.0  # no jeans data — treat as fully retained
         entry = jeans_v04.get(sp, {})
-        return entry.get("lambda", 999.0)
+        if isinstance(entry, dict) and entry.get("flag") == "photochemically_limited":
+            return 999.0
+        lam = entry.get("lambda", 999.0)
+        if lam is None:
+            return 999.0
+        return lam
 
     surviving = {}
     details = {}
@@ -780,11 +863,18 @@ def apply_jeans_escape_exosphere_only(
             P_surf_pass1_Pa=P_surf_pass1_Pa,
             composition=composition,
             jeans_v04=jeans_v04,
+            M_dot_kg_s=M_dot_kg_s,
+            g_m_s2=g_m_s2,
+            dominant_h_species=dominant_h_species,
         )
-        surviving[sp] = result["M_atm_i_kg"]
         details[sp] = result
-        escaped_i = max(0.0, m_out - result["M_atm_i_kg"])
-        total_esc += escaped_i
+        m_atm = result["M_atm_i_kg"]
+        if m_atm is None:
+            surviving[sp] = None
+        else:
+            surviving[sp] = m_atm
+            escaped_i = max(0.0, m_out - m_atm)
+            total_esc += escaped_i
 
     return {
         "surviving_mass": surviving,
