@@ -16,7 +16,7 @@
 # is reduced until periapsis equals a_inner. This prevents orbits that would
 # cause tidal disruption at closest approach.
 #
-# ⚠️ Flag 37: Beta distribution parameters (alpha=0.867, beta=3.03) from
+# ⚠️ Note 37: Beta distribution parameters (alpha=0.867, beta=3.03) from
 # Kipping (2013). Fitted to RV survey. Confirmed across multiple surveys
 # but with significant scatter at high eccentricity.
 #
@@ -26,8 +26,8 @@ import random
 
 AU_M = 1.496e11
 
-_ALPHA = 0.867   # ⚠️ Flag 37 — Kipping (2013) empirical parameter
-_BETA  = 3.03    # ⚠️ Flag 37 — Kipping (2013) empirical parameter
+_ALPHA = 0.867   # ⚠️ Note 37 — Kipping (2013) empirical parameter
+_BETA  = 3.03    # ⚠️ Note 37 — Kipping (2013) empirical parameter
 _TIDAL_CIRCULARISATION_AU = 0.1  # AU — empirical threshold
 
 

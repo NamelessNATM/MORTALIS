@@ -5,7 +5,7 @@
 # Formula: M_outgassed,i = R_melt × X_melt,i × ε × age × 3.154×10¹⁶ s/Gyr
 #          X_melt,i = X_mantle,i / F_bar (volatile concentration in melt)
 # Earth calibration: M_outgassed,N2=3.83×10¹⁸ kg, M_outgassed,H2O=1.37×10²¹ kg ✓
-# Flag 129: ε_mobile=1.0 (referenced from melt_fraction.py — no new flag)
+# Note 129: ε_mobile=1.0 (referenced from melt_fraction.py — no new flag)
 
 S_PER_GYR = 3.154e16  # s/Gyr
 

@@ -9,18 +9,18 @@
 # Gas giants (0.1 to 20 M_J):
 #   a_break = 1.8 AU, beta_1 = 0.95, beta_2 = -0.95
 #   Source: Fernandes et al. (2019). Confirmed across Kepler + RV surveys.
-#   Hot Jupiter override: 1% Bernoulli draw -> a = 0.045 AU (Flag 33).
+#   Hot Jupiter override: 1% Bernoulli draw -> a = 0.045 AU (Note 33).
 #
 # Rocky and sub-Neptune (all other non-dwarf regimes):
 #   a_break = 0.1 AU, beta_1 = 0.38, beta_2 = 0.0 (log-uniform plateau)
 #   Source: Hsu et al. (2019); Petigura et al. (2013). Kepler bias-corrected.
 #
-# Dwarf regime: uses rocky/sub-Neptune parameters (Flag 32).
+# Dwarf regime: uses rocky/sub-Neptune parameters (Note 32).
 #
-# ⚠️ Flag 32: Rocky and dwarf planet semimajor axes use sub-Neptune
+# ⚠️ Note 32: Rocky and dwarf planet semimajor axes use sub-Neptune
 # distribution parameters (Hsu et al. 2019). No separate rocky-only or
 # dwarf-only demographic fit exists at required precision.
-# ⚠️ Flag 33: Hot Jupiter 1% Bernoulli override. Occurrence rate from
+# ⚠️ Note 33: Hot Jupiter 1% Bernoulli override. Occurrence rate from
 # Kepler/RV surveys of Sun-like stars. Not confirmed across all stellar
 # mass ranges.
 #
@@ -142,7 +142,7 @@ def sample_semimajor_axis(seed: int, regime: str,
         a_break = _GG_A_BREAK_M
         b1, b2 = _GG_BETA_1, _GG_BETA_2
     else:
-        # rocky, sub_neptune, dwarf all use same parameters (Flag 32)
+        # rocky, sub_neptune, dwarf all use same parameters (Note 32)
         u = rng.random()
         a_break = _RD_A_BREAK_M
         b1, b2 = _RD_BETA_1, _RD_BETA_2

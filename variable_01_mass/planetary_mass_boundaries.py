@@ -10,11 +10,11 @@
 # then substituting into M = (4/3)*pi*R^3*rho yields M_min.
 # Source: Lineweaver & Norman (2010); research session 2026-04-11 Section 7.
 # Earth calibration: sigma_rbf=10e6 Pa, rho=3500 kg/m^3 -> M_min ~ 10^18-10^21 kg
-# (boundary is soft and composition-dependent — see Flag 04 below)
+# (boundary is soft and composition-dependent — see Note 04 below)
 #
 # ⚠️ EARTH FALLBACK — sigma_rbf derived from terrestrial rock and ice mechanics.
 # Universal applicability not confirmed. Flagged per Rule 3.
-# Flag 04: yield strength of silicate rock (~10 MPa) and ice (~5 MPa) are
+# Note 04: yield strength of silicate rock (~10 MPa) and ice (~5 MPa) are
 # Earth-measured laboratory values. M_min is therefore composition-dependent.
 #
 # UPPER BOUNDARY — Deuterium Burning Threshold (M_max)

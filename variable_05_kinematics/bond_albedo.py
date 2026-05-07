@@ -12,7 +12,7 @@
 #       T0 = (F_mean / 4σ)^0.25 — zero-albedo blackbody baseline.
 #       Source: Sudarsky et al. 2000, ApJ 538:885.
 #       Scope: multi-body confirmed (Solar System giants + exoplanet models).
-#       ⚠️ Flag 48: Sudarsky framework applied to brown_dwarf regime.
+#       ⚠️ Note 48: Sudarsky framework applied to brown_dwarf regime.
 #         Framework assumes stellar insolation dominance. Internal luminosity
 #         of brown dwarfs not represented. Flag for review if brown_dwarf
 #         outputs behave anomalously.
@@ -61,7 +61,7 @@
 #       If S_ox < 1.0:
 #         A_B = 0.283 - 0.211*(S_ox - 1.0) + 0.164*(T_eff/5780 - 1.0)
 #       A_B clamped to [0.0, 1.0].
-#       ⚠️ Flag 38B: coefficients empirical, ROCKE-3D ensemble calibrated.
+#       ⚠️ Note 38B: coefficients empirical, ROCKE-3D ensemble calibrated.
 #         Biased toward N2/CO2/H2O atmospheres. Application to exotic
 #         compositions is a generalised best-fit, not first-principles.
 #       Thin-atmosphere Rayleigh correction (C_Rayleigh = 16.67 bar⁻¹, Mars-
@@ -76,13 +76,13 @@
 #   T_eq = ((1 - 0.283) * 1361 / (4 * 5.670e-8))^0.25 = 268.9 K
 #   Earth observed: A_B = 0.306, T_eq = 254.0 K.
 #   Residual of 0.023 is the f_land contribution (land fraction has no
-#   cascade origin). Documented as Flag 38B.
+#   cascade origin). Documented as Note 38B.
 #
-# ⚠️ Flag 38B: Del Genio (2019) Segmented Linear Model is empirical ROCKE-3D
+# ⚠️ Note 38B: Del Genio (2019) Segmented Linear Model is empirical ROCKE-3D
 #   calibration. Residual vs Earth (0.283 vs 0.306) attributable to absent
 #   f_land term. Coefficients confirmed across multi-model GCM ensemble but
 #   biased toward Earth-like atmospheric compositions.
-# ⚠️ Flag 48: Sudarsky albedo applied to brown_dwarf regime. Stellar
+# ⚠️ Note 48: Sudarsky albedo applied to brown_dwarf regime. Stellar
 #   insolation assumed dominant. Internal luminosity not represented.
 #
 # Default composition_tag: Variable 02 does not yet emit bulk composition_tag
@@ -155,7 +155,7 @@ def compute_pass2_albedo(
     T_eff_K: float,
     regime: str,
 ) -> tuple[float, float]:
-    _ = composition  # reserved for exotic-atmosphere extensions; Flag 38B bias in header
+    _ = composition  # reserved for exotic-atmosphere extensions; Note 38B bias in header
 
     use_del_genio = (
         regime == "rocky"

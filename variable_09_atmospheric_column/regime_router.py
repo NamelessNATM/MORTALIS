@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-# ⚠️ Flag 158 (procedural regime threshold; not derived from physics, set to
+# ⚠️ Note 158 (procedural regime threshold; not derived from physics, set to
 # match Solar System reference bodies' regime classifications).
 P_THIN_BAR = 0.5
 P_VENUS_THICK_BAR = 10.0

@@ -9,7 +9,7 @@ from typing import Mapping
 
 _K_B = 1.381e-23  # J/K
 
-# ⚠️ Flag 174 — JPL reaction rate constants (Earth-laboratory; 200–400 K).
+# ⚠️ Note 174 — JPL reaction rate constants (Earth-laboratory; 200–400 K).
 K_O1D_H2O = 2.2e-10  # cm^3/s
 K_O1D_M = 3e-11
 K_OH_CO = 1.5e-13
@@ -53,12 +53,12 @@ def compute_radical_steady_state(
         x_co = float(speciation.get("CO", 0.0) or 0.0)
         x_o3 = float(speciation.get("O3", 0.0) or 0.0)
         if x_o3 <= 0.0:
-            # ⚠️ EMPIRICAL — Flag 174b modern tropospheric O3 mole fraction anchor
+            # ⚠️ EMPIRICAL — Note 174b modern tropospheric O3 mole fraction anchor
             # when absent from V08 speciation (Earth-like photochemistry only).
             x_o3 = 30e-9
         j_o3 = float(photolysis_J.get("O3", 0.0) or 0.0)
         if j_o3 <= 0.0 and F_xuv_W_m2 is not None:
-            # ⚠️ Flag 173 — actinic O3 photolysis fallback when O3 absent from V08
+            # ⚠️ Note 173 — actinic O3 photolysis fallback when O3 absent from V08
             from variable_09_atmospheric_column.photolysis_rates import (
                 LAMBDA_MAX_PHOTOLYSIS_NM,
                 SIGMA_A_M2,

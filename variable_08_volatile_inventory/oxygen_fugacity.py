@@ -7,15 +7,15 @@
 # Earth calibration: P_cmb=135 GPa → ΔIW=+3.50 ✓
 # Mars calibration: P_cmb=14 GPa → ΔIW=+1.00 ✓
 # Vesta calibration: P_cmb=1 GPa → ΔIW=−1.91 ✓
-# Flag 121: Coefficients 2.54 and −1.91 — Armstrong et al. (2019), Deng et al. (2020).
+# Note 121: Coefficients 2.54 and −1.91 — Armstrong et al. (2019), Deng et al. (2020).
 #           Confirmed Earth, Mars, Vesta. Multi-body confirmed.
-# Flag 122: No saturation above ~200 GPa. Extrapolation beyond experimental dataset.
+# Note 122: No saturation above ~200 GPa. Extrapolation beyond experimental dataset.
 #           Model applicability limit.
 
 import math
 
-A_FO2 = 2.54  # ⚠️ Flag 121
-B_FO2 = -1.91  # ⚠️ Flag 121
+A_FO2 = 2.54  # ⚠️ Note 121
+B_FO2 = -1.91  # ⚠️ Note 121
 A_IW = 6.776  # O'Neill (1987) — multi-body confirmed
 B_IW = 27215.0  # O'Neill (1987)
 

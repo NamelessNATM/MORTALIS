@@ -7,7 +7,7 @@
 #         Coefficients alpha and kappa are Earth-calibrated (silicate assemblage).
 #
 # ⚠️ EARTH FALLBACK — alpha = 3e-5 K^-1, kappa = 1e-6 m²/s.
-# Thermal expansivity and diffusivity calibrated to terrestrial silicates. Flag 09
+# Thermal expansivity and diffusivity calibrated to terrestrial silicates. Note 09
 # (existing Earth fallback on rocky M-R universality) does not cover these;
 # these are covered by the general Earth fallback flag system. No new flag number
 # assigned here — covered by the Earth fallback categories already in the record.

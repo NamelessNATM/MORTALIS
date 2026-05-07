@@ -6,7 +6,7 @@
 # Derivation: Hydrostatic equation dP/dr = -rho*g(r) integrated for uniform rho.
 # Rule 1 Category B with caveat (real bodies are differentiated).
 #
-# ⚠️ Flag 11: Uniform density assumption. Real interior is differentiated;
+# ⚠️ Note 11: Uniform density assumption. Real interior is differentiated;
 # actual P_c is higher. Approximate lower bound only.
 #
 # Earth calibration: M = 5.972e24 kg, R = 6.371e6 m → P_c ≈ 1.71e11 Pa

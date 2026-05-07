@@ -14,7 +14,7 @@
 # does not affect global random state.
 #
 # Source: research session 2026-04-11 Section 5.
-# ⚠️ Flag 05 applies to all alpha values inherited from mass_cdf.
+# ⚠️ Note 05 applies to all alpha values inherited from mass_cdf.
 
 import random
 from variable_01_mass.mass_pdf import ALPHA

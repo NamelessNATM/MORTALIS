@@ -11,7 +11,7 @@
 #   dwarf        → stagnant lid mandated; reduced output set
 #
 # T_SOLIDUS = 1500 K — silicate solidus threshold for sub-Neptune magma ocean check.
-# ⚠️ EARTH FALLBACK — Flag 58.
+# ⚠️ EARTH FALLBACK — Note 58.
 #
 # CASCADE ORDER (confirmed): v01 → v02 → v03 → v05 → v04 → v06 → map_generator
 
@@ -33,7 +33,7 @@ from variable_06_tectonics.tidal_heating import compute_tidal_heating
 from variable_06_tectonics.tidal_locking import compute_tidal_locking
 from variable_06_tectonics.volcanic_melt_rate import compute_volcanic_melt_rate
 
-_T_SOLIDUS = 1500.0  # ⚠️ EARTH FALLBACK — Flag 58
+_T_SOLIDUS = 1500.0  # ⚠️ EARTH FALLBACK — Note 58
 
 
 def _null_output(note: str) -> dict:

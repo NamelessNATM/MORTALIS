@@ -230,7 +230,7 @@ def compute_sigma_bar_mixture(
 
 
 # ── Regime switch thresholds ─────────────────────────────────────────────
-_LAMBDA_JEANS_MIN = 3.6  # below: hydrodynamic continuum (Flags 137/138)
+_LAMBDA_JEANS_MIN = 3.6  # below: hydrodynamic continuum (Flag 137 / Flag 138)
 _LAMBDA_HYDRO_MAX = 2.0  # transition zone boundary
 
 # ── Degenerate case P_surf threshold ────────────────────────────────────

@@ -5,15 +5,15 @@
 # Formula: X_vol = X_dry + Σ X_max,i / (1 + exp(−0.44 × (a_m − R_snow,i) / R_H))
 # Source: logistic snow-line model; k=0.44 from 10 R_H oligarchic feeding zone (Kokubo & Ida 1998)
 # Earth calibration: a=1 AU inside H2O snow line → X_vol ≈ X_dry = 1e-3
-# Flag 101: X_dry = 1e-3 — EH3 enstatite chondrite hydration. Solar System meteoritic. Earth fallback.
-# Flag 105: k = 0.44 — oligarchic feeding zone width. Solar System calibrated. Earth fallback.
-# Flag 106: X_max values from Lodders (2003) protosolar abundances. Solar-metallicity calibration.
+# Note 101: X_dry = 1e-3 — EH3 enstatite chondrite hydration. Solar System meteoritic. Earth fallback.
+# Note 105: k = 0.44 — oligarchic feeding zone width. Solar System calibrated. Earth fallback.
+# Note 106: X_max values from Lodders (2003) protosolar abundances. Solar-metallicity calibration.
 
 import math
 
-X_DRY = 1.0e-3  # ⚠️ Flag 101 — EH3 chondrite baseline
-K_STEEP = 0.44  # ⚠️ Flag 105 — logistic steepness
-X_MAX = {  # ⚠️ Flag 106 — Lodders (2003)
+X_DRY = 1.0e-3  # ⚠️ Note 101 — EH3 chondrite baseline
+K_STEEP = 0.44  # ⚠️ Note 105 — logistic steepness
+X_MAX = {  # ⚠️ Note 106 — Lodders (2003)
     "H2O": 0.45,
     "CO2": 0.10,
     "N2": 0.02,

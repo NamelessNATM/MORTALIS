@@ -74,13 +74,13 @@ def compute_tau_zero(
     τ₀ = Σ k_ij x_i x_j P_s² / (2 m̄ g k_B T_ref)
          + Σ_j k_line,j x_j P_s / (m̄ g)
 
-    T_ref = T_eq — ⚠️ Flag 159 — column-mean temperature approximation.
+    T_ref = T_eq — ⚠️ Note 159 — column-mean temperature approximation.
     """
     if P_s_Pa <= 0.0 or g_m_s2 <= 0.0 or T_eq_K <= 0.0:
         raise ValueError("Invalid P_s, g, or T_eq for τ₀ composition.")
 
     m_bar = _mean_molar_mass_kg_mol(speciation)
-    # ⚠️ Flag 159 — column-mean temperature approximation
+    # ⚠️ Note 159 — column-mean temperature approximation
     T_ref = float(T_eq_K)
     denom_cia = 2.0 * m_bar * float(g_m_s2) * _K_B * T_ref
     denom_line = m_bar * float(g_m_s2)
@@ -112,7 +112,7 @@ def compute_tau_zero(
         x = float(speciation.get(species, 0.0) or 0.0)
         if x <= 0.0:
             continue
-        # ⚠️ Flag 161b — 15 µm gray line term is calibrated for Earth-thin CO2
+        # ⚠️ Note 161b — 15 µm gray line term is calibrated for Earth-thin CO2
         # columns; for Venus-class thick CO2 it multiplies unphysically with P_s.
         # CIA term carries thermal opacity here; line row suppressed pending ck.
         if branch == "venus_class" and line_key == "CO2_15um":

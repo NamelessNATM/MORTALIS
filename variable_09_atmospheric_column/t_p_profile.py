@@ -28,7 +28,7 @@ def compute_t_p_profile(
     """
     Log-spaced P from P_s to 1 Pa; convective below P(τ_rc), radiative above.
 
-    Thermosphere: Bates profile with T_mesopause ≈ T_skin (⚠️ Flag 170).
+    Thermosphere: Bates profile with T_mesopause ≈ T_skin (⚠️ Note 170).
     """
     if P_s_Pa <= 0.0:
         raise ValueError("P_s must be positive.")
@@ -54,7 +54,7 @@ def compute_t_p_profile(
             tau_p = float(tau_zero) * (p / float(P_s_Pa)) ** float(n)
             t_arr[i] = float(T_skin_K) * (1.0 + float(D) * tau_p) ** 0.25
 
-    # ⚠️ Flag 170 — mesopause temperature approximation (T_skin as T_mesopause)
+    # ⚠️ Note 170 — mesopause temperature approximation (T_skin as T_mesopause)
     if T_exo_K is not None and math.isfinite(float(T_exo_K)):
         t_exo = float(T_exo_K)
         t_meso = float(T_skin_K)
@@ -62,7 +62,7 @@ def compute_t_p_profile(
         p_meso_pa = 100.0
         idx_m = int(np.argmin(np.abs(p_arr - p_meso_pa)))
         z_meso = float(z_arr[idx_m])
-        # ⚠️ EMPIRICAL — Flag 170b Bates e-folding scale [1/m]; Earth-thermosphere
+        # ⚠️ EMPIRICAL — Note 170b Bates e-folding scale [1/m]; Earth-thermosphere
         # order-of-magnitude; extrasolar applicability not derived.
         s_bates = 2.0e-4
         for i in range(n_layers):

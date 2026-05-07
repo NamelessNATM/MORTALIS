@@ -7,27 +7,27 @@
 # Source: Langmuir (1992), Katz et al. (2003); Solomatov & Moresi (2000)
 # Earth calibration (mobile lid, T_m=1600K): F̄=12.7% ✓
 # Mars calibration (stagnant lid, T_m=1500K): P_f=1.818 GPa > P_i=1.111 GPa → F̄=0 ✓
-# Flag 124: T_sol,0=1400 K — anhydrous peridotite solidus. Lab measurement. Earth fallback.
-# Flag 125: γ=100 K/GPa — solidus Clapeyron slope. Lab measurement. Earth fallback.
-# Flag 126: Γ=10 K/GPa — mantle adiabatic gradient. Earth fallback.
-# Flag 127: dF/dP=0.12 GPa^−1 — Katz et al. (2003). Anhydrous peridotite. Earth fallback.
-# Flag 128: ε_stagnant Gaussian — analytical fit to Dorn et al. (2018) + Noack et al. (2017).
+# Note 124: T_sol,0=1400 K — anhydrous peridotite solidus. Lab measurement. Earth fallback.
+# Note 125: γ=100 K/GPa — solidus Clapeyron slope. Lab measurement. Earth fallback.
+# Note 126: Γ=10 K/GPa — mantle adiabatic gradient. Earth fallback.
+# Note 127: dF/dP=0.12 GPa^−1 — Katz et al. (2003). Anhydrous peridotite. Earth fallback.
+# Note 128: ε_stagnant Gaussian — analytical fit to Dorn et al. (2018) + Noack et al. (2017).
 #           Earth fallback.
-# Flag 129: ε_mobile=1.0 — degassing efficiency of melt. Idealised upper bound. Earth fallback.
+# Note 129: ε_mobile=1.0 — degassing efficiency of melt. Idealised upper bound. Earth fallback.
 
 import math
 
 R_GAS = 8.314  # J/mol/K — universal gas constant (Category A)
-T_SOL_0_K = 1400.0  # K  — ⚠️ Flag 124
-GAMMA_SOL = 100.0  # K/GPa — ⚠️ Flag 125
-GAMMA_ADIAB = 10.0  # K/GPa — ⚠️ Flag 126
-DF_DP = 0.12  # GPa^-1 — ⚠️ Flag 127
+T_SOL_0_K = 1400.0  # K  — ⚠️ Note 124
+GAMMA_SOL = 100.0  # K/GPa — ⚠️ Note 125
+GAMMA_ADIAB = 10.0  # K/GPa — ⚠️ Note 126
+DF_DP = 0.12  # GPa^-1 — ⚠️ Note 127
 E_A = 300_000.0  # J/mol — olivine activation energy (Solomatov & Moresi 2000)
-K_CRUST = 2.5  # W/m/K — Flag 80 (already in codebase)
+K_CRUST = 2.5  # W/m/K — Note 80 (already in codebase)
 P_F_MOBILE = 0.1  # GPa — base of oceanic crust
 M_EARTH_KG = 5.972e24  # kg
 
-# ε_stagnant Gaussian — ⚠️ Flag 128
+# ε_stagnant Gaussian — ⚠️ Note 128
 EPSILON_STAGNANT_PEAK = 0.05
 EPSILON_STAGNANT_M0 = 2.5  # M_earth at peak
 EPSILON_STAGNANT_SIGMA2 = 4.5  # 2σ² denominator
@@ -84,7 +84,7 @@ def compute_melt_fraction(
     f_bar = max(0.0, 0.5 * DF_DP * (p_i_gpa - p_f_gpa))
 
     if tectonic_regime == "mobile_lid" or tectonic_regime == "mobile":
-        epsilon = 1.0  # Flag 129
+        epsilon = 1.0  # Note 129
     else:
         m_ratio = M_kg / M_EARTH_KG
         epsilon = EPSILON_STAGNANT_PEAK * math.exp(

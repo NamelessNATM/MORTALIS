@@ -4,12 +4,12 @@
 
 import math
 
-# ⚠️ Flag 165 — Jupiter F_int normalization point (Hanel et al. 1981).
+# ⚠️ Note 165 — Jupiter F_int normalization point (Hanel et al. 1981).
 F_INT_JUPITER_W_PER_M2 = 5.4
 M_JUPITER_KG = 1.898e27
 TAU_JUPITER_GYR = 4.5
 
-# ⚠️ Flag 166 — Saturn helium-rain supplement.
+# ⚠️ Note 166 — Saturn helium-rain supplement.
 F_INT_HELIUM_RAIN_SATURN_W_PER_M2 = 0.4
 SATURN_HELIUM_RAIN_MASS_RANGE_KG = (3e26, 1e27)
 
@@ -20,13 +20,13 @@ def compute_f_int(M_kg: float, age_Gyr: float) -> float:
 
     F_int = F_int_Jupiter · (age/tau_Jupiter)^(-1/3) · (M/M_Jupiter)^1
 
-    ⚠️ Flag 167 — Valid mass range >0.1 M_Jup (~30 M_earth).
+    ⚠️ Note 167 — Valid mass range >0.1 M_Jup (~30 M_earth).
     """
     M_EARTH = 5.972e24
     if M_kg < 30.0 * M_EARTH:
         raise ValueError(
             f"F_int formula not valid below ~30 M_earth; M_kg={M_kg:.2e}. "
-            "Sub-Neptune cores require separate scaling (Flag 167)."
+            'Sub-Neptune cores require separate scaling (Note 167).'
         )
     f_kh = (
         F_INT_JUPITER_W_PER_M2

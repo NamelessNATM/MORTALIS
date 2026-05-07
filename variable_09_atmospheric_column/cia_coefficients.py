@@ -5,11 +5,11 @@
 
 from __future__ import annotations
 
-# ⚠️ Flag 160 — HITRAN 2020 CIA gray-band averages, Earth/Solar-System
+# ⚠️ Note 160 — HITRAN 2020 CIA gray-band averages, Earth/Solar-System
 # laboratory measurements. Universal applicability not confirmed for
 # extrasolar conditions outside 200–400 K validity range.
 #
-# ⚠️ EMPIRICAL — Flag 160b — CIA_SI_SCALE: HITRAN tabulated k values use a
+# ⚠️ EMPIRICAL — Note 160b — CIA_SI_SCALE: HITRAN tabulated k values use a
 # cgs/amagat convention; the Scaffold §6 SI formula (Pa² numerator) requires
 # a uniform dimensionless scale factor derived by Earth τ₀ closure (τ₀ ≈ 1.86
 # with N2–O2–H2O line budget). Pending formal unit conversion in research.
@@ -51,6 +51,6 @@ def get_cia_coefficient_m5(pair: tuple[str, str], branch: str) -> float:
     if raw is None:
         raise NotImplementedError(
             f"CIA coefficient missing for pair {key!r}; required for branch "
-            f"{branch!r}. Supply HITRAN 2020 CIA gray-band value (Flag 160)."
+            f"{branch!r}. Supply HITRAN 2020 CIA gray-band value (Note 160)."
         )
     return float(raw) * CIA_SI_SCALE

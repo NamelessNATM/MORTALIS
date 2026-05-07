@@ -9,7 +9,7 @@ A_GLEN = 2.4e-15  # kPa⁻³ s⁻¹ — Glen's flow parameter for temperate H2O 
 # ⚠️ EARTH FALLBACK — empirical Arrhenius coefficient,
 # Earth H2O ice measurements (Paterson 1994).
 # Different values required for CO2 ice, CH4 ice.
-# Flag 85.
+# Note 85.
 # UNIT NOTE: A must be in kPa⁻³ s⁻¹ and stress computed
 # in kPa throughout this formula. Converting to Pa units
 # requires A_Pa = A_kPa * 1e-9 (since 1 kPa⁻³ = 1e9 Pa⁻³).
@@ -32,6 +32,6 @@ def compute_glacial_gravity_scaling(g: float):
             "Relative scaling only. Absolute velocity requires ice thickness h "
             "and surface slope alpha (topographic inputs — deferred). "
             "U_ice_planet = U_ice_earth_equivalent * U_ice_scaling for identical geometry. "
-            "A_GLEN applies to H2O ice only (Flag 85)."
+            'A_GLEN applies to H2O ice only (Note 85).'
         ),
     }

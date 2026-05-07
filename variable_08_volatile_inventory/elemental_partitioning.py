@@ -5,9 +5,9 @@
 # Formula: X_bulk,i = X_dry × f_i,dry + X_ice,i(a_m)
 # Source: EH3 unequilibrated chondrites (least thermally altered inner solar system analog)
 # Earth calibration: X_bulk,H=8 ppm, X_bulk,C=67 ppm, X_bulk,N=8 ppm, X_bulk,S=916 ppm at X_vol=1e-3
-# Flag 107: EH3 fractions — Solar System meteoritic measurements. Earth fallback.
+# Note 107: EH3 fractions — Solar System meteoritic measurements. Earth fallback.
 
-# ⚠️ Flag 107 — EH3 enstatite chondrite elemental fractions (normalized to 1.0)
+# ⚠️ Note 107 — EH3 enstatite chondrite elemental fractions (normalized to 1.0)
 F_DRY = {
     "S": 0.916,
     "C": 0.067,

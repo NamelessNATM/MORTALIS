@@ -11,7 +11,7 @@
 #         research response was truncated; reconstruction validated numerically.
 #
 # ⚠️ INHERENT MODEL LIMITATION — uniform-density-per-layer assumption ignores
-# self-compression. Introduces ~9.5% underestimate at Earth conditions. Flag 51.
+# self-compression. Introduces ~9.5% underestimate at Earth conditions. Note 51.
 #
 # EARTH CALIBRATION:
 #   M_core ≈ 1.94e24 kg, R_core ≈ 3.487e6 m, R = 6.37e6 m,

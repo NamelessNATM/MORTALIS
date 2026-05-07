@@ -2,15 +2,15 @@
 #
 # Just & Jahreiß (2010) Model A SFH in the Milky Way solar neighbourhood.
 #
-# ⚠️ Flag 22: JJ2010 parameters are empirically fitted to a single measurement
+# ⚠️ Note 22: JJ2010 parameters are empirically fitted to a single measurement
 # context (solar neighbourhood SFH).
-# ⚠️ Flag 23: τ_min(M★) Keplerian assembly anchor is a Solar System / chronometry
+# ⚠️ Note 23: τ_min(M★) Keplerian assembly anchor is a Solar System / chronometry
 # fallback, not a general galactic constraint.
 # ⚠️ Flag 15: Stellar age is resolved by sampling the JJ2010 SFH (inverse transform).
 # τ_max uses a simplified MS lifetime capped at t_p; metallicity-dependent Hurley
 # (2000) precision is deferred (see Flag 16 in main_sequence_lifetime.py).
 
-"""Stellar age sampling from Just & Jahreiß (2010) Model A (Flags 15, 22, 23)."""
+"""Stellar age sampling from Just & Jahreiß (2010) Model A (Flag 15 – Notes 22–23)."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ import random
 
 from scipy.optimize import brentq
 
-# JJ2010 Model A — single solar-neighbourhood context (Flag 22)
+# JJ2010 Model A — single solar-neighbourhood context (Note 22)
 _T0 = 5.6   # Gyr — shape parameter
 _T1 = 8.2   # Gyr — shape parameter
 # t_n = 9.9 Gyr appears in JJ2010 as a constant SFR prefactor; it cancels in the CDF ratio.
@@ -27,7 +27,7 @@ _T_P = 12.0  # Gyr — present-day thin-disk age
 
 
 def _tau_min_gyr(m_solar: float) -> float:
-    """Keplerian assembly floor [Gyr]; Solar System / Hf–W anchor (Flag 23)."""
+    """Keplerian assembly floor [Gyr]; Solar System / Hf–W anchor (Note 23)."""
     return 0.1 * (m_solar ** (-0.5))
 
 

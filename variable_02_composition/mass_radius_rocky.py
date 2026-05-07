@@ -17,7 +17,7 @@
 # (0.17% error vs 1 R_earth).
 #
 # ⚠️ EARTH FALLBACK — coefficients derived from PREM (Earth seismic data only).
-# Universal applicability not confirmed. Flag 09.
+# Universal applicability not confirmed. Note 09.
 #
 # ⚠️ Flag 07: CMF defaults to 0.325 (Earth value). No disk chemistry variable
 # yet in cascade. Deferred.

@@ -21,7 +21,7 @@
 #   Temperature cancels exactly in the derivation (Beer-Lambert + ideal gas).
 #   Source: optical depth definition; validated against Earth and Mars.
 #
-# ⚠️ Flag 145: σ_XUV values are band-integrated resonant peak absorption
+# ⚠️ Note 145: σ_XUV values are band-integrated resonant peak absorption
 #   cross-sections for the dominant XUV energy deposition zone (50-80 nm).
 #   N₂: 2.0×10⁻²¹ m² (20 Mb); CO₂: 2.5×10⁻²¹ m² (25 Mb).
 #   Source: synchrotron measurements, Photon Factory, Tsukuba.
@@ -134,7 +134,7 @@
 # Binary diffusion parameter b₁₂ (for crossover mass, not yet implemented):
 #   H₂ through CO₂: b₁₂ = 3.1×10¹⁶ × T^0.75 × exp(−11.7/T) cm⁻¹ s⁻¹
 #   H₂ through N₂:  b₁₂ = 2.80×10¹⁷ × T^0.74 cm⁻¹ s⁻¹
-#   ⚠️ Flag 150: Chapman-Enskog theory; Marrero & Mason (1972). Empirical
+#   ⚠️ Note 150: Chapman-Enskog theory; Marrero & Mason (1972). Empirical
 #   transport data from gas-phase experiments. Not Solar System specific.
 #   Temperature exponents α = 0.74-0.75 confirmed across T ∈ [200, 2000 K].
 #   Crossover mass m_c implementation deferred — not yet in cascade.
@@ -160,7 +160,7 @@ _M_SPECIES_KG = {
 
 # ── XUV photoabsorption cross-sections [m²] ───────────────────────────────
 # Band-integrated resonant peak values (50-80 nm dominant zone, τ_XUV=1).
-# ⚠️ Flag 145: Synchrotron measurements; species-intrinsic molecular
+# ⚠️ Note 145: Synchrotron measurements; species-intrinsic molecular
 # properties; not solar-spectrum specific.
 _SIGMA_XUV = {
     "N2": 2.0e-21,  # 20 Mb
@@ -189,7 +189,7 @@ def _thermobase_pressure(g_m_s2: float, m_bar_kg: float, sigma_xuv: float) -> fl
     """
     Thermobase pressure P₀ = g * m_bar / σ_XUV [Pa].
     Derived from τ_XUV = 1 condition; temperature cancels exactly.
-    ⚠️ Flag 145, 146.
+    ⚠️ Note 145 – Flag 146.
     """
     return g_m_s2 * m_bar_kg / sigma_xuv
 
@@ -239,7 +239,7 @@ def _sonic_radius(r0_m: float, M_kg: float, m_bar_kg: float, T0_K: float, gamma:
     Source: Chatterjee-Pierrehumbert (2024/2026); derived from sonic
     point condition (Mach=1) of the polytropic Parker wind.
     Uses T₀ (thermobase temperature), NOT T_exo.
-    ⚠️ Flag 147, 148.
+    ⚠️ Flags 147–148.
     """
     GM = _G * M_kg
     exponent = 1.0 / (3.0 - 2.0 * gamma)  # = 1/0.70 for γ=1.15
@@ -409,7 +409,7 @@ def compute_thermostat_escape_one_species(
             f"r_sc={r_sc:.3e} m, ρ₀={rho0:.3e} kg/m³, c₀={c0:.1f} m/s. "
             f"Ṁ_thermostat={M_dot_thermostat:.3e} kg/s, "
             f"Gamma={Gamma_i:.3e}, M_atm={M_atm_i:.3e} kg. "
-            "Flags 145-149. Source: Chatterjee-Pierrehumbert (2024/2026)."
+            "Note 145-Flag 146-Flag 147-Flag 148-Flag 149. Source: Chatterjee-Pierrehumbert (2024/2026)."
         ),
     }
 

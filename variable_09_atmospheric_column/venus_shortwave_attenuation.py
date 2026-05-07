@@ -2,13 +2,13 @@
 #
 # Venus-class gray-model metadata (router applies τ_rc and n overrides).
 
-# ⚠️ Flag 162 — Venus-class shortwave attenuation regime parameters.
+# ⚠️ Note 162 — Venus-class shortwave attenuation regime parameters.
 VENUS_CLASS_OVERRIDES = {
     "n": 1,
     "tau_rc": 1.0,
 }
 
-# ⚠️ Flag 163 — Gray-model Venus regime applicability limit.
+# ⚠️ Note 163 — Gray-model Venus regime applicability limit.
 VENUS_GRAY_MODEL_LIMIT = {
     "tau_zero_above": 100.0,
     "expected_bias_low_pct": 15,

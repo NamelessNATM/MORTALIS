@@ -6,13 +6,13 @@ import math
 
 _SIGMA = 5.670e-8
 
-# ⚠️ Flag 178 — Earth-laboratory L_v and saturation pressure anchor; condensable
+# ⚠️ Note 178 — Earth-laboratory L_v and saturation pressure anchor; condensable
 # universal applicability not derived.
 L_V_H2O_J_PER_KG = 2.454e6
 R_VAPOR_H2O_J_PER_KG_K = 461.5
 P_STAR_H2O_TRIPLE_PA = 611.657
 
-# ⚠️ EMPIRICAL — Flag 178b dimensionless κ and amplitude A tuned so Earth water
+# ⚠️ EMPIRICAL — Note 178b dimensionless κ and amplitude A tuned so Earth water
 # atmosphere gives OLR_KI ≈ 282 W/m² with Pierrehumbert log term structure.
 _KAPPA_KI = 0.0185
 _A_KI = 2.610559256814136e-9

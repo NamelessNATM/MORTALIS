@@ -32,36 +32,36 @@
 #   Target: ~3.2e6 kg/s (Kite et al. 2009; confirmed by research session).
 #
 # CALIBRATION NOTE (our code's constants vs Kite):
-#   Using k=3.5 (Flag 67) and C_p=1200 (Flag 52) produces R_melt ≈ 2.03e6 kg/s,
+#   Using k=3.5 (Note 67) and C_p=1200 (Note 52) produces R_melt ≈ 2.03e6 kg/s,
 #   ~36% below Kite's target. Discrepancy is entirely from differing Earth
 #   fallback constants, not from formula error.
 #
 # ⚠️ EARTH FALLBACK constants (all flags carried forward from prior implementation):
-#   rho_crust = 2900 kg/m³  — Flag 56
-#   Z_crust   = 50000 m     — Flag 56 (stagnant lid analogue; 7000 m for mobile lid)
-#   P_f       = 1e9 Pa      — Flag 56
-#   P_o       = 3e9 Pa      — Flag 56
-#   C_p       = 1200 J/kg/K — Flag 52
-#   k         = 3.5 W/m/K  — Flag 67 (Kite et al. use 4.18)
+#   rho_crust = 2900 kg/m³  — Note 56
+#   Z_crust   = 50000 m     — Note 56 (stagnant lid analogue; 7000 m for mobile lid)
+#   P_f       = 1e9 Pa      — Note 56
+#   P_o       = 3e9 Pa      — Note 56
+#   C_p       = 1200 J/kg/K — Note 52
+#   k         = 3.5 W/m/K  — Note 67 (Kite et al. use 4.18)
 #
-# ⚠️ Flag 68: Kite (2009) parameterization invalid above ~3 M_Earth.
+# ⚠️ Note 68: Kite (2009) parameterization invalid above ~3 M_Earth.
 #   Dorn et al. (2018), Noack et al. (2017): pressure suppression nonlinearly
 #   truncates melting column. R_melt overestimated for massive super-Earths.
 #   Flag for review if M_planet > 3 M_Earth and R_melt_kgs used as output.
 
 import math
 
-# E_A must match the value in mantle_viscosity.py (Flag 54 — Earth-calibrated)
-_E_A = 300_000.0       # J/mol — activation energy; ⚠️ EARTH FALLBACK — Flag 54
+# E_A must match the value in mantle_viscosity.py (Note 54 — Earth-calibrated)
+_E_A = 300_000.0       # J/mol — activation energy; ⚠️ EARTH FALLBACK — Note 54
 _R_GAS = 8.314         # J/(mol·K) — universal gas constant (Category A)
-_A_0 = _E_A / _R_GAS  # K — activation temperature; ⚠️ EARTH FALLBACK — Flag 69
+_A_0 = _E_A / _R_GAS  # K — activation temperature; ⚠️ EARTH FALLBACK — Note 69
 
-_RHO_CRUST = 2900.0    # kg/m³ — ⚠️ EARTH FALLBACK — Flag 56
-_Z_CRUST = 50_000.0    # m     — ⚠️ EARTH FALLBACK — Flag 56
-_P_F = 1.0e9           # Pa    — ⚠️ EARTH FALLBACK — Flag 56
-_P_O = 3.0e9           # Pa    — ⚠️ EARTH FALLBACK — Flag 56
-_CP = 1200.0           # J/(kg·K) — ⚠️ EARTH FALLBACK — Flag 52
-_K = 3.5               # W/(m·K)  — ⚠️ EARTH FALLBACK — Flag 67
+_RHO_CRUST = 2900.0    # kg/m³ — ⚠️ EARTH FALLBACK — Note 56
+_Z_CRUST = 50_000.0    # m     — ⚠️ EARTH FALLBACK — Note 56
+_P_F = 1.0e9           # Pa    — ⚠️ EARTH FALLBACK — Note 56
+_P_O = 3.0e9           # Pa    — ⚠️ EARTH FALLBACK — Note 56
+_CP = 1200.0           # J/(kg·K) — ⚠️ EARTH FALLBACK — Note 52
+_K = 3.5               # W/(m·K)  — ⚠️ EARTH FALLBACK — Note 67
 
 
 def compute_volcanic_melt_rate(

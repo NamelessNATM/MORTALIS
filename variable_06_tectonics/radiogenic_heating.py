@@ -7,7 +7,7 @@
 #
 # SOURCE: V06 Follow-Up B, Question B3.
 #   h_i, tau_i: immutable nuclear physics constants — UNIVERSAL.
-#   C_i: bulk silicate Earth initial concentrations — EARTH FALLBACK (Flag 55).
+#   C_i: bulk silicate Earth initial concentrations — EARTH FALLBACK (Note 55).
 #
 # CONSTANTS (per isotope):
 #   C_i  [kg/kg]     — initial mass concentration in bulk silicate Earth
@@ -16,7 +16,7 @@
 #
 # ⚠️ EARTH FALLBACK on C_i — BSE-calibrated concentrations. Galactic chemical
 # evolution controls r-process abundances (U, Th). Planets orbiting stars with
-# different nucleosynthetic histories will have different budgets. Flag 55.
+# different nucleosynthetic histories will have different budgets. Note 55.
 #
 # EARTH CALIBRATION:
 #   M_mantle ≈ 4.03e24 kg, t = 4.5 Gyr → H_rad ≈ 19.8 TW (target 20–24 TW) ✓
@@ -24,7 +24,7 @@
 import math
 
 # [C_i kg/kg, h_i W/kg, tau_i Gyr]
-# ⚠️ C_i values are EARTH FALLBACK — Flag 55
+# ⚠️ C_i values are EARTH FALLBACK — Note 55
 _ISOTOPES = [
     {"name": "40K", "C": 355e-9, "h": 29.2e-6, "tau_Gyr": 1.80},
     {"name": "232Th", "C": 100e-9, "h": 26.4e-6, "tau_Gyr": 20.20},

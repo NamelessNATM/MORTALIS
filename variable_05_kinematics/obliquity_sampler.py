@@ -12,7 +12,7 @@
 # Source: Theoretical N-body accretion models (Agnor et al. 1999;
 # Chambers 2001). Physically motivated for terrestrial planets.
 #
-# ⚠️ Flag 36: Isotropic obliquity distribution is theoretically motivated
+# ⚠️ Note 36: Isotropic obliquity distribution is theoretically motivated
 # but unconfirmed observationally for exoplanets. Exoplanet obliquity
 # measurements are currently unavailable for most systems.
 #

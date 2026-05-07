@@ -19,11 +19,11 @@
 # Regime applicability:
 #   rocky       — model holds. Validated on Earth, Venus, Mars.
 #   sub_neptune — model gives maximum T before hydrodynamic blowout.
-#                 Use as upper bound. (Flag 26/34)
+#                 Use as upper bound. (Flag 26 / Note 34)
 #   gas_giant   — model underpredicts T_exo due to Giant Planet Energy Crisis
 #                 (internal Joule/auroral heating dominates over XUV on stable
 #                 giants). XUV baseline is correct cascade input but is a
-#                 lower bound only. (Flag 47)
+#                 lower bound only. (Note 47)
 #   dwarf       — model does not apply. Dwarf bodies have collisionless
 #                 exospheres; bulk thermal conduction does not hold.
 #                 Returns None.
@@ -38,29 +38,29 @@
 #   T_exo = 255 + 782.9 = 1,037.9 K
 #   Known Earth dayside T_exo ~1,000–1,200 K ✓
 #
-# ⚠️ Flag 26/34: epsilon = 0.15 is empirical, multi-body confirmed
+# ⚠️ Flag 26 / Note 34: epsilon = 0.15 is empirical, multi-body confirmed
 #   (Chassefière 1996; Murray-Clay et al. 2009). Range 0.1–0.3.
-# ⚠️ Flag 39: K_c is a gas-dependent laboratory measurement.
+# ⚠️ Note 39: K_c is a gas-dependent laboratory measurement.
 #   O/N₂ thermosphere: 0.05 W/m/K (Banks & Kockarts 1973).
 #   H₂/He thermosphere: 0.30 W/m/K (same source).
-# ⚠️ Flag 46: alpha = 7 is a universal physical approximation from
+# ⚠️ Note 46: alpha = 7 is a universal physical approximation from
 #   ln(P_meso/P_XUV) ≈ ln(10³). Theoretically universal; empirically
 #   confirmed on Earth and Mars only.
-# ⚠️ Flag 47: Gas giant T_exo is a lower bound only. Giant Planet Energy
+# ⚠️ Note 47: Gas giant T_exo is a lower bound only. Giant Planet Energy
 #   Crisis — internal Joule/auroral heating dominates on stable giants.
 #   No cascade variable currently represents this contribution.
 
 # Fundamental physical constant (Rule 1 Category A)
 K_B = 1.381e-23  # J/K — Boltzmann constant
 
-# ⚠️ Flag 26/34 — empirical, multi-body confirmed
+# ⚠️ Flag 26 / Note 34 — empirical, multi-body confirmed
 EPSILON_XUV = 0.15
 
-# ⚠️ Flag 39 — gas-dependent laboratory measurements (Banks & Kockarts 1973)
+# ⚠️ Note 39 — gas-dependent laboratory measurements (Banks & Kockarts 1973)
 K_C_ROCKY = 0.05   # W/m/K — O/N₂-dominated thermosphere
 K_C_GIANT = 0.30   # W/m/K — H₂/He-dominated thermosphere
 
-# ⚠️ Flag 46 — universal approximation, empirically narrow
+# ⚠️ Note 46 — universal approximation, empirically narrow
 ALPHA_PRESSURE_DEPTH = 7.0
 
 # Pass-1 mean molecular masses [kg] assigned from regime before T_exo is known.

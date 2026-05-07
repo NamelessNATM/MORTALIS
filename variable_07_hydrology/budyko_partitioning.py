@@ -6,7 +6,7 @@ N_BUDYKO = 2.0  # dimensionless — MCY shape parameter
 # ⚠️ EARTH FALLBACK — calibrated for moderate terrestrial
 # catchments with vegetation. Bare rocky surface baseline.
 # Varies 1.5–3.0 with biology; 2.0 used as abiotic default.
-# Flag 83.
+# Note 83.
 
 
 def compute_budyko_ratio(PET_kg_m2_s, P_kg_m2_s=None):

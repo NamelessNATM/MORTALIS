@@ -7,16 +7,16 @@ from variable_07_hydrology.volatile_phase_state import SPECIES_DATA
 K_CRUST = 2.5  # W m⁻¹ K⁻¹ — thermal conductivity of rocky crust
 # ⚠️ EARTH FALLBACK — derived from terrestrial silicate
 # rock measurements. Universal applicability not confirmed.
-# Flag 80.
+# Note 80.
 
 RHO_CRUST = 2800.0  # kg m⁻³ — mean crustal density
 # ⚠️ EARTH FALLBACK — terrestrial continental crust.
-# Flag 81.
+# Note 81.
 
 # Ice Ih melting linearisation (Wagner et al. 1994); triple-point anchor.
 # ⚠️ EARTH-MEASURED MOLECULAR CONSTANT — Ice Ih Clapeyron slope
 # 1.35e8 Pa derived from laboratory measurements. Intrinsic to H2O
-# crystal structure; universal. Flag 79.
+# crystal structure; universal. Note 79.
 ICE_IH_P_SLOPE_PA = 1.35e8
 T_TRIPLE_H2O_K = 273.16
 P_TRIPLE_H2O_PA = 611.7

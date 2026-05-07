@@ -8,7 +8,7 @@ G_EARTH = 9.81  # m s⁻² — Earth reference gravity
 F_DARCY = 0.05  # dimensionless — Darcy-Weisbach friction factor
 # ⚠️ EARTH FALLBACK — midpoint of 0.04–0.06 range.
 # Validated for gravel-bed rocky channels: Earth, Mars, Titan.
-# Flag 84.
+# Note 84.
 
 
 def compute_fluvial_gravity_scaling(g: float):

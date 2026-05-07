@@ -14,7 +14,7 @@
 # 1 M_sun calibration: a_max = 100 AU. Physically reasonable — Solar System
 # outer disk analogues (Kuiper Belt) extend to ~50 AU, within this bound.
 #
-# ⚠️ Flag 31: a_max uses ALMA gas disk size scaling (Andrews et al. 2018).
+# ⚠️ Note 31: a_max uses ALMA gas disk size scaling (Andrews et al. 2018).
 # Parameters vary between star-forming regions. SINGLE-SURVEY APPROXIMATION.
 # Candidate C (internal photoevaporation gravitational radius) was rejected
 # because it produces a_max = 9.2 AU for 1 M_sun, excluding outer solar
@@ -24,7 +24,7 @@ M_SUN_KG = 1.989e30
 AU_M = 1.496e11
 
 R_0_M = 100.0 * AU_M   # 100 AU in metres
-GAMMA = 0.5             # ⚠️ Flag 31 — single-survey fitted exponent
+GAMMA = 0.5             # ⚠️ Note 31 — single-survey fitted exponent
 
 
 def compute_disk_outer_boundary(M_star_kg: float) -> float:

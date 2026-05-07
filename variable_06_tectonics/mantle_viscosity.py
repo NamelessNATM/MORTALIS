@@ -23,9 +23,9 @@
 #
 # ⚠️ EARTH FALLBACK — eta_0 = 1.606e11 Pa*s, E_a = 300000 J/mol, T_ref = 1600 K.
 # Calibrated to dry Earth peridotite/olivine and post-glacial rebound (Haskell).
-# Wet mantles can be orders of magnitude lower. Flag 54 — assumes dry rheology.
+# Wet mantles can be orders of magnitude lower. Note 54 — assumes dry rheology.
 #
-# ⚠️ EARTH FALLBACK — T_solidus coefficients (Flag 65).
+# ⚠️ EARTH FALLBACK — T_solidus coefficients (Note 65).
 # Simon-Glatzel fit from Fiquet et al. (2010) and Andrault et al. (2011).
 # Terrestrial peridotite DAC experiments only.
 #
@@ -42,7 +42,7 @@ import math
 
 from constants import R_GAS  # universal gas constant 8.314 J/(mol*K)
 
-# Arrhenius parameters — ⚠️ EARTH FALLBACK dry peridotite. Flag 54.
+# Arrhenius parameters — ⚠️ EARTH FALLBACK dry peridotite. Note 54.
 _E_A = 300_000.0  # activation energy [J/mol]
 _T_REF = 1_600.0  # reference temperature [K]
 _ETA_REF = 1.0e21  # reference viscosity at T_REF [Pa*s]
@@ -50,7 +50,7 @@ _ETA_REF = 1.0e21  # reference viscosity at T_REF [Pa*s]
 # Correct Arrhenius pre-exponential derived from reference pair
 _ETA_0 = _ETA_REF * math.exp(-_E_A / (R_GAS * _T_REF))  # ≈ 1.606e11 Pa*s
 
-# Solidus coefficients — ⚠️ EARTH FALLBACK. Flag 65.
+# Solidus coefficients — ⚠️ EARTH FALLBACK. Note 65.
 _T_SOLIDUS_0 = 1_400.0  # surface solidus [K]
 _P_SOLIDUS_SC = 24.0  # pressure scale [GPa]
 _P_SOLIDUS_EX = 0.57  # exponent [dimensionless]
@@ -95,7 +95,7 @@ def compute_solidus(P_cmb_Pa: float) -> float:
 
     Formula: T_solidus = 1400 * (P_GPa / 24 + 1)^0.57
     Source: Simon-Glatzel fit, Fiquet et al. (2010); Andrault et al. (2011).
-    ⚠️ EARTH FALLBACK — Flag 65.
+    ⚠️ EARTH FALLBACK — Note 65.
 
     Parameters
     ----------

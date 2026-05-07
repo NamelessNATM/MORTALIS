@@ -14,7 +14,7 @@
 #         + m_{i-1}^(alpha_i + 1) ]^(1 / (alpha_i + 1))
 #
 # Source: research session 2026-04-11 Section 5.
-# ⚠️ Flag 05 applies to all alpha values and DESERT_SUPPRESSION used here.
+# ⚠️ Note 05 applies to all alpha values and DESERT_SUPPRESSION used here.
 #
 # Benchmark: compute_cdf_tables(m_min, m_max) must produce cumulative[-1] = 1.0
 

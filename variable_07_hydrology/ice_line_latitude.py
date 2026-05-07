@@ -24,13 +24,13 @@
 #   → s2 = -0.477, T0 = 14.85°C, T2 = -20.28°C, φ_ice = 65.0°
 #   Expected: ~70° N/S; 5° residual consistent with P2 truncation error.
 #
-# ⚠️ FLAG 94 — A = 210 W/m²: OLR linear intercept. Earth-calibrated empirical
+# ⚠️ NOTE 94 — A = 210 W/m²: OLR linear intercept. Earth-calibrated empirical
 #   coefficient, curve-fitted to Earth's top-of-atmosphere radiation budget.
 #   Fails for dense CO2 atmospheres (Venus) or H2/He envelopes (giants).
 #   Universal applicability not confirmed. Dynamic grey-gas scaling (via
 #   T_eq, P_s, atm_class) required for non-Earth regimes; not yet derived.
 #
-# ⚠️ FLAG 95 — B = 2.0 W/m²/K: OLR temperature sensitivity. Earth-calibrated.
+# ⚠️ NOTE 95 — B = 2.0 W/m²/K: OLR temperature sensitivity. Earth-calibrated.
 #   Encodes Earth's water-vapour feedback. Fails for non-H2O atmospheres.
 #   Universal applicability not confirmed.
 #
@@ -40,15 +40,15 @@
 #   Two resolution gates: (1) rotation rate research + V05 implementation;
 #   (2) D scaling law derivation and numerical validation. Both outstanding.
 #
-# ⚠️ FLAG 97 (model limitation) — P2 Legendre truncation. Ignoring P4 and
+# ⚠️ NOTE 97 (model limitation) — P2 Legendre truncation. Ignoring P4 and
 #   higher modes introduces 3–7% error on φ_ice as a function of obliquity.
 #   Not patchable without a spatial grid.
 #
-# ⚠️ FLAG 98 (model limitation) — Ice-albedo feedback absent. Global mean
+# ⚠️ NOTE 98 (model limitation) — Ice-albedo feedback absent. Global mean
 #   albedo used at the ice-edge. Local albedo step at the glaciation boundary
 #   is not modelled. Underestimates ice extent near runaway glaciation states.
 #
-# ⚠️ FLAG 99 (model limitation) — EBM annual-mean assumption breaks down at
+# ⚠️ NOTE 99 (model limitation) — EBM annual-mean assumption breaks down at
 #   e > 0.3. At extreme eccentricity, apoastron winters may drive volatile
 #   condensation or atmospheric collapse events that the annual-mean formula
 #   cannot capture. Outputs on worlds with e > 0.3 should be treated as
@@ -60,12 +60,12 @@ import math
 SIGMA = 5.670e-8          # Stefan-Boltzmann constant [W m⁻² K⁻⁴]
 
 # ── Earth-empirical OLR coefficients (Budyko 1969) ────────────────────────
-# ⚠️ FLAGS 94, 95 — Earth calibration only. See header.
+# ⚠️ Notes 94–95 — Earth calibration only. See header.
 # A and B are defined in the Celsius domain. T0 and T_f must be supplied
 # to the solver in Celsius. T_eq from the cascade is in Kelvin; conversion
 # is applied internally.
-_A_WM2      = 210.0       # OLR intercept [W/m²] — Flag 94
-_B_WM2K     = 2.0         # OLR temperature sensitivity [W/m²/K] — Flag 95
+_A_WM2      = 210.0       # OLR intercept [W/m²] — Note 94
+_B_WM2K     = 2.0         # OLR temperature sensitivity [W/m²/K] — Note 95
 
 # ── Earth-empirical meridional diffusion coefficient ──────────────────────
 # ⚠️ FLAG 96 — Earth calibration only; rotation rate dependency unresolved.
@@ -74,7 +74,7 @@ _D_WM2K     = 0.6         # meridional thermal diffusion [W/m²/K] — Flag 96
 # ── Species triple-point temperatures (T_f fallback when P_s is None) ─────
 # Intrinsic molecular constants from NIST thermochemical tables.
 # Used when surface pressure is unavailable (Flag 40 deferred items).
-# Inherit flag status from V07 Flags 71-77; no new flag required.
+# Inherit flag status from V07 Notes 71–77; no new flag required.
 _T_TP_K = {
     "H2O": 273.16,
     "CO2": 216.58,
@@ -235,7 +235,7 @@ def compute_ice_line_latitude(
             f"Polar ice caps. Annual-mean ice boundary at ±{phi_ice_deg:.1f}°. "
             f"β={obliquity_deg:.1f}°, T0={T0_C:.1f}°C, T2={T2_C:.1f}°C, "
             f"T_f={T_f_K:.2f} K. "
-            "Flags 94–99 active: A/B/D Earth-calibrated; rotation rate absent "
+            'Note 94–Note 95–Flag 96–Note 97–Note 98–Note 99 active: A/B/D Earth-calibrated; rotation rate absent '
             "from cascade (D static); P2 truncation ±3–7%; ice-albedo feedback absent."
         )
     else:
@@ -246,7 +246,7 @@ def compute_ice_line_latitude(
             f"Equatorial ice belt poleward boundary at ±{phi_ice_deg:.1f}°. "
             f"Poles warmer than equator in annual mean. "
             f"T0={T0_C:.1f}°C, T2={T2_C:.1f}°C, T_f={T_f_K:.2f} K. "
-            "Flags 94–99 active."
+            'Note 94–Note 95–Flag 96–Note 97–Note 98–Note 99 active.'
         )
 
     return {

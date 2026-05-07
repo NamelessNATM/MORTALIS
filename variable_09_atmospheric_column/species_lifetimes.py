@@ -7,7 +7,7 @@ from __future__ import annotations
 import math
 from typing import Mapping
 
-# ⚠️ Flag 175 — JPL Arrhenius OH destruction (H2S, SO2).
+# ⚠️ Note 175 — JPL Arrhenius OH destruction (H2S, SO2).
 K_OH_H2S = 3.3e-12
 K_OH_SO2 = 1.3e-12
 

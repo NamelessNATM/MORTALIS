@@ -5,11 +5,11 @@
 # formalism (Hunten, Pepin & Owen 1987).
 #
 # Covered pairs:
-#   H2-N2    : Flag 150 (Marrero & Mason 1972, direct measurement)
-#   H2-CO2   : Flag 150 (Marrero & Mason 1972, direct measurement)
+#   H2-N2    : Note 150 (Marrero & Mason 1972, direct measurement)
+#   H2-CO2   : Note 150 (Marrero & Mason 1972, direct measurement)
 #   H2-CO    : Flag 152 (H2-N2 isosteric; Ivakin & Suetin 1964 <2% validation
 #              per Marrero & Mason 1972)
-#   H-O      : Flag 153 (Zahnle & Kasting 1986; Chapman-Enskog with
+#   H-O      : Note 153 (Zahnle & Kasting 1986; Chapman-Enskog with
 #              Lennard-Jones parameters)
 #
 # Uncovered pairs (return None with Flag 156):
@@ -28,7 +28,7 @@
 
 import math
 
-# ⚠️ Flag 150: Marrero & Mason (1972) coefficients. Earth laboratory
+# ⚠️ Note 150: Marrero & Mason (1972) coefficients. Earth laboratory
 #   calibration, 300 K to ~1000 K. Chapman-Enskog rooted but pre-exponential
 #   factors are empirical curve fits.
 _A_H2_N2   = 2.80e17
@@ -45,7 +45,7 @@ _E_H2_CO2  = 11.7  # K, Arrhenius correction specific to H2-CO2
 _A_H2_CO   = _A_H2_N2
 _ALPHA_H2_CO = _ALPHA_H2_N2
 
-# ⚠️ Flag 153: H-O from Zahnle & Kasting (1986). Chapman-Enskog with
+# ⚠️ Note 153: H-O from Zahnle & Kasting (1986). Chapman-Enskog with
 #   Lennard-Jones parameters. Cited directly in Tian (2015) and Wordsworth
 #   et al. (2018). Earth/Solar-System calibrated; valid 300 K to >1000 K.
 _A_H_O     = 4.8e17
@@ -74,7 +74,7 @@ def get_b12(light_species: str, heavy_species: str, T_K: float) -> dict:
     dict with keys:
         b12_cm_inv_s_inv : float or None
         pair             : (light, heavy)
-        source_flag      : str — "Flag 150", "Flag 152", "Flag 153",
+        source_flag      : str — "Note 150", "Flag 152", "Note 153",
                            or "Flag 156"
         notes            : str
     """
@@ -85,7 +85,7 @@ def get_b12(light_species: str, heavy_species: str, T_K: float) -> dict:
         return {
             "b12_cm_inv_s_inv": b12,
             "pair": pair,
-            "source_flag": "Flag 150",
+            "source_flag": "Note 150",
             "notes": "Marrero & Mason (1972); direct measurement.",
         }
 
@@ -94,7 +94,7 @@ def get_b12(light_species: str, heavy_species: str, T_K: float) -> dict:
         return {
             "b12_cm_inv_s_inv": b12,
             "pair": pair,
-            "source_flag": "Flag 150",
+            "source_flag": "Note 150",
             "notes": "Marrero & Mason (1972); direct measurement with "
                      "Arrhenius correction.",
         }
@@ -114,7 +114,7 @@ def get_b12(light_species: str, heavy_species: str, T_K: float) -> dict:
         return {
             "b12_cm_inv_s_inv": b12,
             "pair": pair,
-            "source_flag": "Flag 153",
+            "source_flag": "Note 153",
             "notes": "Zahnle & Kasting (1986); Chapman-Enskog with LJ "
                      "parameters.",
         }

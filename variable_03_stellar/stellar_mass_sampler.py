@@ -9,10 +9,10 @@
 # calibration; regime-1 masses are therefore not realised here, but k_i and α
 # follow the full three-segment Kroupa construction.
 #
-# ⚠️ Flag 20: Kroupa alpha exponents are empirically fitted, confirmed across
+# ⚠️ Note 20: Kroupa alpha exponents are empirically fitted, confirmed across
 # multiple star-forming regions and the Galactic field.
 
-"""Stellar mass sampling from the Kroupa (2001) IMF (Flag 20)."""
+"""Stellar mass sampling from the Kroupa (2001) IMF (Note 20)."""
 
 from __future__ import annotations
 

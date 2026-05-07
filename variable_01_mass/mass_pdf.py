@@ -13,7 +13,7 @@
 # that depopulates the sub-Saturn desert, and the gravitational instability
 # channel that produces the super-Jupiter population.
 #
-# ⚠️ Flag 05: ALL alpha exponents and the 1/7.7 suppression factor are
+# ⚠️ Note 05: ALL alpha exponents and the 1/7.7 suppression factor are
 # empirical fits to bias-corrected (Abel-inverted) RV + transit survey data.
 # Confirmed across multiple planetary bodies. Not derivable from first
 # principles. Source: Marcy et al. (2005); Howard et al. (2010);
@@ -42,10 +42,10 @@ REGIME_BOUNDARIES_KG = [
     2.2   * M_JUPITER_KG,   # boundary 3-4
 ]
 
-# ⚠️ Flag 05 — empirical fitted exponents
+# ⚠️ Note 05 — empirical fitted exponents
 ALPHA = [-3.0, -3.0, -0.9, -1.85]
 
-# ⚠️ Flag 05 — empirical fitted suppression factor for the desert
+# ⚠️ Note 05 — empirical fitted suppression factor for the desert
 DESERT_SUPPRESSION = 1.0 / 7.7
 
 

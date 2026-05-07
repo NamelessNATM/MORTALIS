@@ -104,7 +104,7 @@ def run(
         # τ₀ column when hydrostatic P_s is absent from cascade.
         P_s = 1.0e5
         notes.append(
-            "Flag 179: P_s absent — using 1 bar photospheric reference for gas envelope."
+            "Note 179: P_s absent — using 1 bar photospheric reference for gas envelope."
         )
 
     g = float(v02["g_m_s2"])
@@ -259,7 +259,9 @@ def run(
     venus_meta = None
     if tr == "venus_class":
         venus_meta = build_venus_branch_metadata()
-        notes.append("Flag 163: Venus gray T_surface is lower bound for thick CO2.")
+        notes.append(
+            "Note 163: Venus gray T_surface is lower bound for thick CO2."
+        )
 
     t_surf = compute_t_surface(t_skin, tau_z, tau_rc, beta, n, D=1.5)
 

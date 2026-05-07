@@ -20,7 +20,7 @@
 #
 # Source: research session 2026-04-11
 #
-# Flag 08: Compositional degeneracy in the ~2–10 M_earth range is real; the
+# Note 08: Compositional degeneracy in the ~2–10 M_earth range is real; the
 # regime boundary here is a statistical threshold from demographics, not a
 # deterministic physical knife-edge between classes.
 

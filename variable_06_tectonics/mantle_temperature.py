@@ -22,7 +22,7 @@
 # ⚠️ EARTH FALLBACK — T_m(0) = 1700 K. Cannot be derived from cascade inputs;
 # requires accretion timescale tau absent from cascade. Flag 57.
 #
-# ⚠️ EARTH FALLBACK — C_p = 1200 J/(kg*K). Earth silicate calibration. Flag 52.
+# ⚠️ EARTH FALLBACK — C_p = 1200 J/(kg*K). Earth silicate calibration. Note 52.
 #
 # ⚠️ SIMPLIFICATION — Q_core = 0. Core basal heat flux neglected. Flag 53.
 #
@@ -34,7 +34,7 @@ import math
 from variable_06_tectonics.mantle_viscosity import compute_solidus
 from variable_06_tectonics.radiogenic_heating import compute_radiogenic_heating
 
-# ⚠️ EARTH FALLBACK — Flag 52
+# ⚠️ EARTH FALLBACK — Note 52
 _CP = 1200.0  # specific heat capacity [J/(kg*K)]
 _TM0 = 1700.0  # initial mantle temperature [K] — ⚠️ Flag 57
 _N_STEPS = 1000  # integration steps over full system age

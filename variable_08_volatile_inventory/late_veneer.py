@@ -5,21 +5,21 @@
 # Formula: M_LV = M_kg × 10^(−2.3 + 0.3 × N(seed)); 80% EH3 / 20% CI mixing
 # Source: Monte Carlo N-body simulations; Ru isotopic constraints for NC/CC ratio
 # Earth calibration: M_LV/M_kg = 0.005 (geometric mean); X_mantle,H2O addition ~272−7 = 265 ppm
-# Flag 115: log-normal μ=−2.3, σ=0.3 — N-body Monte Carlo calibration. Solar System calibration.
-# Flag 116: 80/20 NC/CC mixing ratio — Ru isotopic anomaly constraint. Solar System specific.
-# Flag 117: CI chondrite fractions — Wasson & Kallemeyn (1988), Lodders (2003). Multi-meteorite.
+# Note 115: log-normal μ=−2.3, σ=0.3 — N-body Monte Carlo calibration. Solar System calibration.
+# Note 116: 80/20 NC/CC mixing ratio — Ru isotopic anomaly constraint. Solar System specific.
+# Note 117: CI chondrite fractions — Wasson & Kallemeyn (1988), Lodders (2003). Multi-meteorite.
 #
-# Flag 133 — N post-veneer overshoot. 80/20 mixing ratio delivers ~6 ppm N vs 1–2 ppm MORB-source
+# Note 133 — N post-veneer overshoot. 80/20 mixing ratio delivers ~6 ppm N vs 1–2 ppm MORB-source
 # target. Atmosphere will be slightly N₂-richer than modern Earth. Model limitation — not patched.
 
 import numpy as np
 
-MU_LV = -2.3  # log10 mean late veneer fraction — Flag 115
-SIGMA_LV = 0.3  # log10 std dev — Flag 115
-F_CC = 0.20  # CC (CI) fraction — Flag 116
-F_NC = 0.80  # NC (EH3) fraction — Flag 116
+MU_LV = -2.3  # log10 mean late veneer fraction — Note 115
+SIGMA_LV = 0.3  # log10 std dev — Note 115
+F_CC = 0.20  # CC (CI) fraction — Note 116
+F_NC = 0.80  # NC (EH3) fraction — Note 116
 
-# CI chondrite elemental fractions — Flag 117
+# CI chondrite elemental fractions — Note 117
 F_CI = {"H": 0.020, "C": 0.03220, "N": 0.00310, "S": 0.05410}
 
 # EH3 fractions (dry, same as elemental_partitioning.py F_DRY)

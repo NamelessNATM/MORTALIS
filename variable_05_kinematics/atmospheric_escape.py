@@ -10,7 +10,7 @@
 #
 # epsilon: XUV heating efficiency. Empirical. Earth/Venus/Mars suggest
 # 0.1 to 0.3. Midpoint 0.15 used as default.
-# ⚠️ Flag 34: epsilon is Solar System calibrated only. Non-universal.
+# ⚠️ Note 34: epsilon is Solar System calibrated only. Non-universal.
 #
 # R_XUV: radius at which atmosphere is optically thick to XUV.
 # Approximated as R for dense terrestrial planets, 1.1*R for
@@ -32,7 +32,7 @@ import math
 
 G = 6.674e-11  # m^3 kg^-1 s^-2
 
-# ⚠️ Flag 34 — Solar System calibrated only
+# ⚠️ Note 34 — Solar System calibrated only
 EPSILON_DEFAULT = 0.15
 
 # ⚠️ Flag 35 — empirical R_XUV multipliers per regime

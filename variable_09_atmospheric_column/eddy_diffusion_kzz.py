@@ -26,8 +26,8 @@ def compute_kzz_profile_cm2_s(
     """
     Return (K_zz_cm2_s array same length as P, K_zz_ref_cm2_s at mesopause).
 
-    Troposphere P > P_tropopause: ⚠️ Flag 176 mixing-length closure.
-    Above: ⚠️ Flag 177 Lindzen (1981) n(z)^(-1/2) scaling vs reference level.
+    Troposphere P > P_tropopause: ⚠️ Note 176 mixing-length closure.
+    Above: ⚠️ Note 177 Lindzen (1981) n(z)^(-1/2) scaling vs reference level.
     """
     nlev = len(P_arr_Pa)
     kzz = np.zeros(nlev, dtype=float)
@@ -42,7 +42,7 @@ def compute_kzz_profile_cm2_s(
         h = r_gas * t / float(g_m_s2)
         r_univ = 8.314462618  # J/(mol K)
         rho = p * float(m_bar_kg_mol) / (r_univ * t)
-        c_p_mass = 1005.0  # ⚠️ EMPIRICAL — Flag 176b air c_p [J/kg/K] order-of-magnitude
+        c_p_mass = 1005.0  # ⚠️ EMPIRICAL — Note 176b air c_p [J/kg/K] order-of-magnitude
         if p >= P_tropopause_Pa:
             w_conv = (
                 float(g_m_s2)
@@ -61,7 +61,7 @@ def compute_kzz_profile_cm2_s(
             t_ref = float(T_arr_K[idx_ref])
             n_ref = p_ref / (_K_B * t_ref)
             n_z = p / (_K_B * t)
-            # ⚠️ Flag 177 — K_ref ~1e5 cm^2/s at Earth mesopause (order-of-magnitude)
+            # ⚠️ Note 177 — K_ref ~1e5 cm^2/s at Earth mesopause (order-of-magnitude)
             k_ref_cm2_s = 1.0e5
             kzz[i] = k_ref_cm2_s * (n_ref / max(n_z, 1e-30)) ** 0.5
     kzz_ref = float(kzz[-1]) if nlev else 0.0

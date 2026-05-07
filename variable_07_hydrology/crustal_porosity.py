@@ -6,14 +6,14 @@ import numpy as np
 
 PHI_0 = 0.4  # dimensionless — initial surface porosity
 # ⚠️ EARTH FALLBACK — shale/mixed sedimentary crust.
-# Flag 82.
+# Note 82.
 
 K_COMP = 31.0e6  # Pa — bulk compaction modulus
 # ⚠️ EARTH FALLBACK — shale/mixed sedimentary crust.
-# Flag 82.
+# Note 82.
 
 RHO_B = 2500.0  # kg m⁻³ — bulk crustal rock density for compaction
-# ⚠️ EARTH FALLBACK — Flag 82.
+# ⚠️ EARTH FALLBACK — Note 82.
 
 
 def compute_porosity_profile(g: float, z_array_m):

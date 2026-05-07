@@ -5,15 +5,15 @@
 # Formula: R_snow,H2O = 2.7 × (M_star/M_☉)² AU; R_snow,i = R_snow,H2O × (170/T_cond,i)²
 # Source: viscously-heated disk power-law, calibrated to solar system architecture
 # Earth calibration: H2O=2.7 AU, CO2=10.08 AU, CO/CH4/N2=38.5 AU at 1 M_☉
-# Flag 102: 2.7 AU coefficient — Earth fallback. Solar System snow line calibration.
-# Flag 103: T_cond values (170 K, 88 K, 45 K) — nebular-pressure condensation temperatures.
+# Note 102: 2.7 AU coefficient — Earth fallback. Solar System snow line calibration.
+# Note 103: T_cond values (170 K, 88 K, 45 K) — nebular-pressure condensation temperatures.
 #           Solar System calibrated.
-# Flag 104: M² scaling breaks down above ~5 M_☉. Model applicability limit.
+# Note 104: M² scaling breaks down above ~5 M_☉. Model applicability limit.
 
 M_SUN_KG = 1.989e30  # kg — fundamental constant
 AU_M = 1.496e11  # m — fundamental constant
-R_SNOW_H2O_SOLAR_AU = 2.7  # AU at 1 M_sun — Flag 102
-T_COND = {  # K — Flag 103
+R_SNOW_H2O_SOLAR_AU = 2.7  # AU at 1 M_sun — Note 102
+T_COND = {  # K — Note 103
     "H2O": 170.0,
     "CO2": 88.0,
     "CO_CH4_N2": 45.0,

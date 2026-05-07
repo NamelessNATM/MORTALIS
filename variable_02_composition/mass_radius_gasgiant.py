@@ -9,7 +9,7 @@
 #
 # Jupiter calibration: M = 318 M_earth → R = 13.15 R_earth (17% overestimate
 # vs known 11.21 R_earth). Source describes this as upper-bound approximation.
-# ⚠️ Flag 12: 17% overestimate on Jupiter. Recorded per Rule 2. Not a patch
+# ⚠️ Note 12: 17% overestimate on Jupiter. Recorded per Rule 2. Not a patch
 # candidate — this is the formula the literature uses for this regime.
 #
 # Coefficients confirmed across multiple Jovian exoplanets.

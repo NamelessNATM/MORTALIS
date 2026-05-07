@@ -27,9 +27,9 @@
 #   Known Ceres R = 473,000 m → 0.9% error (acceptable).
 #
 # ⚠️ EARTH FALLBACK — DEFAULT_RHO_0 of 3500 kg/m^3 is a representative rocky body
-# value from terrestrial and meteorite measurements. Flag 13.
+# value from terrestrial and meteorite measurements. Note 13.
 #
-# ⚠️ Flag 13: rho_0 for dwarf bodies is composition-dependent and not derivable
+# ⚠️ Note 13: rho_0 for dwarf bodies is composition-dependent and not derivable
 # from mass alone. Defaults to 3500 kg/m^3 (rocky). A future disk chemistry
 # variable may supply this directly.
 

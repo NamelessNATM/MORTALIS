@@ -5,13 +5,13 @@
 # Formula: D_i = (K_D − 1) / (1 + CMF × (K_D − 1)); X_mantle,i = X_bulk,i × (1 − D_i × CMF)
 # Source: Armstrong et al. (2019), Deng et al. (2020) high-pressure experiments
 # Earth calibration (P_cmb=135 GPa): C=1.89 ppm, N=1.53 ppm, S=27.66 ppm, H=0.79 ppm
-# Flag 108: K_D,H=29 at Earth P_cmb — diamond anvil cell + SIMS. Lab measurement. Earth fallback.
-# Flag 109: K_D,C=107 at Earth P_cmb — experimental petrology. Earth fallback.
-# Flag 110: K_D,N=14 at Earth P_cmb — experimental petrology. Earth fallback.
-# Flag 111: K_D,S=100 at Earth P_cmb — thermodynamic models. Earth fallback.
-# Flag 112: K_D,H=1 at Mars P_cmb (14 GPa) — H approaches neutral below 20 GPa. Lab data.
-# Flag 113: K_D,C=500 at Mars P_cmb (14 GPa) — C inversely pressure dependent. Lab data.
-# Flag 114: K_D,N and K_D,S pressure scaling at Mars P_cmb not resolved. Earth anchor values
+# Note 108: K_D,H=29 at Earth P_cmb — diamond anvil cell + SIMS. Lab measurement. Earth fallback.
+# Note 109: K_D,C=107 at Earth P_cmb — experimental petrology. Earth fallback.
+# Note 110: K_D,N=14 at Earth P_cmb — experimental petrology. Earth fallback.
+# Note 111: K_D,S=100 at Earth P_cmb — thermodynamic models. Earth fallback.
+# Note 112: K_D,H=1 at Mars P_cmb (14 GPa) — H approaches neutral below 20 GPa. Lab data.
+# Note 113: K_D,C=500 at Mars P_cmb (14 GPa) — C inversely pressure dependent. Lab data.
+# Note 114: K_D,N and K_D,S pressure scaling at Mars P_cmb not resolved. Earth anchor values
 #           used for all pressures below Earth P_cmb. Earth fallback pending low-pressure data.
 
 import math
@@ -22,8 +22,8 @@ P_MARS_PA = 14.0e9  # Pa — Mars CMB pressure anchor
 # K_D at Earth anchor (135 GPa)
 KD_EARTH = {"H": 29.0, "C": 107.0, "N": 14.0, "S": 100.0}
 
-# K_D at Mars anchor (14 GPa) — ⚠️ Flags 112, 113, 114
-KD_MARS = {"H": 1.0, "C": 500.0, "N": 14.0, "S": 100.0}  # N, S: Flag 114 fallback
+# K_D at Mars anchor (14 GPa) — ⚠️ Notes 112–114
+KD_MARS = {"H": 1.0, "C": 500.0, "N": 14.0, "S": 100.0}  # N, S: Note 114 fallback
 
 
 def _interpolate_kd(element: str, P_cmb_Pa: float) -> float:

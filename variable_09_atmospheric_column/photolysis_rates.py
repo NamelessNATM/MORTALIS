@@ -7,7 +7,7 @@ from __future__ import annotations
 import math
 from typing import Mapping
 
-# ⚠️ Flag 171 — wavelength cutoffs (JPL DE 2020).
+# ⚠️ Note 171 — wavelength cutoffs (JPL DE 2020).
 LAMBDA_MAX_PHOTOLYSIS_NM = {
     "N2": 127,
     "CH4": 145,
@@ -42,7 +42,7 @@ def compute_photolysis_rates_toa(
     """
     J_i ≈ (F_XUV / hν_avg) · σ_a · exp(-τ_uv) at TOA.
 
-    ⚠️ Flag 173 — gray photolysis approximation.
+    ⚠️ Note 173 — gray photolysis approximation.
     """
     h = 6.62607015e-34
     c = 2.99792458e8

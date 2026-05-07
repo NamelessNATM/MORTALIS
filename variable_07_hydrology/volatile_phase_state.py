@@ -58,7 +58,7 @@ SPECIES_DATA = {
         # NOTE: CO2 liquid-vapor regime (216.58 K < T_s < 304.18 K,
         # P_s > 518500 Pa) requires Span-Wagner EOS for accurate P_sat.
         # Engine returns 'liquid_possible' in this window. Quantitative
-        # pressure evaluation deferred — Flag 88.
+        # pressure evaluation deferred — Note 88.
     },
     "SO2": {
         "antoine": [
@@ -87,7 +87,7 @@ SPECIES_DATA = {
         "T_tp": 197.7,  # K  — NIST
         "P_tp": 1670.0,  # Pa — NIST independent value (Antoine-derived
         # value gives 1440 Pa; 14% deviation at triple
-        # point. NIST value used. Flag 73).
+        # point. NIST value used. Note 73).
         "T_c": 430.8,  # K  — NIST
         "P_c": 7884000,  # Pa — NIST
         "dH_sub": 24900.0,  # J/mol — NIST
@@ -166,7 +166,7 @@ SPECIES_DATA = {
 
 
 def _antoine_P_Pa_from_segment(T_K: float, seg: dict) -> float:
-    # Antoine equation — source: SPECIES_DATA segment citations; Flag 71–74.
+    # Antoine equation — source: SPECIES_DATA segment citations; Notes 71–74.
     log10_p_bar = seg["A"] - seg["B"] / (T_K + seg["C"])
     p_bar = 10.0**log10_p_bar
     return p_bar * 1.0e5
@@ -201,27 +201,27 @@ def evaluate_vapor_pressure(species: str, T_K: float):
 
     def clapeyron_P(T: float, T_ref: float, P_ref_Pa: float) -> float:
         # Clausius-Clapeyron — source: standard thermodynamics from ΔH_sub;
-        # ⚠️ EARTH-MEASURED MOLECULAR CONSTANT (dH_sub); Flag 75–77.
+        # ⚠️ EARTH-MEASURED MOLECULAR CONSTANT (dH_sub); Notes 75–77.
         exponent = -(dH_sub / R_GAS) * (1.0 / T - 1.0 / T_ref)
         return P_ref_Pa * math.exp(exponent)
 
     if T_K < global_T_min:
         seg0 = min(antoine_sets, key=lambda s: s["T_min"])
         T_ref = seg0["T_min"]
-        # Antoine at T_min — source: SPECIES_DATA; Flag 71–74.
+        # Antoine at T_min — source: SPECIES_DATA; Notes 71–74.
         P_ref_Pa = _antoine_P_Pa_from_segment(T_ref, seg0)
         return clapeyron_P(T_K, T_ref, P_ref_Pa)
 
     seg = _select_antoine_segment(species, T_K)
     if seg is not None:
-        # Antoine equation — source: SPECIES_DATA segment citations; Flag 71–74.
+        # Antoine equation — source: SPECIES_DATA segment citations; Notes 71–74.
         return _antoine_P_Pa_from_segment(T_K, seg)
 
     # Above Antoine upper bound but T_K <= T_c: continue vapor pressure with CC
     # from the highest tabulated Antoine temperature.
     upper_seg = max(antoine_sets, key=lambda s: s["T_max"])
     T_ref = upper_seg["T_max"]
-    # Antoine at T_ref — source: SPECIES_DATA; Flag 71–74.
+    # Antoine at T_ref — source: SPECIES_DATA; Notes 71–74.
     P_ref_Pa = _antoine_P_Pa_from_segment(T_ref, upper_seg)
     return clapeyron_P(T_K, T_ref, P_ref_Pa)
 
@@ -258,7 +258,7 @@ def evaluate_phase_state(species: str, T_K: float, P_s_Pa: float):
             (
                 "CO2 in liquid stability window (T and P above triple point, below critical). "
                 "Span-Wagner EOS required for quantitative P_sat — deferred. "
-                "Flag 88."
+                'Note 88.'
             ),
         )
 

@@ -12,7 +12,7 @@
 #
 # ⚠️ EARTH FALLBACK — chi = 2.44 derived from Earth mean core density (~11,000 kg/m³)
 # divided by Earth mean mantle density (~4,500 kg/m³). Universal applicability not
-# confirmed. Flag 50 applies.
+# confirmed. Note 50 applies.
 #
 # EARTH CALIBRATION:
 #   M = 5.97e24 kg, R = 6.37e6 m, CMF = 0.325, rho_mean = 5515 kg/m³
@@ -20,7 +20,7 @@
 #   rho_mantle ≈ 4,457 kg/m³ ✓
 #   rho_core   ≈ 10,875 kg/m³ ✓
 
-# ⚠️ EARTH FALLBACK — chi is Earth-calibrated. Flag 50.
+# ⚠️ EARTH FALLBACK — chi is Earth-calibrated. Note 50.
 _CHI = 2.44  # core-to-mantle density contrast
 
 

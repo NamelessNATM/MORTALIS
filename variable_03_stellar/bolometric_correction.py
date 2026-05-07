@@ -37,7 +37,7 @@
 #   Using math.log(T_eff) instead of math.log10(T_eff) produces
 #   x ≈ 8.66 at solar temperature, sending all terms to extreme values.
 #
-# ⚠️ Flag 70 — M_V,☉ = 4.756 mag:
+# ⚠️ Note 70 — M_V,☉ = 4.756 mag:
 #   The solar absolute visual magnitude used to derive the IAU 2015
 #   calibration target is an empirically adopted value from Eker et al.
 #   (2020). Not derivable from Category A constants.
