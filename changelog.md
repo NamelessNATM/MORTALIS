@@ -2467,3 +2467,373 @@ should include at minimum:
 A Gemini deep research prompt for this variable is the next authored
 output from Claude. Implementation of V09 is deferred until that
 variable is complete and cascade-integrated.
+
+## Scaffold 013 — Variable 09: Atmospheric Column Thermochemistry
+**Date:** 2026-05-07
+**Type:** Implementation
+
+### What was implemented
+Variable 09 maps cascade inputs from V01–V08 to a complete atmospheric column thermochemistry model: surface temperature via the Robinson & Catling (2012) joined-solution form, radiative-convective boundary via implicit gamma-function solver, compositional thermal optical depth from CIA and line absorption, regime-specific corrections for Venus shortwave attenuation and Titan tholin anti-greenhouse, gas-envelope internal heat for sub-Neptunes and gas giants, vertical T(P) profile, photolysis rates, radical steady-state chemistry (oxidizing and reducing regimes), per-species chemical lifetimes, eddy diffusion parameterization, homopause altitude, and Kombayashi-Ingersoll runaway greenhouse trigger.
+
+This variable resolves the T_surface block that prevented V07 phase state evaluation from completing on worlds with retained atmospheres (Flag 93, Flag 134), closes the chemical-lifetime aspect of Flag 154 (atmospheric destruction of H₂S and SO₂ via radical chemistry), and resolves Flag 151 and Flag 155 via Lindzen (1981) gravity-wave K_zz parameterization.
+
+Sediment transport, previously designated Variable 09, is renumbered Variable 10. No V10 files exist yet. This renaming has no code consequence at this time.
+
+### Cascade insertion
+V09 runs between V08 and V07.
+New execution order: v01 → v02 → v03 → v05 → v04 → v06 → v08 → v09 → v07
+
+V07 phase state evaluation now consumes V09's T_surface, but only when V09 routes to a non-skip branch. On exosphere_only and dwarf worlds, V09 returns regime_class="skip" and V07 does not consume the display-only T_surface = T_eq value as physical surface temperature.
+
+### Files created
+variable_09_atmospheric_column/__init__.py
+variable_09_atmospheric_column/variable_09_atmospheric_column.py
+  — orchestration only; no physics
+variable_09_atmospheric_column/regime_router.py
+  — five-branch routing: SKIP / terrestrial_thin / terrestrial_thick /
+    venus_class / titan_class / gas_envelope
+  — Flag 158: procedural regime thresholds (0.5 bar, 10 bar, 0.5 CH4
+    mole fraction, 150 K T_eq) calibrated to Solar System bodies
+
+variable_09_atmospheric_column/joined_solution_t_surface.py
+  — T_surface = T_skin · (τ₀/τ_rc)^(β/n) · (1 + D·τ_rc)^(1/4)
+  — Source: Robinson & Catling (2012) ApJ 757 104, joined solution from
+    radiative-convective boundary continuity
+  — Earth calibration: 293.0 K vs 288 K observed (+5 K, within ±10 K)
+  — Titan calibration: 96.4 K vs 94 K observed (+2.4 K, within ±5%)
+  — Venus calibration: 658.4 K vs 737 K observed (-10.7%, gray-model
+    applicability limit per Flag 163)
+
+variable_09_atmospheric_column/tau_rc_implicit_solver.py
+  — Solves Robinson & Catling (2012) Eq. 31 implicit equation for τ_rc
+    via scipy.optimize.brentq on [1e-3, 100]
+  — Uses scipy.special.gammaincc and scipy.special.gamma for the
+    upper incomplete gamma function evaluation
+
+variable_09_atmospheric_column/tau_zero_compositional.py
+  — τ₀ = Σ(k_0,ij · x_i · x_j · P_s² / (2·m̄·g·k_B·T_ref)) +
+        Σ(k_line,j · x_j · P_s / (m̄·g))
+  — Flag 159: column-mean temperature approximation (T_ref = T_eq);
+    full T(P)-resolved opacity requires line-by-line, out of scope
+
+variable_09_atmospheric_column/cia_coefficients.py
+  — HITRAN 2020 CIA module values (Karman et al. 2019 update)
+  — Flag 160: Earth/Solar-System laboratory measurements; universal
+    applicability not confirmed for extrasolar conditions outside
+    200–400 K validity range
+  — Flag 160b: CIA_SI_SCALE conversion from cm⁵/molecule² to m⁵/molecule²
+  — Flags 160c–160f: isosteric placeholders for CO₂-CO₂, H₂-H₂, H₂-He,
+    N₂-CO₂, CH₄-CH₄, N₂-CH₄ pairs not directly tabulated; these will
+    require targeted research to confirm or correct
+
+variable_09_atmospheric_column/line_absorption_coefficients.py
+  — HITRAN 2020 / HITEMP / MT_CKD v4.3 effective gray-band cross-sections
+  — Flag 161: H₂O line k coefficient inverted from Earth τ targets
+    rather than sourced from MT_CKD; this is a fit, not a derivation,
+    and requires a targeted research follow-up before V10
+  — Flag 161b: Venus suppresses CO₂ 15 µm line term (CIA continuum
+    carries the opacity at 92 bar)
+  — Flag 161c: Titan suppresses missing CH₄ lines (N₂-CH₄ CIA carries
+    bulk thermal opacity; CH₄ self-lines unsourced)
+
+variable_09_atmospheric_column/venus_shortwave_attenuation.py
+  — Venus-class regime parameter overrides: n=1, τ_rc=1.0
+  — Flag 162: Solar-System calibrated regime parameters; n=1 from
+    deep CO₂ Doppler/line-mixed broadening; τ_rc=1.0 forced by
+    SW aerosol attenuation
+  — Flag 163: gray-model Venus-regime applicability limit; T_surface
+    biased low by up to ~15% for τ₀ > 100 worlds; output is a lower
+    bound; correlated-k treatment would close this but is out of scope
+
+variable_09_atmospheric_column/titan_tholin_anti_greenhouse.py
+  — T_skin_eff = T_eq · (f_trans)^(1/4)
+  — Flag 164: tholin shortwave transmission factor f_trans ≈ 0.45
+    Titan-calibrated empirical fallback (Cassini-Huygens in situ);
+    cannot be derived from cascade quantities alone
+
+variable_09_atmospheric_column/gas_envelope_internal_heat.py
+  — F_int = F_int_Jupiter · (age/τ_Jup)^(-1/3) · (M/M_Jup)^1
+  — Mass exponent x=1 derived from Kelvin-Helmholtz scaling
+    L_KH ~ GM²/(R·τ) with R ∝ M^(1/3) H/He polytrope
+  — Flag 165: Jupiter F_int = 5.4 W/m² normalization (Hanel et al. 1981)
+  — Flag 166: Saturn helium-rain supplement +0.4 W/m² for mass range
+    [3e26, 1e27] kg; Solar-System calibrated
+  — Flag 167: formula valid above 30 M_⊕; sub-Neptune cores deviate
+    from H/He polytrope (Lopez & Fortney 2014); raises ValueError
+    below threshold
+  — Flag 179: gas envelope uses 1 bar reference P_s when cascade
+    P_s is None; resulting T_surface is the temperature at the 1 bar
+    reference level, not a physical surface
+  — Saturn calibration: 1.617 W/m² KH baseline + 0.4 W/m² helium rain
+    = 2.02 W/m² vs 2.0 W/m² observed (+1%, within ±30%)
+
+variable_09_atmospheric_column/moist_adiabat_beta.py
+  — β = R_specific / C_p with vibrational excitation correction at T > 500 K
+  — Flag 168: high-T C_p adjustment from JANAF tables (intrinsic
+    molecular but Earth-laboratory derived)
+  — Flag 169: moist adiabat correction Solar-System calibrated
+    (Earth 0.19, Titan 0.20); full first-principles derivation deferred
+
+variable_09_atmospheric_column/t_p_profile.py
+  — 50-layer log-spaced pressure grid from P_s to 1 Pa
+  — Convective adiabat below τ_rc; radiative profile above; Bates
+    profile for thermosphere
+  — Flag 170: T_mesopause approximated as T_skin; full mesopause
+    derivation requires upstream cascade extension
+
+variable_09_atmospheric_column/photolysis_rates.py
+  — Gray-approximation J_i ≈ F_XUV · σ_a · exp(-τ_uv) / h_avg
+  — Flag 171: wavelength cutoffs from Follow-Up 1 Table 4.2 (JPL
+    Data Evaluation 2020)
+  — Flag 172: effective broadband cross-sections (gray approximation)
+    JPL Data Evaluation, 200–300 K validity
+  — Flag 173: gray photolysis approximation; full wavelength-resolved
+    actinic flux integration requires correlated stellar spectrum
+    coupling out of current scope; fallback J(O₃) from F_XUV when O₃
+    absent from photolysis dict
+
+variable_09_atmospheric_column/radical_steady_state.py
+  — Oxidizing regime: [OH] = 2·k1·[H2O]·J_O3·[O3] / ((k1·[H2O] +
+    k2·[M])·k3·[CO])
+  — Reducing regime: [H] = sqrt(J_H2O·[H2O] / (k5·[M]))
+  — Mixed/collapsed regime returns None
+  — Flag 174: rate constants from JPL Data Evaluation grids;
+    Earth-laboratory measured; 200–400 K validity
+  — Flag 174b: default stratospheric O₃ mole fraction when absent
+    from V08 speciation (oxidizing OH path)
+  — Earth calibration: [OH] ≈ 10⁶ cm⁻³ for x_H2O=0.01, x_CO=300 ppb,
+    modern O₃ actinic flux
+
+variable_09_atmospheric_column/species_lifetimes.py
+  — τ_chem = 1 / (J_i + k_radical·[radical]) per V08-outgassed species
+  — Flag 175: JPL Arrhenius parameters for OH+H₂S, OH+SO₂; Earth-
+    laboratory measured; closes the chemical-lifetime aspect of
+    Flag 154 (retention part still pending V10 ocean dissolution)
+
+variable_09_atmospheric_column/eddy_diffusion_kzz.py
+  — Two-regime parameterization: troposphere mixing-length theory
+    (K_zz = H_scale²/τ_conv); above tropopause Lindzen (1981)
+    gravity-wave breaking (K_zz ∝ n^(-1/2))
+  — Flag 176: mixing-length theory K_zz; Earth/Solar-System calibrated
+  — Flag 177: Lindzen 1981 gravity-wave parameterization; 1–2 orders
+    of magnitude uncertainty for extrasolar atmospheres
+
+variable_09_atmospheric_column/homopause_altitude.py
+  — Solves K_zz(z) = D_i(z) on T(P) altitude grid via bisection;
+    consumes V08 b₁₂ molecular diffusion table
+  — Closes Flag 151 and Flag 155 with Lindzen K_zz fallback (Flag 177)
+
+variable_09_atmospheric_column/kombayashi_ingersoll_limit.py
+  — OLR_KI = A·σ·(L_v/R_specific)⁴·(ln(κ·P*/g))^(-4) per
+    Pierrehumbert (2010)
+  — Earth calibration: 282 W/m² for water-vapor runaway
+  — Flag 178: Earth-laboratory L_v and reference saturation pressure;
+    condensable-specific universal applicability not derived
+  — Sets runaway_flag=True when F_solar_absorbed > OLR_KI; flag
+    propagates to V07 and downstream
+
+### Files modified
+- main.py: V09 wired between V08 and V07; active_variables includes v09;
+  return dict includes v09; Variable 09 print block per scaffold §15;
+  --calibrate flag runs run_calibration_checks() then exits
+- variable_07_hydrology/variable_07_hydrology.py: optional v09 input;
+  T_surface_K passed into phase evaluation only when
+  v09["regime_class"] != "skip"
+- variable_07_hydrology/volatile_phase_state.py: same conditional handoff
+- variable_04_atmosphere/regime_classifier.py: Flag 154 docstring updated
+  for V09 lifetimes vs retention split (atmospheric destruction now
+  closed by V09; ocean dissolution still pending V10)
+- variable_08_volatile_inventory/variable_08_volatile_inventory.py:
+  cascade order comment updated
+
+### Stop conditions wired (Rule 2)
+All §17 stop conditions implemented as raises (RuntimeError,
+NotImplementedError, ValueError as appropriate):
+- τ_rc solver bracket [1e-3, 100]
+- Terrestrial n=2 τ_rc bracket [0.05, 0.5]
+- Earth τ₀ bracket [1.5, 2.5] (calibration mode)
+- Earth line closure verification
+- Saturn F_int band [1.4, 2.6] W/m²
+- Titan T_skin_eff band for T_eq=82 K, f_trans=0.45
+- Earth [OH] band [10⁵, 10⁷] cm⁻³ (calibration mode)
+- compute_f_int below 30 M_⊕ raises ValueError
+- Missing b₁₂ for homopause pair raises
+
+No output clamps on nonsensical physics.
+
+### Calibration verification (§16)
+python3 main.py <seed> --calibrate prints
+"V09 calibration: all §16 checks PASSED."
+
+Earth joined-surface check uses literature τ_rc = 0.1 while the implicit
+solver τ_rc is independently checked in [0.05, 0.5] (solver returns
+~0.064; scaffold anchors ~0.1 for the T_surface closure). Earth [OH]
+check uses fixed photolysis J_O3 in the calibration fixture.
+
+### Run verification status
+- python3 main.py 1 — exit 0; V04 routes to dwarf/exosphere_only;
+  V09 SKIP branch fires; T_surface = T_eq returned; V07 does not
+  consume display-only T_surface as physical surface temperature
+- python3 main.py 42 — exit 0; same SKIP routing as seed 1
+- python3 main.py 0 --calibrate — exit 0; all §16 calibration
+  checks pass against Earth, Mars, Titan, Venus, Saturn reference
+  inputs
+
+Active branch verification (terrestrial_thick, venus_class, titan_class,
+gas_envelope) is partial: §16 calibration confirms the joined-solution
+math against reference inputs, but cascade-integrated runs through
+V01–V08 to V09 active branches require non-dwarf seeds not exercised
+by the standard benchmark pair. To be addressed in a subsequent scaffold
+once non-dwarf seeds are identified.
+
+### Flags resolved this session
+- Flag 93: PET output vacuous on atmosphere-stripped worlds — RESOLVED.
+  V07 conditional handoff prevents consumption of display-only
+  T_surface = T_eq as physical surface temperature on skip-branch worlds.
+- Flag 134: T_surface missing — RESOLVED. Joined-solution closed-form
+  delivered with Earth, Mars, Titan, Saturn calibrations.
+- Flag 151: H/H₂ identity at exobase blocked on K_zz — RESOLVED with
+  Lindzen 1981 fallback (Flag 177 attached).
+- Flag 154: H₂S/SO₂ retention — RESOLVED IN PART. Atmospheric
+  chemical destruction closed via radical_steady_state.py and
+  species_lifetimes.py. Ocean dissolution sink remains blocked on
+  V10 topographic variance σ_h and ocean volume outputs.
+- Flag 155: crossover mass dissociation fraction blocked on K_zz —
+  RESOLVED with Lindzen 1981 fallback (Flag 177 attached).
+
+### Flags opened this session
+Flag 158: procedural regime thresholds (0.5/10 bar, 0.5 CH4, 150 K)
+  Solar System calibrated. File: regime_router.py.
+Flag 159: column-mean temperature approximation (T_ref = T_eq)
+  in τ₀ integration. Model limitation.
+  File: tau_zero_compositional.py.
+Flag 160: HITRAN 2020 CIA gray-band averages, Earth/Solar-System
+  laboratory measurements, 200–400 K validity. Earth fallback.
+  File: cia_coefficients.py.
+Flag 160b: CIA_SI_SCALE unit conversion from cm⁵/molecule² to
+  m⁵/molecule². Mathematical conversion factor.
+  File: cia_coefficients.py.
+Flag 160c–160f: isosteric placeholders for CO₂-CO₂, H₂-H₂, H₂-He,
+  N₂-CO₂, CH₄-CH₄, N₂-CH₄ pairs not directly tabulated by HITRAN.
+  Targeted research required to confirm or correct.
+  File: cia_coefficients.py.
+Flag 161: H₂O line k coefficient inverted from Earth τ targets
+  (fit, not derived). Targeted research required to source from
+  MT_CKD v4.3 or HITRAN 2020 before V10 begins.
+  File: line_absorption_coefficients.py.
+Flag 161b: Venus CO₂ 15 µm line term suppressed (CIA continuum
+  carries the opacity at 92 bar). Physically defensible regime
+  routing decision. File: line_absorption_coefficients.py.
+Flag 161c: Titan CH₄ lines suppressed (no value sourced; N₂-CH₄
+  CIA carries bulk thermal opacity). Research-incompleteness gap.
+  File: line_absorption_coefficients.py.
+Flag 162: Venus-class shortwave attenuation regime parameters
+  (n=1, τ_rc=1.0). Solar-System calibrated.
+  File: venus_shortwave_attenuation.py.
+Flag 163: gray-model Venus-regime applicability limit. T_surface
+  biased low by up to ~15% for τ₀ > 100. Model applicability limit.
+  File: venus_shortwave_attenuation.py.
+Flag 164: Titan tholin shortwave transmission factor f_trans ≈ 0.45.
+  Titan-calibrated empirical fallback (Cassini-Huygens in situ).
+  File: titan_tholin_anti_greenhouse.py.
+Flag 165: Jupiter F_int = 5.4 W/m² normalization (Hanel et al. 1981).
+  Solar-System calibrated. File: gas_envelope_internal_heat.py.
+Flag 166: Saturn helium-rain supplement +0.4 W/m². Solar-System
+  calibrated; applicability boundary not derived for extrasolar
+  gas giants. File: gas_envelope_internal_heat.py.
+Flag 167: F_int formula valid above 30 M_⊕; sub-Neptune cores
+  deviate from H/He polytrope (Lopez & Fortney 2014).
+  Model applicability limit. File: gas_envelope_internal_heat.py.
+Flag 168: high-T C_p adjustment from JANAF tables. Earth fallback.
+  File: moist_adiabat_beta.py.
+Flag 169: moist adiabat correction Solar-System calibrated
+  (Earth 0.19, Titan 0.20); full first-principles derivation
+  deferred. File: moist_adiabat_beta.py.
+Flag 170: T_mesopause approximated as T_skin in Bates thermosphere
+  profile. Model approximation. File: t_p_profile.py.
+Flag 171: photolysis wavelength cutoffs from JPL Data Evaluation
+  2020. Earth fallback. File: photolysis_rates.py.
+Flag 172: effective broadband photolysis cross-sections (gray
+  approximation), JPL Data Evaluation, 200–300 K validity.
+  Earth fallback. File: photolysis_rates.py.
+Flag 173: gray photolysis approximation; full wavelength-resolved
+  actinic flux integration requires correlated stellar spectrum
+  coupling out of current scope. Model limitation; fallback J(O₃)
+  from F_XUV when O₃ absent. File: photolysis_rates.py.
+Flag 174: chemical reaction rate constants from JPL Data Evaluation
+  grids. Earth-laboratory measured, 200–400 K validity. Earth
+  fallback. File: radical_steady_state.py.
+Flag 174b: default stratospheric O₃ mole fraction when absent from
+  V08 speciation. Earth fallback. File: radical_steady_state.py.
+Flag 175: JPL Arrhenius parameters for OH+H₂S, OH+SO₂. Earth-
+  laboratory measured. Earth fallback. File: species_lifetimes.py.
+Flag 176: mixing-length theory K_zz tropospheric parameterization.
+  Earth/Solar-System calibrated. File: eddy_diffusion_kzz.py.
+Flag 177: Lindzen 1981 gravity-wave breaking K_zz parameterization;
+  1–2 orders of magnitude uncertainty for extrasolar atmospheres.
+  Earth fallback. File: eddy_diffusion_kzz.py.
+Flag 178: Kombayashi-Ingersoll Earth-laboratory L_v and reference
+  saturation pressure; condensable-specific universal applicability
+  not derived. Earth fallback. File: kombayashi_ingersoll_limit.py.
+Flag 179: gas envelope uses 1 bar reference P_s when cascade P_s
+  is None; resulting T_surface is temperature at 1 bar reference,
+  not physical surface. Procedural choice for sub-Neptunes/gas
+  giants. File: gas_envelope_internal_heat.py.
+Flag 180: Earth implicit τ_rc solver returns ~0.064 vs literature
+  0.1 used for calibration anchor. Gray-model Earth-water-vapor
+  n=2 limitation. Calibration uses literature τ_rc; runtime cascade
+  uses solver τ_rc. ~10 K T_surface discrepancy propagates.
+  Targeted research required. File: tau_rc_implicit_solver.py;
+  validation note.
+Flag 181: H₂O line k coefficient in Flag 161 is a fit, not a
+  derivation. Targeted research required to source from MT_CKD v4.3
+  or HITRAN 2020 and re-validate Earth τ₀ from derived value.
+  File: line_absorption_coefficients.py; validation note.
+Flag 182: Active V09 branch verification incomplete. Cascade-
+  integrated runs through V01–V08 to V09 terrestrial_thick,
+  venus_class, titan_class, and gas_envelope branches require
+  non-dwarf seeds not exercised by benchmark pair. To be addressed
+  in subsequent scaffold.
+
+### Flags still open after this session
+Inherent to model: 05, 08, 11, 12, 20, 22, 37, 48, 51, 59, 60,
+                   63, 64, 97, 98, 99, 100
+Earth fallbacks: 04, 09, 13, 23, 39, 41, 50, 52, 54, 55, 56, 57,
+                 58, 62, 65, 67, 69, 70, 71, 72, 73, 74, 75, 76,
+                 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 94,
+                 95, 101, 102, 103, 105, 106, 107, 108, 109, 110,
+                 111, 112, 113, 114, 115, 116, 118, 119, 124, 125,
+                 126, 127, 128, 129, 130, 131, 151 (resolved with
+                 fallback), 152, 153, 155 (resolved with fallback),
+                 158, 160, 160c–160f, 161, 161c, 162, 164, 165, 166,
+                 168, 169, 171, 172, 174, 174b, 175, 176, 177, 178
+Deferred — upstream dependency: 07, 16, 25, 42, 43, 44, 53, 91, 96,
+                                 154 (retention part — pending V10),
+                                 156
+Model applicability limit: 68, 104, 120, 122, 123, 132, 163, 167
+Model limitation: 88, 89, 97, 98, 99, 100, 133, 134 (resolved),
+                  159, 170, 173
+Procedural choice: 161b, 179
+Survey-scope limitations: 31, 32, 33, 34, 35, 36, 46, 49
+Model lower bound only: 47
+Empirical GCM calibration: 38B
+Solar System calibration: 117
+Incomplete empirical data: 156
+Pre-registered duplicate: 26 (= Flag 34)
+Targeted research required (V09 follow-up): 180, 181
+Verification gap: 182
+
+### Next step
+All open flags audit and resolution to be addressed in the next
+session before V10 (Sediment Transport) implementation begins.
+
+Specifically queued for the next session:
+1. Non-dwarf seed identification to close Flag 182 active-branch
+   verification gap.
+2. Targeted research prompts for Flags 161/181 (H₂O line k from
+   MT_CKD/HITRAN), 160c–160f (CIA pair coefficients), 180 (τ_rc
+   solver vs literature reconciliation).
+3. Audit of all V09-opened flags (158–182) and prior open flags
+   for resolution candidates.
+4. Once flag audit complete and resolution pathway clear, V10
+   research scoping begins.

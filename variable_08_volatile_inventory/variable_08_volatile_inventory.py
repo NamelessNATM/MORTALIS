@@ -13,7 +13,7 @@
 #                  no late veneer, no outgassing integral, no M_atm
 #   brown_dwarf  → null output
 #
-# CASCADE ORDER: v01 → v02 → v03 → v05 → v04 → v06 → v08 → v07
+# CASCADE ORDER: v01 → v02 → v03 → v05 → v04 → v06 → v08 → v09 → v07
 #
 # Resolves: Flag 29 (fO2 now computed), Flag 40 (X_vol now computed),
 #           Flag 6 (speciation now produced — partial resolution)

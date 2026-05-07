@@ -15,13 +15,15 @@ from variable_04_atmosphere import variable_04_atmosphere
 from variable_06_tectonics.variable_06_tectonics import run_variable_06
 from variable_07_hydrology.variable_07_hydrology import run_variable_07
 from variable_08_volatile_inventory import run_variable_08
+from variable_09_atmospheric_column import run as run_variable_09
+from variable_09_atmospheric_column import run_calibration_checks
 
 
 def run(seed: int, config: dict):
     v01 = run_variable_01(seed, regime=config['regime'])
     v02 = run_variable_02(seed, v01["M_kg"], v01["mu"])
 
-    active_variables = ["v01", "v02", "v03", "v05", "v04", "v06", "v08", "v07"]
+    active_variables = ["v01", "v02", "v03", "v05", "v04", "v06", "v08", "v09", "v07"]
     version, npz_path, png_path = next_version(seed, active_variables)
 
     grid, meta = run_coordinate_system(v02, npz_path)
@@ -44,7 +46,8 @@ def run(seed: int, config: dict):
 
     v06 = run_variable_06(v01, v02, v03, v05, v04)
     v08 = run_variable_08(seed, v01, v02, v03, v04, v05, v06)
-    v07 = run_variable_07(v01, v02, v03, v04, v05, v06, v08)
+    v09 = run_variable_09(seed, v01, v02, v03, v04, v05, v06, v08)
+    v07 = run_variable_07(v01, v02, v03, v04, v05, v06, v08, v09)
 
     run_map_generator(grid, meta, png_path)
 
@@ -56,6 +59,7 @@ def run(seed: int, config: dict):
         "v04": v04,
         "v06": v06,
         "v08": v08,
+        "v09": v09,
         "v07": v07,
         "version": version,
         "npz_path": npz_path,
@@ -73,11 +77,20 @@ if __name__ == "__main__":
                         dest='world_type',
                         help='World type: rocky, sub_neptune, gas_giant, dwarf. '
                              'Default: unrestricted galactic draw.')
+    parser.add_argument(
+        '--calibrate',
+        action='store_true',
+        help='Run V09 §16 calibration checks and exit.',
+    )
     args = parser.parse_args()
 
     import random as _random
     seed = args.seed if args.seed is not None else _random.randint(0, 2**31 - 1)
     world_type_arg = args.world_type
+
+    if args.calibrate:
+        run_calibration_checks()
+        raise SystemExit(0)
 
     config = build_config(world_type=world_type_arg)
 
@@ -89,6 +102,7 @@ if __name__ == "__main__":
     v04 = result["v04"]
     v06 = result["v06"]
     v08 = result["v08"]
+    v09 = result["v09"]
     v07 = result["v07"]
 
     M_EARTH_KG = 5.972e24
@@ -272,6 +286,45 @@ if __name__ == "__main__":
                     print(
                         f"    {sp:6s} M_atm={m_atm:.3e} kg (regime={regime})"
                     )
+
+    print(f"\n--- Variable 09: Atmospheric Column Thermochemistry ---")
+    rc = v09.get("regime_class", "—")
+    print(f"  Regime              : {rc}")
+    print(f"  T_surface (K)       : {v09.get('T_surface_K')}")
+    print(f"  T_skin (K)          : {v09.get('T_skin_K')}")
+    print(f"  tau_zero            : {v09.get('tau_zero')}")
+    print(f"  tau_rc              : {v09.get('tau_rc')}")
+    print(f"  beta (adiabat)      : {v09.get('beta')}")
+    print(f"  n (opacity exp)     : {v09.get('n')}")
+    print(f"  F_int (gas envelope): {v09.get('F_int_W_m2')}")
+    print("  Photolysis rates (top of atm):")
+    pj = v09.get("photolysis_J")
+    tc = v09.get("tau_chem_s")
+    if pj and isinstance(pj, dict):
+        for sp, jv in sorted(pj.items()):
+            tv = None if not isinstance(tc, dict) else tc.get(sp)
+            jstr = f"{jv:.3e}" if isinstance(jv, (int, float)) else str(jv)
+            tstr = f"{tv:.3e}" if isinstance(tv, (int, float)) else "None"
+            print(f"    {sp}: J={jstr} 1/s, tau_chem={tstr} s")
+    else:
+        print("    —")
+    print(f"  Radical regime      : {v09.get('radical_regime')}")
+    print(f"  [OH] (cm^-3)        : {v09.get('OH_cm3')}")
+    print(f"  [H] (cm^-3)         : {v09.get('H_cm3')}")
+    print(f"  K_zz at tropopause  : {v09.get('K_zz_tropopause_cm2_s')} cm^2/s")
+    zh = v09.get("z_homo_m")
+    if zh is not None:
+        print(f"  z_homo (km)         : {zh/1000.0:.4f}")
+    else:
+        print(f"  z_homo (km)         : None")
+    print(f"  Runaway flag        : {v09.get('runaway_flag')}")
+    print(f"  KI limit (W/m^2)    : {v09.get('OLR_KI_W_m2')}")
+    note_parts = []
+    if v09.get("notes"):
+        note_parts.extend(str(n) for n in v09["notes"])
+    if v09.get("venus_metadata"):
+        note_parts.append(str(v09["venus_metadata"]))
+    print(f"  Notes               : {'; '.join(note_parts) if note_parts else '—'}")
 
     print(f"\n--- Variable 07: Hydrology ---")
     print(f"Phase states: {v07['phase_states']}")

@@ -280,11 +280,12 @@ def evaluate_phase_state(species: str, T_K: float, P_s_Pa: float):
     )
 
 
-def evaluate_all_species(speciation_dict, T_eq_K: float, P_s_Pa):
+def evaluate_all_species(
+    speciation_dict, T_eq_K: float, P_s_Pa, T_surface_K: float | None = None
+):
     """Phase state for each outgassed species with non-zero mole fraction."""
-    # ⚠️ T_s APPROXIMATION — T_eq used as surface temperature proxy.
-    # Greenhouse warming correction deferred (Flag 43). Surface temperatures
-    # on planets with significant atmospheres will be underestimated.
+    # Surface temperature: V09 T_surface when supplied; else T_eq proxy (Flag 43).
+    T_surf = float(T_surface_K) if T_surface_K is not None else float(T_eq_K)
     if speciation_dict is None:
         return {
             "note": (
@@ -318,6 +319,6 @@ def evaluate_all_species(speciation_dict, T_eq_K: float, P_s_Pa):
             continue
         if species not in SPECIES_DATA:
             continue
-        phase, note = evaluate_phase_state(species, T_eq_K, P_s_Pa)
+        phase, note = evaluate_phase_state(species, T_surf, P_s_Pa)
         out[species] = {"phase": phase, "note": note, "molar_fraction": x}
     return out

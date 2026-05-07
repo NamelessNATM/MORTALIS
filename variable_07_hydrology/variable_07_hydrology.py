@@ -37,7 +37,14 @@ def _null_hydrology(note: str) -> dict:
 
 
 def run_variable_07(
-    v01: dict, v02: dict, v03: dict, v04: dict, v05: dict, v06: dict, v08: dict
+    v01: dict,
+    v02: dict,
+    v03: dict,
+    v04: dict,
+    v05: dict,
+    v06: dict,
+    v08: dict,
+    v09: dict | None = None,
 ) -> dict:
     _ = (v01, v03)
     regime = v02["regime"]
@@ -45,11 +52,18 @@ def run_variable_07(
     if regime in ("gas_giant", "brown_dwarf"):
         return _null_hydrology("no solid surface; hydrology not applicable")
 
+    # V09 skip branches report T_surface = T_eq for display only — phase state
+    # still uses T_eq until a full column solution exists (exosphere / dwarf).
+    t_surf = None
+    if isinstance(v09, dict) and v09.get("regime_class") != "skip":
+        t_surf = v09.get("T_surface_K")
+
     if regime == "dwarf":
         phase_states = evaluate_all_species(
             speciation_dict=v08.get("speciation"),
             T_eq_K=v05["T_eq_K"],
             P_s_Pa=0.0,
+            T_surface_K=t_surf,
         )
         return {
             "phase_states": phase_states,
@@ -87,6 +101,7 @@ def run_variable_07(
         speciation_dict=v08.get("speciation"),
         T_eq_K=v05["T_eq_K"],
         P_s_Pa=P_s,
+        T_surface_K=t_surf,
     )
 
     P_sub = P_s if P_s is not None else 0.0

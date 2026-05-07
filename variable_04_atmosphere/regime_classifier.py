@@ -39,8 +39,10 @@ def attach_photochemically_limited_species(jeans: dict) -> dict:
     chemistry both destroy them faster than vertical transport.
 
     ⚠️ Flag 154: H2S and SO2 retention not computable from current cascade.
-      Blocked on T_surface, tropospheric OH concentration, and ocean
-      volume. Requires downstream photochemistry cascade variable.
+      Blocked on ocean volume and topographic σ_h (V10). Variable 09 now
+      supplies chemical lifetimes / tropospheric OH for the destruction leg;
+      this V04 marker remains for the retention outcome until V07 ocean
+      dissolution and V10 surface context are available.
       Decision A3 per research cycle: return None (not zero, not preserved)
       to force downstream None-safe handling.
 
