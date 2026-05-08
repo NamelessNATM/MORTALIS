@@ -12,7 +12,7 @@ from variable_03_stellar.surface_gravity_evolution import compute_log_g
 from variable_03_stellar.stellar_radius_highmass import compute_radius_highmass
 from variable_03_stellar.stellar_temperature import compute_temperature
 from variable_03_stellar.bolometric_correction import compute_bolometric_correction
-from variable_03_stellar.main_sequence_lifetime import compute_main_sequence_lifetime
+from variable_03_stellar.main_sequence_lifetime import main_sequence_lifetime
 from variable_03_stellar.xuv_luminosity import compute_xuv
 from .metallicity_sampler import derive_metallicity
 
@@ -58,7 +58,7 @@ def run(seed: int, stability: str | None = None) -> dict:
             "BC_V unavailable: T_eff outside Eker et al. (2020) domain "
             "[3100, 36000] K (polynomial diverges outside this range)."
         )
-    t_ms = compute_main_sequence_lifetime(m_solar)
+    t_ms = main_sequence_lifetime(m_solar, met["Z"])
     lxuv_frac, lxuv_w = compute_xuv(age_gyr, l_w)
 
     return {

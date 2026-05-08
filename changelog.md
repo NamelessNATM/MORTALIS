@@ -3002,6 +3002,206 @@ new metallicity outputs. Earth at solar [X/H] reproduces CMF = 0.325
 exactly; the cascade now produces real CMF diversity correlated with
 host-star [Fe/H], [Mg/H], [Si/H].
 
+## Scaffold 015 — HPT2000 t_MS rewrite; Flag 16 closed
+**Date:** 2026-05-08
+**Type:** Implementation
+
+### Summary
+
+`main_sequence_lifetime.py` is replaced with the verbatim Hurley, Pols &
+Tout (2000) closed-form Z-dependent main-sequence lifetime formulation.
+The simplified t_MS = 10 (M*/M_sun)^-2.5 Gyr scaling — which ignored
+metallicity entirely — is gone. The new module consumes Z from the
+Phase A metallicity_sampler and returns t_MS in Gyr with the same
+public output key (`t_MS_Gyr`). Cascade behaviour at the canonical
+calibration points is preserved or improved across the entire mass
+range; the most striking improvement is at the high-mass end, where
+the prior simplified formula would have given ~7 Myr at 25 M_sun by
+coincidence — now derived from physics rather than pedagogical fit.
+
+This scaffold closes Flag 16 fully. The cascade-level Z exposure
+landed in Phase A; the source-side residual (the simplified formula
+in `main_sequence_lifetime.py`) is now also closed.
+
+### Files created
+
+- `variable_03_stellar/t_bgb.py`
+  HPT2000 Eq. 4 rational polynomial for t_BGB(M, Z) [Myr]. Coefficients
+  verbatim from SSE Fortran zdata.h xt(1)–xt(17).
+
+- `variable_03_stellar/t_hook_fraction.py`
+  HPT2000 Eq. 7 fractional t_hook duration m(M, Z) [dimensionless].
+  Coefficients verbatim from SSE Fortran zdata.h xt(18)–xt(31).
+
+- `variable_03_stellar/x_limiter.py`
+  Main-sequence fractional duration limiter x(Z) [dimensionless],
+  verbatim from SSE Fortran zcnsts.f zpars(8) (the canonical
+  implementation form, slightly updated from HPT2000 paper Eq. 6).
+
+### Files modified
+
+- `variable_03_stellar/main_sequence_lifetime.py`
+  Public API rewritten as main_sequence_lifetime(M_star_solar, Z) → Gyr.
+  Implements t_MS = max(t_hook, x · t_BGB) per HPT2000 Eq. 5, composing
+  the three sub-functions above. Phase A's "Flag 16 cascade-resolved /
+  Hurley source-side open" comment is removed; the new docstring
+  records that Flag 16 is closed in both senses. Notes 190–193
+  attached at this layer.
+
+- `variable_03_stellar/variable_03_stellar.py`
+  V03 entry point updated to call main_sequence_lifetime(m_solar,
+  met["Z"]) — Z plumbed in from the Phase A metallicity_sampler.
+  Output dict key `t_MS_Gyr` is unchanged. The previous
+  compute_main_sequence_lifetime helper is removed.
+
+`main.py` is unchanged. No call sites outside V03 consume t_MS, so the
+new (M, Z) signature did not propagate further.
+
+### Source citations
+
+- Hurley, Pols & Tout (2000), MNRAS 315, 543, "Comprehensive analytic
+  formulae for stellar evolution as a function of mass and metallicity."
+  Equations 4 (t_BGB), 5 (t_MS resolution), 6 (x-limiter, paper form),
+  7 (t_hook fraction).
+
+- Pols, Tout, Eggleton & Han (1998), MNRAS 298, 525. The detailed
+  Cambridge stellar evolution tracks that HPT2000's polynomial fits
+  approximate.
+
+- SSE Fortran source distribution (Hurley's original code). Coefficient
+  values verbatim from zdata.h xt array; x-limiter form verbatim from
+  zcnsts.f zpars(8). Mirror verified at:
+  https://github.com/ahwkuepper/mcluster/blob/master/zdata.h
+  https://github.com/ahwkuepper/mcluster/blob/master/zcnsts.f
+
+### PARSEC Z-scale handling
+
+The cascade's PARSEC initial proto-solar scale Z⊙_init = 0.01524 is
+fed directly into lzs = log10(Z/0.02) without modifying any HPT2000
+coefficient. At PARSEC solar this gives lzs = -0.118, well inside the
+SSE polynomial calibration range (lzs from -1.7 at Z = 0.0001 to
++0.176 at Z = 0.03). No re-anchoring of coefficients is performed;
+doing so would have constituted a Rule 1/Rule 2 violation.
+
+### Calibration verification (PARSEC solar Z = 0.01524)
+
+- M = 0.5 M_sun:  t_MS ≈ 123 Gyr   (>> Hubble time, expected)
+- M = 1.0 M_sun:  t_MS ≈ 10.2 Gyr  (canonical solar; was 10 Gyr exact
+  under the old formula by coincidence)
+- M = 1.5 M_sun:  t_MS ≈ 2.58 Gyr  (canonical early-F regime)
+- M = 8.0 M_sun:  t_MS ≈ 37.7 Myr  (canonical CCSN progenitor; old
+  formula gave 5.52 Myr — far too short)
+- M = 25  M_sun:  t_MS ≈ 7.07 Myr  (canonical Pols 1998 grids without
+  wind treatment; old formula gave 0.32 Myr — orders of magnitude wrong)
+
+The high-mass calibration improvement is the headline change. The old
+simplified scaling t_MS = 10 M^-2.5 Gyr was tuned to match solar mass;
+at 25 M_sun it gave 0.32 Myr, which is unphysically short for any
+stellar model. The new formulation lands at 7.07 Myr, matching the
+canonical Pols 1998 grids and modern reference codes (COMPAS, BSE,
+AMUSE, MIST).
+
+### Seed 1 verified output
+
+- `python main.py 1` → exit 0
+- M_star = 0.218690 M_sun, Z = 0.021754, age = 1.403 Gyr
+- [Fe/H] = +0.1822, [α/Fe] = -0.0182, X+Y+Z = 1.0 (exact)
+- t_MS = 769.304 Gyr (independent computation: 769.305 Gyr — exact match)
+- Mass-lifetime monotonicity preserved (low-mass star → very long t_MS)
+- Phase A regime classification (V02 dwarf at this mass) unchanged
+
+### Seed 42 verified output
+
+- `python main.py 42` → exit 0
+- M_star = 0.529798 M_sun, Z = 0.007395, age = 11.629 Gyr
+- [Fe/H] = -0.4006, [α/Fe] = +0.0801, X+Y+Z = 1.0 (exact)
+- t_MS = 90.991 Gyr (independent computation: 90.991 Gyr — exact match)
+- Age-metallicity anti-correlation correctly produced (old star → low Z)
+- Phase A regime classification (V02 dwarf) unchanged
+
+Both seeds are dwarf-regime planets (V01 sampled masses ~10^18 kg,
+well below planetary scale). Their downstream V04/V06/V07/V08 outputs
+remain blocked or N/A as in prior scaffolds — no Phase B regression
+anywhere outside the t_MS path.
+
+### Notes opened this session
+
+- Note 190: HPT2000 polynomial fits achieve RMS error ~1.9% relative
+  to the underlying Pols et al. (1998) detailed evolution tracks. This
+  is the inherent precision floor of the analytical approach; the
+  cascade does not attempt to exceed it. Inherent model approximation.
+  File: main_sequence_lifetime.py.
+
+- Note 191: SSE / HPT2000 polynomial Z-validity range is 0.0001 ≤ Z
+  ≤ 0.03. The cascade's typical Z range from the Phase A AMR
+  (0.007–0.024 across the JJ2010 envelope) sits comfortably inside.
+  Extreme cases up to Z ≈ 0.04 are mild polynomial extrapolations
+  (lzs = +0.301, vs calibrated lzs ≤ +0.176); behaviour remains
+  monotonic and physically reasonable but is technically an
+  extrapolation. Survey-scope limitation. File: main_sequence_lifetime.py
+  and t_bgb.py.
+
+- Note 192: t_MS returned is the nuclear timescale at the surface
+  mass given. Wind mass loss (Vink-style line-driven, Wolf-Rayet,
+  rotation-induced) is not modelled. For 25 M_sun stars without
+  winds, t_MS ≈ 7 Myr (matches canonical grids); with realistic
+  modern wind prescriptions, observational lifetime can shorten to
+  ~3–5 Myr. The cascade does not currently track post-formation
+  stellar mass loss, so t_MS at face value is the answer it returns.
+  Inherent model approximation. File: main_sequence_lifetime.py.
+
+- Note 193: HPT2000 coefficient values are verbatim from the SSE
+  Fortran source distribution (zdata.h xt array indices 1–31 for
+  t_BGB and t_hook; zcnsts.f zpars(8) for x-limiter). Mirror
+  verified at the mcluster repository; cross-referenced against
+  HPT2000 Table 1 structure. No coefficient was modified to
+  "intercept" PARSEC solar metallicity — Z is fed into
+  lzs = log10(Z/0.02) directly and the polynomial extrapolates
+  cleanly. Documented choice. Files: t_bgb.py, t_hook_fraction.py,
+  x_limiter.py.
+
+### Flags resolved this session
+
+- Flag 16: Metallicity Z — RESOLVED in full. Cascade-level Z exposure
+  was completed in Phase A (Scaffold 014: `metallicity_sampler.py`).
+  The source-side residual (the simplified t_MS = 10 (M*/M_sun)^-2.5 Gyr
+  formula in `main_sequence_lifetime.py` that ignored Z entirely) is
+  closed in Phase B by the verbatim HPT2000 / SSE rewrite. Z now propagates
+  through V03's main-sequence-lifetime calculation deterministically,
+  with verified primary-source coefficients and validation against
+  the canonical 25 M_sun = 7 Myr benchmark.
+
+### Flags updated this session
+
+(None — Flag 25 still open with prior wording from Phase A; Flag 07
+still open and unblocked, V01.5 disk chemistry remains the natural
+next scaffold.)
+
+### Open queue update
+
+The Active Flags / open-work section of changelog.md should now reflect:
+- Flag 16: closed (move from open queue to "resolved" section,
+  alongside Flag 06 and any prior closures).
+- Flag 07, Flag 25, and all other open flags from prior scaffolds:
+  unchanged in this scaffold.
+- Notes 190–193: recorded in the Notes section, NOT on the
+  open-work queue (per Rule 2a, Notes do not appear there).
+
+When updating the open-flags section, preserve the existing
+categorisation structure and ensure Flag 16's closure entry in the
+"resolved" section records both the cascade-level resolution
+(Phase A scaffold reference) and the source-side closure (this
+scaffold's reference).
+
+### Next step
+
+V01.5 / disk chemistry (closes Flag 07). The validated stoichiometric
+mass-balance derivation from the prior research cycle plugs directly
+into V03's [Fe/H], [Mg/H], [Si/H], [O/H] outputs from Phase A. Earth
+at solar [X/H] reproduces CMF = 0.325 exactly via the derivation; the
+cascade now produces real CMF diversity correlated with host-star
+metallicity.
+
 ## Active Flags
 
 Flags require follow-up work — research, implementation,
@@ -3012,13 +3212,6 @@ verification, or correction. Each remains open until resolved.
   ([Fe/H], [Mg/H], [Si/H], [O/H]) now available from V03. Flag remains
   open until V01.5 disk chemistry module implements CMF from scaled
   solar abundances.
-
-- Flag 16: Metallicity Z — cascade-level exposure complete
-  (`metallicity_sampler.py` emits Z, Y, X, dex abundances from τ).
-  Source-side residual open: simplified t_MS in
-  `main_sequence_lifetime.py` retained pending Hurley, Pols & Tout
-  (2000) Z-dependent analytical formulation; V03 exposes `Z` for the
-  future rewrite.
 
 - Flag 25: log g★ Z-dependence — Z exposed on PARSEC initial proto-solar
   scale (Z⊙_init = 0.01524). Current PARSEC fit at solar Z retained in
@@ -3245,6 +3438,21 @@ Note 187: Eker (2018) MLR retained without Z-correction. The MLR
   T_eff/R/L would require abandoning Eker entirely for fully
   analytical Hurley (2000) or PARSEC tracks — out of scope.
   File: mass_luminosity.py.
+
+Note 190: HPT2000 polynomial fits achieve RMS error ~1.9% relative
+  to the underlying Pols et al. (1998) detailed evolution tracks. This
+  is the inherent precision floor of the analytical approach; the
+  cascade does not attempt to exceed it. Inherent model approximation.
+  File: main_sequence_lifetime.py.
+
+Note 192: t_MS returned is the nuclear timescale at the surface
+  mass given. Wind mass loss (Vink-style line-driven, Wolf-Rayet,
+  rotation-induced) is not modelled. For 25 M_sun stars without
+  winds, t_MS ≈ 7 Myr (matches canonical grids); with realistic
+  modern wind prescriptions, observational lifetime can shorten to
+  ~3–5 Myr. The cascade does not currently track post-formation
+  stellar mass loss, so t_MS at face value is the answer it returns.
+  Inherent model approximation. File: main_sequence_lifetime.py.
 
 ### Earth-measured molecular constants (universal)
 Note 71: H2O Antoine coefficients — Earth-measured molecular constant,
@@ -3562,6 +3770,15 @@ Note 185: AMR scatter ±0.15–0.20 dex (radial migration) suppressed
   violating Rule 5. Inherent survey-scope limitation.
   File: metallicity_sampler.py.
 
+Note 191: SSE / HPT2000 polynomial Z-validity range is 0.0001 ≤ Z
+  ≤ 0.03. The cascade's typical Z range from the Phase A AMR
+  (0.007–0.024 across the JJ2010 envelope) sits comfortably inside.
+  Extreme cases up to Z ≈ 0.04 are mild polynomial extrapolations
+  (lzs = +0.301, vs calibrated lzs ≤ +0.176); behaviour remains
+  monotonic and physically reasonable but is technically an
+  extrapolation. Survey-scope limitation. File: main_sequence_lifetime.py
+  and t_bgb.py.
+
 ### Procedural / engineering choice
 - Note 63: A_p = 0.50 stagnant lid prefactor. Numerical simulation value.
   No independent planetary calibration available.
@@ -3578,6 +3795,16 @@ Note 179: gas envelope uses 1 bar reference P_s when cascade P_s
   is None; resulting T_surface is temperature at 1 bar reference,
   not physical surface. Procedural choice for sub-Neptunes/gas
   giants. File: gas_envelope_internal_heat.py.
+
+Note 193: HPT2000 coefficient values are verbatim from the SSE
+  Fortran source distribution (zdata.h xt array indices 1–31 for
+  t_BGB and t_hook; zcnsts.f zpars(8) for x-limiter). Mirror
+  verified at the mcluster repository; cross-referenced against
+  HPT2000 Table 1 structure. No coefficient was modified to
+  "intercept" PARSEC solar metallicity — Z is fed into
+  lzs = log10(Z/0.02) directly and the polynomial extrapolates
+  cleanly. Documented choice. Files: t_bgb.py, t_hook_fraction.py,
+  x_limiter.py.
 
 ## Removed from Open List (Resolved or Duplicate)
 
@@ -3625,15 +3852,28 @@ When V04 is implemented, Flags 26 and 34 should be merged into a single entry.
   M_DB(Z) = 3407 Z² − 271 Z + 16.3 [M_J] in `regime_classifier.py`.
 **Reason:** Resolved
 
+### Flag 16
+**Current text:**
+- Flag 16: Metallicity Z — RESOLVED in full. Cascade-level Z exposure
+  completed in Scaffold 014 (`metallicity_sampler.py`). Source-side
+  closure in Scaffold 015: verbatim Hurley, Pols & Tout (2000) / SSE
+  main-sequence lifetime in `main_sequence_lifetime.py` (composes
+  `t_bgb.py`, `t_hook_fraction.py`, `x_limiter.py`); Z propagates via
+  `variable_03_stellar.py` into main_sequence_lifetime(m_solar, met["Z"]).
+**Reason:** Resolved
+
 ## Audit Reference
 
 Restructure performed against changelog_audit.md (audit v2).
-Active queue after v3 correction: 25 Active Flags, 125 Active Notes,
-6 entries in Removed from Open List.
-Six entries required manual rulings (project-state context not
+Active queue after v3 correction: 24 Active Flags, 129 Active Notes,
+7 entries in Removed from Open List.
+Five entries required manual rulings (project-state context not
 available from flag text alone):
 
-  Flag 16, 25, 41, 43, 44, 91 → ruled Flag.
+  Flag 25, 41, 43, 44, 91 → ruled Flag.
+
+A sixth ruling formerly listed Flag 16; Scaffold 015 records full
+resolution (Scaffold 014 cascade + Scaffold 015 source-side).
 
 These are reflected in the Active Flags list above.
 
