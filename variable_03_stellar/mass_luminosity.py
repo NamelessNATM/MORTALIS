@@ -3,6 +3,15 @@
 # Eker et al. (2018) six-regime piecewise mass–luminosity relation from 509
 # detached eclipsing binaries. Coefficients are empirically fitted and confirmed
 # across multiple systems. No numbered cascade flag applies.
+#
+# ⚠️ Note 187: Eker (2018) MLR retained without Z-correction.
+#   The MLR is a population-averaged statistical fit over 0.008 ≤ Z ≤
+#   0.040 covering the full local-disk Z dispersion. Applying a
+#   homology Z-correction (e.g. L ∝ (1 − Z)^−1) would double-count
+#   the Z effects already absorbed into the empirical fit. To
+#   implement strict Z-dependence in T_eff/R/L would require
+#   abandoning Eker entirely for fully analytical Hurley (2000) or
+#   PARSEC tracks — out of scope for this scaffold.
 
 """Bolometric luminosity from stellar mass (Eker et al. 2018)."""
 

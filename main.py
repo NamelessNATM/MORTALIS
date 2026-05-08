@@ -21,14 +21,13 @@ from variable_09_atmospheric_column import run_calibration_checks
 
 def run(seed: int, config: dict):
     v01 = run_variable_01(seed, regime=config['regime'])
-    v02 = run_variable_02(seed, v01["M_kg"], v01["mu"])
+    v03 = run_variable_03(seed, stability=config.get('stability'))
+    v02 = run_variable_02(seed, v01["M_kg"], v01["mu"], v03["Z"])
 
     active_variables = ["v01", "v02", "v03", "v05", "v04", "v06", "v08", "v09", "v07"]
     version, npz_path, png_path = next_version(seed, active_variables)
 
     grid, meta = run_coordinate_system(v02, npz_path)
-
-    v03 = run_variable_03(seed, stability=config.get('stability'))
     v05 = run_variable_05(seed, v01, v02, v03)
     v04 = variable_04_atmosphere.run(seed, v01, v02, v03, v05)
 
@@ -118,22 +117,15 @@ if __name__ == "__main__":
     print(f"  M_jupiter: {v01['M_kg'] / M_JUP_KG:.4f}")
     print(f"  mu       : {v01['mu']:.4e} m^3/s^2")
 
-    print(f"\n--- Variable 02: Composition & Radius ---")
-    print(f"  Regime   : {v02['regime']}")
-    if v02["R_m"] is not None:
-        print(f"  R        : {v02['R_m']:.4e} m")
-        print(f"  R_earth  : {v02['R_m'] / R_EARTH_M:.4f}")
-        print(f"  rho_mean : {v02['rho_mean_kg_m3']:.2f} kg/m^3")
-        print(f"  g        : {v02['g_m_s2']:.4f} m/s^2")
-        print(f"  v_e      : {v02['v_e_m_s']:.2f} m/s")
-        print(f"  P_c      : {v02['P_c_Pa']:.4e} Pa")
-
     print(f"\n--- Variable 03: Stellar ---")
     print(f"  M_star        : {v03['M_star_solar']:.6f} M_sun ({v03['M_star_kg']:.4e} kg)")
     print(f"  stability     : {v03['stability']}")
     print(f"  stable        : {v03['stable']}")
     print(f"  age_Gyr       : {v03['age_Gyr']:.6f} Gyr")
     print(f"  tau_frac      : {v03['tau_frac']:.6f}")
+    print(f"  Z             : {v03['Z']:.6f}  (X+Y+Z = {v03['X'] + v03['Y'] + v03['Z']:.10f})")
+    print(f"  [Fe/H]        : {v03['FeH']:.4f} dex   [α/Fe] : {v03['alphaFe']:.4f} dex")
+    print(f"  [Mg/H],[Si/H],[O/H] : {v03['MgH']:.4f}, {v03['SiH']:.4f}, {v03['OH']:.4f} dex")
     print(f"  L_star        : {v03['L_star_solar']:.6f} L_sun ({v03['L_star_W']:.4e} W)")
     print(f"  R_star        : {v03['R_star_solar']:.6f} R_sun ({v03['R_star_m']:.4e} m)")
     if v03["log_g"] is None:
@@ -148,6 +140,16 @@ if __name__ == "__main__":
     print(f"  t_MS          : {v03['t_MS_Gyr']:.6f} Gyr")
     print(f"  L_XUV/L       : {v03['L_XUV_fraction']:.4e}")
     print(f"  L_XUV         : {v03['L_XUV_W']:.4e} W")
+
+    print(f"\n--- Variable 02: Composition & Radius ---")
+    print(f"  Regime   : {v02['regime']}")
+    if v02["R_m"] is not None:
+        print(f"  R        : {v02['R_m']:.4e} m")
+        print(f"  R_earth  : {v02['R_m'] / R_EARTH_M:.4f}")
+        print(f"  rho_mean : {v02['rho_mean_kg_m3']:.2f} kg/m^3")
+        print(f"  g        : {v02['g_m_s2']:.4f} m/s^2")
+        print(f"  v_e      : {v02['v_e_m_s']:.2f} m/s")
+        print(f"  P_c      : {v02['P_c_Pa']:.4e} Pa")
 
     AU_M = 1.496e11
 

@@ -14,6 +14,7 @@ from variable_03_stellar.stellar_temperature import compute_temperature
 from variable_03_stellar.bolometric_correction import compute_bolometric_correction
 from variable_03_stellar.main_sequence_lifetime import compute_main_sequence_lifetime
 from variable_03_stellar.xuv_luminosity import compute_xuv
+from .metallicity_sampler import derive_metallicity
 
 
 def run(seed: int, stability: str | None = None) -> dict:
@@ -37,6 +38,7 @@ def run(seed: int, stability: str | None = None) -> dict:
     m_solar, m_kg = sample_stellar_mass(seed, stability=stability)
     stab = classify_stellar_stability(m_solar)
     age_gyr, tau_frac = sample_stellar_age(seed, m_solar)
+    met = derive_metallicity(age_gyr)
     l_solar, l_w = compute_stellar_luminosity(m_solar)
 
     log_g = None
@@ -66,6 +68,15 @@ def run(seed: int, stability: str | None = None) -> dict:
         "stable": stab["stable"],
         "age_Gyr": age_gyr,
         "tau_frac": tau_frac,
+        "Z": met["Z"],
+        "Y": met["Y"],
+        "X": met["X"],
+        "FeH": met["FeH"],
+        "alphaFe": met["alphaFe"],
+        "MH": met["MH"],
+        "MgH": met["MgH"],
+        "SiH": met["SiH"],
+        "OH": met["OH"],
         "L_star_solar": l_solar,
         "L_star_W": l_w,
         "R_star_solar": r_solar,

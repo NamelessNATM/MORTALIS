@@ -19,7 +19,7 @@ from variable_02_composition.mean_density import compute_mean_density
 _LOG = logging.getLogger(__name__)
 
 
-def run(seed: int, M_kg: float, mu: float) -> dict:
+def run(seed: int, M_kg: float, mu: float, Z: float) -> dict:
     """
     Execute Variable 02: classify regime, compute radius and bulk quantities.
 
@@ -31,6 +31,9 @@ def run(seed: int, M_kg: float, mu: float) -> dict:
         Planetary mass [kg] from Variable 01.
     mu : float
         Standard gravitational parameter [m^3 s^-2] from Variable 01.
+    Z : float
+        Stellar metal mass fraction from Variable 03 (gas giant / brown dwarf
+        boundary via Spiegel et al. 2011).
 
     Returns
     -------
@@ -42,7 +45,7 @@ def run(seed: int, M_kg: float, mu: float) -> dict:
         'v_e_m_s'          — escape velocity [m/s], or None if brown_dwarf
         'P_c_Pa'           — approximate central pressure [Pa], or None if brown_dwarf
     """
-    regime = classify_regime(M_kg)
+    regime = classify_regime(M_kg, Z)
 
     if regime == "brown_dwarf":
         _LOG.info(

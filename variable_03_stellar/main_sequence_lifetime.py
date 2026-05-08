@@ -3,7 +3,13 @@
 # Simplified main-sequence lifetime scaling. Metallicity-dependent Hurley (2000)
 # grids are deferred.
 #
-# ⚠️ Flag 16: Hurley precision lifetime model deferred (metallicity-dependent).
+# ⚠️ Flag 16 (cascade-level resolved, source-side residual open):
+#   Stellar metallicity Z is now exposed by the cascade via
+#   metallicity_sampler.py. The simplified t_MS = 10 (M★/M☉)^−2.5 Gyr
+#   formula remains in place pending a follow-up scaffold that imports
+#   the Hurley, Pols & Tout (2000) Z-dependent analytical formulation
+#   in full. Z is available in the V03 outputs as 'Z' for the future
+#   rewrite.
 
 """Simplified main-sequence lifetime (Flag 16)."""
 

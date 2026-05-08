@@ -2,8 +2,12 @@
 #
 # log g★(M★, τ_frac) from PARSEC v1.2S-inspired polynomial forms at solar metallicity.
 #
-# ⚠️ Flag 25: Coefficients are empirically fitted to PARSEC v1.2S isochrone grids
-# at solar metallicity only — not extrapolated metallicities.
+# ⚠️ Flag 25 (substantially progressed, multi-D recalibration open):
+#   Z is now exposed by the cascade via metallicity_sampler.py on the
+#   PARSEC initial proto-solar scale (Z⊙_init = 0.01524). The current
+#   PARSEC fit at solar Z is RETAINED unchanged in this prompt;
+#   Z-dependent recalibration via a multi-dimensional PARSEC isochrone
+#   interpolator is deferred to a follow-up scaffold.
 
 """High-mass main-sequence surface gravity evolution (Flag 25)."""
 

@@ -2795,17 +2795,235 @@ Flag 182: Active V09 branch verification incomplete. Cascade-
   non-dwarf seeds not exercised by benchmark pair. To be addressed
   in subsequent scaffold.
 
+## Scaffold 014 — Stellar metallicity Z exposed; Flag 06 closed; Flag 07 unblocked
+**Date:** 2026-05-08
+**Type:** Implementation
+
+### Summary
+
+V03 now derives stellar metallicity Z and individual elemental abundances
+from the JJ2010-sampled stellar age via a closed-form derivation chain.
+Cascade order is now V01 → V03 → V02, with V03 outputs (Z, Y, X, FeH,
+alphaFe, MH, MgH, SiH, OH) flowing into V02. The static 13 M_J brown-dwarf
+upper boundary in `regime_classifier.py` is replaced by the Spiegel et al.
+(2011) Z-dependent quadratic.
+
+### Files created
+
+- `variable_03_stellar/metallicity_sampler.py`
+  Closed-form derivation chain: τ → [Fe/H] → [α/Fe] → [M/H] → K → Z;
+  helium and hydrogen mass fractions from Y(Z) = Y_p + (ΔY/ΔZ) Z;
+  individual elemental abundances [Mg/H] = [Si/H] = [O/H] = [α/Fe] + [Fe/H].
+
+### Files modified
+
+- `main.py` — cascade reordered to V01 → V03 → V02; Z plumbed into
+  `run_variable_02(seed, M_kg, mu, Z)`; CLI output reordered to print V03
+  block before V02; metallicity lines added (Z, X+Y+Z, [Fe/H], [α/Fe],
+  [Mg/H][Si/H][O/H]).
+- `variable_02_composition/variable_02_composition.py` — `classify_regime`
+  signature updated to accept Z.
+- `variable_02_composition/regime_classifier.py` — Spiegel quadratic
+  M_DB(Z) = 3407 Z² − 271 Z + 16.3 [M_J] replaces static 13 M_J;
+  `m_deuterium_burning_mj` and `gas_giant_upper_mass_kg` consume Z;
+  Flag 06 closure text added; Note 186 attached.
+- `variable_03_stellar/main_sequence_lifetime.py` — Flag 16 source comment
+  revised to "cascade-level resolved, source-side residual open" with
+  pointer to deferred Hurley (2000) implementation.
+- `variable_03_stellar/surface_gravity_evolution.py` — Flag 25 source
+  comment revised to record Z availability and deferred multi-D PARSEC
+  isochrone interpolator.
+- `variable_03_stellar/mass_luminosity.py` — Note 187 added (Eker MLR
+  retained without Z-correction).
+
+### Source citations
+
+- Linear AMR slope ∂[Fe/H]/∂τ = −0.057 dex Gyr⁻¹ — Feuillet et al.
+  (2018), APOGEE-2 thin-disk red giants. Multi-survey statistical fit.
+- Linear AMR intercept 0.2622 dex — calibration-anchored: derived from
+  the Feuillet slope plus the Sun at τ = 4.6 Gyr → [Fe/H] = 0, which is
+  the [X/H] zero-point definition. Note 183.
+- α/Fe piecewise slopes (−0.20 below solar, −0.10 at-or-above) —
+  multi-survey thin-disk Tinsley-Wallerstein consensus from APOGEE,
+  GALAH, Gaia-ESO loci. Specific named-fit citation pending — Flag 188.
+- Trager A = 0.93 (scaled-metallicity coefficient) — Trager et al.
+  (2000), closed-form from solar α-element mass fraction.
+- PARSEC initial proto-solar values Z⊙_init = 0.01524, Y⊙_init = 0.273,
+  (Z/X)⊙_init = 0.0214 — required for downstream PARSEC isochrone
+  consistency.
+- Primordial Y_p = 0.2485 — Big Bang nucleosynthesis consensus,
+  multi-survey statistical.
+- ΔY/ΔZ = 1.6076 — closed-form linear enrichment ratio derived from
+  PARSEC Y⊙_init and BBN Y_p.
+- Spiegel et al. (2011) deuterium-burning boundary M_DB(Z) — quadratic
+  fit to (Z = 0, 16.3 M_J), (Z = 0.0152, 13.0 M_J), (Z = 0.045, 11.0 M_J);
+  reproduces anchors within ±0.04 M_J.
+
+### Calibration verification
+
+- Solar analogue (M★ = 1.0 M☉, τ = 4.6 Gyr):
+    [Fe/H] = +0.0000, [α/Fe] = +0.0000, [M/H] = +0.0000,
+    K = 0.02140, Z = 0.01523, Y = 0.27299, X = 0.71178,
+    X + Y + Z = 1.00000 (exact).
+    Z matches PARSEC Z⊙_init = 0.01524 within 0.07% rounding.
+- Old M-dwarf (τ = 10 Gyr):
+    [Fe/H] = −0.3078, [α/Fe] = +0.0616, Z = 0.00876.
+- Young intermediate-mass (τ = 1 Gyr):
+    [Fe/H] = +0.2052, [α/Fe] = −0.0205, Z = 0.02274.
+- Across JJ2010 envelope (τ = 0.5–12 Gyr):
+    [Fe/H] ∈ [+0.234, −0.422], Z ∈ [0.0240, 0.0071] — consistent with
+    thin-disk literature.
+- Spiegel quadratic anchor reproduction:
+    M_DB(0) = 16.300 M_J, M_DB(0.0152) = 12.968 M_J, M_DB(0.045) =
+    11.004 M_J.
+
+### Seed 1 verified output
+
+- `python main.py 1` → exit 0
+- V03 block: Z, [Fe/H], [α/Fe], [Mg/H], [Si/H], [O/H] printed
+- X + Y + Z = 1.0 confirmed in print
+- Z in physically sensible range for the sampled age
+- V02 regime classification produced under the new Z-dependent boundary
+- Map: V03 contributes no grid layer (consistent with prior scaffold);
+  V02 regime layer renders correctly
+
+### Seed 42 verified output
+
+- `python main.py 42` → exit 0
+- V03 block: Z, [Fe/H], [α/Fe], [Mg/H], [Si/H], [O/H] printed
+- X + Y + Z = 1.0 confirmed in print
+- Z in physically sensible range for the sampled age
+- V02 regime classification produced under the new Z-dependent boundary
+
+### Notes opened this session
+
+- Note 183: Linear AMR intercept calibration-anchored to Sun at
+  τ = 4.6 Gyr. The [X/H] zero-point is by definition the Sun, so this
+  anchor is the [X/H] scale's definition, not an empirical Solar System
+  fit. File: metallicity_sampler.py.
+
+- Note 184: α/Fe piecewise slope discontinuity at [Fe/H] = 0
+  (slope shifts from −0.20 to −0.10). Continuous in value, not in
+  derivative. Deterministic median-track approximation; smooth
+  Tinsley-Wallerstein locus replaced by piecewise linear. Inherent
+  model approximation. File: metallicity_sampler.py.
+
+- Note 185: AMR scatter ±0.15–0.20 dex (radial migration) suppressed
+  by the deterministic median track. The cascade's deterministic seed
+  structure cannot represent stochastic migration history without
+  violating Rule 5. Inherent survey-scope limitation.
+  File: metallicity_sampler.py.
+
+- Note 186: Spiegel quadratic M_DB(Z) is non-monotonic above
+  Z ≈ 0.0398 — the formula has a minimum at Z = 271/(2 × 3407) =
+  0.0398 and turns upward beyond. Cascade's actual Z range tops out
+  near 0.024 at minimum age (τ = 0.5 Gyr in JJ2010 envelope), well
+  below this limit, so no clamp is required at present cascade scope.
+  Model applicability limit. File: regime_classifier.py.
+
+- Note 187: Eker (2018) MLR retained without Z-correction. The MLR
+  is a population-averaged statistical fit over 0.008 ≤ Z ≤ 0.040
+  covering the full local-disk Z dispersion; applying a homology
+  Z-correction would double-count the Z effects already absorbed
+  into the empirical fit. To implement strict Z-dependence in
+  T_eff/R/L would require abandoning Eker entirely for fully
+  analytical Hurley (2000) or PARSEC tracks — out of scope.
+  File: mass_luminosity.py.
+
+### Flags opened this session
+
+- Flag 188: α/Fe piecewise slopes (−0.20, −0.10) attributed to
+  multi-survey thin-disk Tinsley-Wallerstein consensus from APOGEE,
+  GALAH, Gaia-ESO loci. Specific named-fit citation pending
+  verification at next opportunity. File: metallicity_sampler.py.
+
+- Flag 189: C, N, S age-dependent abundance derivations missing.
+  V08 `elemental_partitioning.py` currently uses EH3 chondrite fallback
+  fractions (Flags 107, 117). The new metallicity sampler exposes
+  [Fe/H] and [α/Fe], which is sufficient for Mg, Si, O (α-elements
+  tracking the bulk α/Fe ratio with ~0.03–0.04 dex scatter) but not
+  for C (AGB-dominated), N (AGB + CCSN), or S (CCSN with different
+  timescales). A follow-up research cycle is required to derive
+  C/N/S age-metallicity relations for the thin disk and supersede
+  the EH3 fallback. File: metallicity_sampler.py (announcement);
+  consumer in V08 `elemental_partitioning.py`.
+
+### Flags resolved this session
+
+- Flag 06: 13 M_J brown-dwarf upper boundary — RESOLVED. Static
+  13 M_J replaced by Spiegel et al. (2011) Z-dependent quadratic
+  M_DB(Z) = 3407 Z² − 271 Z + 16.3 [M_J] in
+  `regime_classifier.py`. Cascade now produces Z-correlated
+  brown-dwarf classification thresholds from 16.3 M_J at Z = 0
+  down to ~11 M_J at Z = 3 Z⊙.
+
+### Flags updated this session (still open)
+
+- Flag 16: Metallicity Z — substantially progressed. Cascade-level Z
+  exposure is complete: `metallicity_sampler.py` emits Z, Y, X, [Fe/H],
+  [α/Fe], [M/H], [Mg/H], [Si/H], [O/H] from τ. Source-side residual
+  remains open: the simplified t_MS = 10 (M★/M☉)^−2.5 Gyr in
+  `main_sequence_lifetime.py` is retained pending a follow-up scaffold
+  that imports the Hurley, Pols & Tout (2000) Z-dependent analytical
+  formulation in full. Z is available in the V03 outputs as 'Z' for
+  the future rewrite.
+
+- Flag 25: log g★ Z-dependence — substantially progressed. Z is now
+  exposed by the cascade on the PARSEC initial proto-solar scale
+  (Z⊙_init = 0.01524). The current PARSEC fit at solar Z is retained
+  in `surface_gravity_evolution.py`; Z-dependent recalibration via a
+  multi-dimensional PARSEC isochrone interpolator is deferred to a
+  follow-up scaffold.
+
+- Flag 07: CMF default — UNBLOCKED. The required disk-chemistry inputs
+  ([Fe/H], [Mg/H], [Si/H], [O/H]) are now available from V03. Flag
+  remains open until the V01.5 disk chemistry module is implemented
+  (next scaffold).
+
+### Open queue update
+
+The full open queue should now reflect:
+- Flag 06: closed (move from open queue to "resolved" section)
+- Flag 16: still open, revised wording (cascade-level resolved,
+  Hurley source-side residual)
+- Flag 25: still open, revised wording (Z available, multi-D
+  PARSEC pending)
+- Flag 07: still open, revised wording (unblocked, V01.5 next)
+- Flags 188, 189: added to open queue
+- Notes 183–187: recorded in their own section, NOT on the open queue
+  (per Rule 2a, Notes do not appear on the open-work queue)
+
+### Next step
+
+V01.5 disk chemistry module (closes Flag 07). The previously validated
+derivation chain — solar molar abundances scaled by [X/H], stoichiometric
+mass balance with bonded mantle oxygen — implements directly using V03's
+new metallicity outputs. Earth at solar [X/H] reproduces CMF = 0.325
+exactly; the cascade now produces real CMF diversity correlated with
+host-star [Fe/H], [Mg/H], [Si/H].
+
 ## Active Flags
 
 Flags require follow-up work — research, implementation,
 verification, or correction. Each remains open until resolved.
 
 ### Blocked on upstream cascade variable
-- Flag 07: CMF default — deferred to disk chemistry
+- Flag 07: CMF default — UNBLOCKED. Required disk-chemistry inputs
+  ([Fe/H], [Mg/H], [Si/H], [O/H]) now available from V03. Flag remains
+  open until V01.5 disk chemistry module implements CMF from scaled
+  solar abundances.
 
-- Flag 16: Metallicity Z — deferred
+- Flag 16: Metallicity Z — cascade-level exposure complete
+  (`metallicity_sampler.py` emits Z, Y, X, dex abundances from τ).
+  Source-side residual open: simplified t_MS in
+  `main_sequence_lifetime.py` retained pending Hurley, Pols & Tout
+  (2000) Z-dependent analytical formulation; V03 exposes `Z` for the
+  future rewrite.
 
-- Flag 25: log g★ solar metallicity — Flag 16 dependent
+- Flag 25: log g★ Z-dependence — Z exposed on PARSEC initial proto-solar
+  scale (Z⊙_init = 0.01524). Current PARSEC fit at solar Z retained in
+  `surface_gravity_evolution.py`; multi-dimensional PARSEC isochrone
+  interpolator deferred.
 
 - Flag 41: τ_degas (degassing timescale) Earth-calibrated empirical
   coefficient. Not yet implemented — recorded for when outgassing model
@@ -2879,6 +3097,17 @@ Flag 181: H₂O line k coefficient in Flag 161 is a fit, not a
   derivation. Targeted research required to source from MT_CKD v4.3
   or HITRAN 2020 and re-validate Earth τ₀ from derived value.
   File: line_absorption_coefficients.py; validation note.
+
+Flag 188: α/Fe piecewise slopes (−0.20, −0.10) attributed to
+  multi-survey thin-disk Tinsley-Wallerstein consensus from APOGEE,
+  GALAH, Gaia-ESO loci. Specific named-fit citation pending
+  verification at next opportunity. File: metallicity_sampler.py.
+
+Flag 189: C, N, S age-dependent abundance derivations missing.
+  V08 `elemental_partitioning.py` uses EH3 chondrite fallback
+  fractions (Flags 107, 117). Metallicity sampler covers Mg, Si, O
+  via [α/Fe] + [Fe/H]; C/N/S require a follow-up research cycle.
+  Files: metallicity_sampler.py; `elemental_partitioning.py`.
 
 ### Verification pending
 Flag 182: Active V09 branch verification incomplete. Cascade-
@@ -2995,6 +3224,28 @@ Note 173: gray photolysis approximation; full wavelength-resolved
   coupling out of current scope. Model limitation; fallback J(O₃)
   from F_XUV when O₃ absent. File: photolysis_rates.py.
 
+Note 184: α/Fe piecewise slope discontinuity at [Fe/H] = 0
+  (slope shifts from −0.20 to −0.10). Continuous in value, not in
+  derivative. Deterministic median-track approximation; smooth
+  Tinsley-Wallerstein locus replaced by piecewise linear. Inherent
+  model approximation. File: metallicity_sampler.py.
+
+Note 186: Spiegel quadratic M_DB(Z) is non-monotonic above
+  Z ≈ 0.0398 — the formula has a minimum at Z = 271/(2 × 3407) =
+  0.0398 and turns upward beyond. Cascade's actual Z range tops out
+  near 0.024 at minimum age (τ = 0.5 Gyr in JJ2010 envelope), well
+  below this limit, so no clamp is required at present cascade scope.
+  Model applicability limit. File: regime_classifier.py.
+
+Note 187: Eker (2018) MLR retained without Z-correction. The MLR
+  is a population-averaged statistical fit over 0.008 ≤ Z ≤ 0.040
+  covering the full local-disk Z dispersion; applying a homology
+  Z-correction would double-count the Z effects already absorbed
+  into the empirical fit. To implement strict Z-dependence in
+  T_eff/R/L would require abandoning Eker entirely for fully
+  analytical Hurley (2000) or PARSEC tracks — out of scope.
+  File: mass_luminosity.py.
+
 ### Earth-measured molecular constants (universal)
 Note 71: H2O Antoine coefficients — Earth-measured molecular constant,
   intrinsic molecular physics, universal.
@@ -3048,6 +3299,11 @@ Note 165: Jupiter F_int = 5.4 W/m² normalization (Hanel et al. 1981).
 
 Note 176: mixing-length theory K_zz tropospheric parameterization.
   Earth/Solar-System calibrated. File: eddy_diffusion_kzz.py.
+
+Note 183: Linear AMR intercept calibration-anchored to Sun at
+  τ = 4.6 Gyr. The [X/H] zero-point is by definition the Sun, so this
+  anchor is the [X/H] scale's definition, not an empirical Solar System
+  fit. File: metallicity_sampler.py.
 
 ### Earth fallback (accepted, no planet-general data)
 - Note 04: σ_rbf universality — Earth fallback
@@ -3300,6 +3556,12 @@ Note 166: Saturn helium-rain supplement +0.4 W/m². Solar-System
   calibrated; applicability boundary not derived for extrasolar
   gas giants. File: gas_envelope_internal_heat.py.
 
+Note 185: AMR scatter ±0.15–0.20 dex (radial migration) suppressed
+  by the deterministic median track. The cascade's deterministic seed
+  structure cannot represent stochastic migration history without
+  violating Rule 5. Inherent survey-scope limitation.
+  File: metallicity_sampler.py.
+
 ### Procedural / engineering choice
 - Note 63: A_p = 0.50 stagnant lid prefactor. Numerical simulation value.
   No independent planetary calibration available.
@@ -3356,11 +3618,18 @@ When V04 is implemented, Flags 26 and 34 should be merged into a single entry.
   RESOLVED with Lindzen 1981 fallback (Flag 177 attached).
 **Reason:** Resolved
 
+### Flag 06
+**Current text:**
+- Flag 06: 13 M_J brown-dwarf upper boundary — RESOLVED. Static
+  13 M_J replaced by Spiegel et al. (2011) Z-dependent quadratic
+  M_DB(Z) = 3407 Z² − 271 Z + 16.3 [M_J] in `regime_classifier.py`.
+**Reason:** Resolved
+
 ## Audit Reference
 
 Restructure performed against changelog_audit.md (audit v2).
-Active queue after v3 correction: 23 Active Flags, 120 Active Notes,
-5 entries in Removed from Open List.
+Active queue after v3 correction: 25 Active Flags, 125 Active Notes,
+6 entries in Removed from Open List.
 Six entries required manual rulings (project-state context not
 available from flag text alone):
 
@@ -3369,10 +3638,11 @@ available from flag text alone):
 These are reflected in the Active Flags list above.
 
 ### Next step
-All open flags audit and resolution to be addressed in the next
-session before V10 (Sediment Transport) implementation begins.
+V01.5 disk chemistry module (closes Flag 07): implement the validated
+derivation chain (solar molar abundances scaled by [X/H], stoichiometric
+mass balance with bonded mantle oxygen) using V03 metallicity outputs.
 
-Specifically queued for the next session:
+Also queued (parallel / follow-on):
 1. Non-dwarf seed identification to close Flag 182 active-branch
    verification gap.
 2. Targeted research prompts for Flags 161/181 (H₂O line k from
@@ -3380,5 +3650,5 @@ Specifically queued for the next session:
    solver vs literature reconciliation).
 3. Audit of all V09-opened flags (158–182) and prior open flags
    for resolution candidates.
-4. Once flag audit complete and resolution pathway clear, V10
-   research scoping begins.
+4. V10 (Sediment Transport) research scoping once photochemistry /
+   flag-audit gates are clear.
