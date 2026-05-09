@@ -6,7 +6,6 @@
 
 import logging
 
-from variable_02_composition.regime_classifier import classify_regime
 from variable_02_composition.mass_radius_dwarf import compute_radius_dwarf
 from variable_02_composition.mass_radius_rocky import compute_radius_rocky
 from variable_02_composition.mass_radius_subneptune import compute_radius_subneptune
@@ -19,7 +18,13 @@ from variable_02_composition.mean_density import compute_mean_density
 _LOG = logging.getLogger(__name__)
 
 
-def run(seed: int, M_kg: float, mu: float, Z: float) -> dict:
+def run(
+    seed: int,
+    M_kg: float,
+    mu: float,
+    regime: str,
+    CMF: float | None = None,
+) -> dict:
     """
     Execute Variable 02: classify regime, compute radius and bulk quantities.
 
@@ -31,9 +36,11 @@ def run(seed: int, M_kg: float, mu: float, Z: float) -> dict:
         Planetary mass [kg] from Variable 01.
     mu : float
         Standard gravitational parameter [m^3 s^-2] from Variable 01.
-    Z : float
-        Stellar metal mass fraction from Variable 03 (gas giant / brown dwarf
-        boundary via Spiegel et al. 2011).
+    regime : str
+        Compositional regime classification. One of: 'dwarf', 'rocky',
+        'sub_neptune', 'gas_giant', 'brown_dwarf'.
+    CMF : float | None
+        Core mass fraction sourced upstream (V01.5). Required for rocky radius.
 
     Returns
     -------
@@ -45,8 +52,6 @@ def run(seed: int, M_kg: float, mu: float, Z: float) -> dict:
         'v_e_m_s'          — escape velocity [m/s], or None if brown_dwarf
         'P_c_Pa'           — approximate central pressure [Pa], or None if brown_dwarf
     """
-    regime = classify_regime(M_kg, Z)
-
     if regime == "brown_dwarf":
         _LOG.info(
             "Regime brown_dwarf: mass exceeds planetary simulation domain; "
@@ -64,7 +69,9 @@ def run(seed: int, M_kg: float, mu: float, Z: float) -> dict:
     if regime == "dwarf":
         R_m = compute_radius_dwarf(M_kg)
     elif regime == "rocky":
-        R_m = compute_radius_rocky(M_kg)
+        if CMF is None:
+            raise ValueError("CMF is required for rocky radius (sourced from V01.5).")
+        R_m = compute_radius_rocky(M_kg, CMF)
     elif regime == "sub_neptune":
         R_m = compute_radius_subneptune(M_kg)
     else:

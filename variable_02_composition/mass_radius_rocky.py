@@ -19,15 +19,15 @@
 # ⚠️ EARTH FALLBACK — coefficients derived from PREM (Earth seismic data only).
 # Universal applicability not confirmed. Note 09.
 #
-# ⚠️ Flag 07: CMF defaults to 0.325 (Earth value). No disk chemistry variable
-# yet in cascade. Deferred.
+# CMF is now sourced from V01.5 disk chemistry module
+# (see variable_01_5_disk_chemistry/core_mass_fraction.py).
+# This file no longer carries a default value.
 
 R_EARTH_M = 6.371e6
 M_EARTH_KG = 5.972e24
-DEFAULT_CMF = 0.325
 
 
-def compute_radius_rocky(M_kg: float, CMF: float = DEFAULT_CMF) -> float:
+def compute_radius_rocky(M_kg: float, CMF: float) -> float:
     """
     Zeng et al. 2016 rocky mass–radius relation.
 

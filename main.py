@@ -8,6 +8,10 @@ from map_generator.map_generator import run as run_map_generator
 from outputs.manifest import next_version
 from variable_01_mass.variable_01_mass import run as run_variable_01
 from variable_02_composition.variable_02_composition import run as run_variable_02
+from variable_02_composition.regime_classifier import classify_regime
+from variable_01_5_disk_chemistry.variable_01_5_disk_chemistry import (
+    compute_disk_chemistry,
+)
 from variable_03_stellar.variable_03_stellar import run as run_variable_03
 from variable_05_kinematics.variable_05_kinematics import run as run_variable_05
 from variable_05_kinematics.bond_albedo import compute_pass2_albedo
@@ -22,9 +26,23 @@ from variable_09_atmospheric_column import run_calibration_checks
 def run(seed: int, config: dict):
     v01 = run_variable_01(seed, regime=config['regime'])
     v03 = run_variable_03(seed, stability=config.get('stability'))
-    v02 = run_variable_02(seed, v01["M_kg"], v01["mu"], v03["Z"])
 
-    active_variables = ["v01", "v02", "v03", "v05", "v04", "v06", "v08", "v09", "v07"]
+    regime = classify_regime(v01["M_kg"], v03["Z"])
+    v01_5 = compute_disk_chemistry(regime, v03["FeH"], v03["MgH"], v03["SiH"])
+    v02 = run_variable_02(seed, v01["M_kg"], v01["mu"], regime, v01_5["CMF"])
+
+    active_variables = [
+        "v01",
+        "v01_5",
+        "v02",
+        "v03",
+        "v05",
+        "v04",
+        "v06",
+        "v08",
+        "v09",
+        "v07",
+    ]
     version, npz_path, png_path = next_version(seed, active_variables)
 
     grid, meta = run_coordinate_system(v02, npz_path)
@@ -43,8 +61,8 @@ def run(seed: int, config: dict):
     v05["albedo_final"] = A_B
     v05["T_eq_K"] = T_eq_final_K
 
-    v06 = run_variable_06(v01, v02, v03, v05, v04)
-    v08 = run_variable_08(seed, v01, v02, v03, v04, v05, v06)
+    v06 = run_variable_06(v01, v02, v01_5, v03, v05, v04)
+    v08 = run_variable_08(seed, v01, v02, v01_5, v03, v04, v05, v06)
     v09 = run_variable_09(seed, v01, v02, v03, v04, v05, v06, v08)
     v07 = run_variable_07(v01, v02, v03, v04, v05, v06, v08, v09)
 
@@ -52,6 +70,7 @@ def run(seed: int, config: dict):
 
     return {
         "v01": v01,
+        "v01_5": v01_5,
         "v02": v02,
         "v03": v03,
         "v05": v05,
@@ -96,6 +115,7 @@ if __name__ == "__main__":
     result = run(seed, config)
     v01 = result["v01"]
     v02 = result["v02"]
+    v01_5 = result["v01_5"]
     v03 = result["v03"]
     v05 = result["v05"]
     v04 = result["v04"]
@@ -150,6 +170,27 @@ if __name__ == "__main__":
         print(f"  g        : {v02['g_m_s2']:.4f} m/s^2")
         print(f"  v_e      : {v02['v_e_m_s']:.2f} m/s")
         print(f"  P_c      : {v02['P_c_Pa']:.4e} Pa")
+
+    print(f"\n--- Variable 01.5: Disk Chemistry ---")
+    print(f"  Regime applicable        : {v01_5['regime_applicable']}")
+    if v01_5["CMF"] is None:
+        print(f"  CMF                      : N/A")
+    else:
+        print(f"  CMF                      : {v01_5['CMF']:.4f}")
+    if v01_5["mg_si_mantle"] is None:
+        print(f"  Mantle Mg/Si             : N/A")
+    else:
+        print(f"  Mantle Mg/Si             : {v01_5['mg_si_mantle']:.4f}")
+    if v01_5["fe_si_bulk"] is None:
+        print(f"  Bulk Fe/Si               : N/A")
+    else:
+        print(f"  Bulk Fe/Si               : {v01_5['fe_si_bulk']:.4f}")
+    if v01_5["rho_uncompressed_kgm3"] is None:
+        print(f"  Uncompressed ρ_bulk      : N/A")
+    else:
+        print(
+            f"  Uncompressed ρ_bulk      : {v01_5['rho_uncompressed_kgm3']:.0f} kg/m³"
+        )
 
     AU_M = 1.496e11
 

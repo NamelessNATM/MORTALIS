@@ -59,14 +59,22 @@ def _null_output(note: str) -> dict:
     }
 
 
-def run_variable_06(v01: dict, v02: dict, v03: dict, v05: dict, v04: dict) -> dict:
+def run_variable_06(
+    v01: dict,
+    v02: dict,
+    v01_5: dict,
+    v03: dict,
+    v05: dict,
+    v04: dict,
+) -> dict:
     """
     Compute tectonic and internal dynamics outputs for the simulated planet.
 
     Parameters
     ----------
     v01 : dict — Variable 01 outputs (M_kg, mu)
-    v02 : dict — Variable 02 outputs (regime, R_m, g, P_c_Pa, rho_mean, CMF optional)
+    v02 : dict — Variable 02 outputs (regime, R_m, g, P_c_Pa, rho_mean)
+    v01_5 : dict — Variable 01.5 outputs (CMF, ...; CMF may be None if not applicable)
     v03 : dict — Variable 03 outputs (M_star_kg, age_Gyr)
     v05 : dict — Variable 05 outputs (a_m, e, T_orb_s, T_eq_K, F_mean_Wm2)
     v04 : dict — Variable 04 outputs (atm_class)
@@ -81,7 +89,7 @@ def run_variable_06(v01: dict, v02: dict, v03: dict, v05: dict, v04: dict) -> di
     g = v02["g_m_s2"]
     P_c = v02["P_c_Pa"]
     rho_mean = v02["rho_mean_kg_m3"]
-    CMF = v02.get("CMF", 0.325)
+    CMF = None if not isinstance(v01_5, dict) else v01_5.get("CMF")
     age_Gyr = v03["age_Gyr"]
     age_s = age_Gyr * 3.15576e16
     M_star = v03["M_star_kg"]
@@ -93,6 +101,9 @@ def run_variable_06(v01: dict, v02: dict, v03: dict, v05: dict, v04: dict) -> di
     # Gas giant and brown dwarf: no solid mantle, V06 not applicable
     if regime in ("gas_giant", "brown_dwarf"):
         return _null_output("V06 not applicable — no solid silicate mantle")
+
+    if CMF is None:
+        return _null_output("missing CMF (V01.5 not applicable)")
 
     # Sub-Neptune: check for magma ocean
     if regime == "sub_neptune" and T_eq >= _T_SOLIDUS:

@@ -3202,17 +3202,268 @@ at solar [X/H] reproduces CMF = 0.325 exactly via the derivation; the
 cascade now produces real CMF diversity correlated with host-star
 metallicity.
 
+## Scaffold 016 — V01.5 Disk Chemistry; Flag 07 closed
+**Date:** 2026-05-09
+**Type:** Implementation
+
+### Summary
+
+A new cascade module, Variable 01.5 (Disk Chemistry), is added between
+V01 and V02. It derives rocky-planet interior structure — Core Mass
+Fraction, Mantle Mg/Si molar ratio, Bulk Fe/Si mass ratio, and
+uncompressed bulk density — from the host-star elemental abundances
+produced by V03's metallicity_sampler. The hardcoded DEFAULT_CMF =
+0.325 in `variable_02_composition/mass_radius_rocky.py` is removed;
+V02's rocky mass-radius relation now consumes the seed-derived CMF,
+as do V06's `core_geometry.py`, `cmb_pressure.py`, and
+`tidal_locking.py`. The cascade now produces real CMF diversity
+correlated with stellar metallicity.
+
+The deterministic baseline runs at iron oxidation fraction χ_ox = 0
+(all iron reduced into the metallic core). Earth at solar [X/H]
+produces CMF = 0.3223 against a target of 0.325; the 0.003 residual
+is the documented compensation between unmodeled Ni-and-light-elements
+in the core and unmodeled FeO in the mantle, which approximately
+cancel in the Earth case. Mars-style FeO-rich mantles (CMF ≈ 0.24)
+and Mercury-style mantle-stripped interiors (CMF ≈ 0.70) are
+explicitly out of V01.5 scope under the deterministic baseline; the
+mechanisms required (V08 → V01.5 fO₂ feedback for Mars; post-formation
+stochastic giant impacts for Mercury) cannot be supplied by the
+current cascade architecture.
+
+This scaffold closes Flag 07 in full.
+
+### Files created
+
+- `variable_01_5_disk_chemistry/variable_01_5_disk_chemistry.py`
+  Entry point. Orchestrates V01.5 sub-functions; no physics directly.
+  Returns regime-conditional outputs (rocky/dwarf only).
+
+- `variable_01_5_disk_chemistry/solar_abundance_constants.py`
+  Module-level constants. Lodders (2003) protosolar A(El)_0 reference
+  values for Si, Mg, Fe; atomic molar masses for Fe, Mg, Si, O.
+
+- `variable_01_5_disk_chemistry/molar_abundances.py`
+  [X/H] dex → molar abundance conversion, normalized to N_Si ≡ 1.0.
+  Closed-form: N_Mg = 10^(MgH − SiH + 0.02), N_Fe = 10^(FeH − SiH − 0.06).
+
+- `variable_01_5_disk_chemistry/core_mass_fraction.py`
+  Stoichiometric mass-balance CMF closed-form:
+    CMF = N_Fe (1−χ_ox) μ_Fe
+          / [ N_Mg(μ_Mg+μ_O) + N_Si(μ_Si+2μ_O) + N_Fe χ_ox(μ_Fe+μ_O) ]
+  Default χ_ox = 0.
+
+- `variable_01_5_disk_chemistry/mantle_mg_si_ratio.py`
+  Companion: Mg/Si_mantle = N_Mg / N_Si.
+
+- `variable_01_5_disk_chemistry/bulk_fe_si_ratio.py`
+  Companion: Fe/Si_bulk = (N_Fe μ_Fe) / (N_Si μ_Si).
+
+- `variable_01_5_disk_chemistry/uncompressed_density.py`
+  Mass-weighted harmonic mean uncompressed bulk density.
+  ρ_core = 8278.9 kg/m³ (Fe₀.₉Ni₀.₁ alloy at 0 GPa, 300 K),
+  ρ_mantle = 3323.5 kg/m³ (olivine+pyroxene equilibrium assemblage).
+
+### Files modified
+
+- `variable_02_composition/mass_radius_rocky.py`
+  DEFAULT_CMF constant removed. `compute_radius_rocky(M_kg, CMF)`
+  signature now requires CMF as a positional argument.
+  Header comment updated: Flag 07 deferral text replaced with reference
+  to V01.5 as the CMF source.
+
+- `main.py`
+  Cascade order restructured so that V03 → regime classification →
+  V01.5 → V02 runs in sequence. V01.5 print block added. V06 callers
+  now read CMF from V01.5's output dict.
+
+### Sources
+
+- Lodders, K. (2003), "Solar System Abundances and Condensation
+  Temperatures of the Elements", ApJ 591, 1220–1247, Table 2,
+  column "Protosolar A(El)_0". Source for A(Si)_⊙ = 7.54,
+  A(Mg)_⊙ = 7.56, A(Fe)_⊙ = 7.48 with ±0.01 dex 1σ each.
+  Multi-body confirmed empirical (anchored to CI carbonaceous
+  chondrites).
+
+- Plotnykov, M. & Valencia, D. (2020), MNRAS 499, Issue 1, Table 1.
+  Source for ρ_core = 8278.9 kg/m³ and ρ_mantle = 3323.5 kg/m³.
+  ρ_core adapted from Morrison et al. (2018) Fe-Ni alloy EOS.
+  ρ_mantle uses Stixrude & Lithgow-Bertelloni (2011) olivine and
+  pyroxene end-member parameters. Universal mineral physics;
+  multi-stellar confirmed via exoplanet population modeling.
+
+- Stoichiometric mass balance derivation: equilibrium condensation
+  sequence physics from cosmochemistry / planetary formation
+  literature. V01.5 research deliverable, validated against Earth
+  (CMF = 0.3223 vs 0.325 target) and Mars (CMF = 0.236 with
+  external χ_ox = 0.25, target 0.24).
+
+### Earth calibration
+
+[X/H] = 0, χ_ox = 0:
+  N_Si = 1.000
+  N_Mg = 10^0.02  = 1.0471
+  N_Fe = 10^−0.06 = 0.8710
+  M_Mg-oxide  = 1.0471 × 40.304 = 42.198
+  M_Si-oxide  = 1.000 × 60.083  = 60.083
+  M_mantle    = 102.281
+  M_Fe        = 0.8710 × 55.845 = 48.641
+  CMF         = 48.641 / 150.922 = 0.3223
+Target: 0.325; residual 0.003 (documented in Note opened this session).
+Propagated 1σ from Lodders ±0.01 dex inputs: ±0.010.
+
+### Seed 1 verified output
+
+- `python main.py 1` → exit 0
+- Regime: dwarf
+- V01.5 regime_applicable: True
+- CMF                    : 0.3315
+- Mantle Mg/Si           : 1.0471
+- Bulk Fe/Si             : 1.8061
+- Uncompressed ρ_bulk    : 4146 kg/m³
+
+Cross-check: implied N_Fe = 0.9082 → Bulk Fe/Si = 0.9082 × 55.845
+/ 28.085 = 1.8055 ≈ reported 1.8061 ✓.
+
+### Seed 42 verified output
+
+- `python main.py 42` → exit 0
+- Regime: dwarf
+- V01.5 regime_applicable: True
+- CMF                    : 0.2834
+- Mantle Mg/Si           : 1.0471
+- Bulk Fe/Si             : 1.4401
+- Uncompressed ρ_bulk    : 4002 kg/m³
+
+Cross-check: implied N_Fe = 0.7243 → Bulk Fe/Si = 0.7243 × 55.845
+/ 28.085 = 1.4400 ≈ reported 1.4401 ✓.
+
+### Cross-seed observations
+
+- CMF range 0.2834–0.3315 across seeds, correlated with V03's
+  age-dependent αFe via N_Fe = 10^(−αFe − 0.06).
+- Mg/Si = 1.0471 constant across seeds, reflecting V03's locking of
+  [Mg/H] = [Si/H] = αFe + FeH (consequence of upstream Notes 184,
+  185, not a V01.5 defect).
+- DEFAULT_CMF = 0.325 confirmed removed from
+  `variable_02_composition/mass_radius_rocky.py`.
+- No hidden CMF fallbacks remain in V06 or V08; both read CMF from
+  the V01.5 output dict and return clear blocked outputs if CMF is
+  missing.
+
+### Notes opened this session
+
+- Note 194: V01.5 deterministic baseline runs at χ_ox = 0 (all iron
+  reduced into the metallic core). Mars-style FeO-rich mantles
+  (CMF ≈ 0.24, geophysical mantle FeO ≈ 18 wt%) cannot be
+  reproduced without external χ_ox parameterization. The mechanism
+  required — V08 mantle ΔIW feedback into V01.5 — would require
+  cascade restructuring not currently on the roadmap. Inherent
+  model approximation. File: core_mass_fraction.py.
+
+- Note 195: V01.5 cannot reproduce Mercury-style metal-rich
+  interiors (CMF ≈ 0.70). Mercury's structure is the result of
+  post-formation stochastic processes (giant impact mantle stripping
+  or photophoretic ablation), not disk chemistry. Outside the
+  deterministic chemistry-driven scope of V01.5. Inherent model
+  approximation. File: variable_01_5_disk_chemistry.py.
+
+- Note 196: V01.5 assumes oxygen-dominated lithophile bonding
+  (Mg → MgO, Si → SiO₂, FeO with O scavenged from gas-phase H₂O/CO).
+  Stellar systems with C/O ≥ 0.8 produce SiC and graphite
+  condensation that fundamentally alters refractory stoichiometry.
+  Documented model boundary; outside V01.5's operational scope.
+  File: molar_abundances.py.
+
+- Note 197: V01.5 Earth calibration produces CMF = 0.3223 against
+  the geophysical target of 0.325. The 0.003 residual reflects
+  unmodeled Ni and light-element partitioning into Earth's core
+  (which raises CMF) approximately compensated by unmodeled FeO
+  partitioning into Earth's mantle (which lowers CMF). These two
+  effects approximately cancel in the Earth case. Inherent model
+  approximation; out of V01.5's scope. File: core_mass_fraction.py.
+
+- Note 198: V01.5 CMF variation across the V03 envelope is
+  constrained to roughly [0.27, 0.33] because V03's
+  metallicity_sampler.py locks [Mg/H] = [Si/H] = [O/H] = αFe + FeH
+  (Notes 184, 185). All cascade-driven CMF variation propagates
+  through αFe via N_Fe = 10^(−αFe − 0.06); N_Mg is fixed at 1.0471.
+  Consequence of upstream metallicity sampler design, not a V01.5
+  defect. File: molar_abundances.py.
+
+- Note 199: V01.5 holds ρ_mantle = 3323.5 kg/m³ regardless of mantle
+  Mg/Si ratio. A closed-form ρ_mantle(Mg/Si) relation does not exist
+  in the primary literature; modern interior models perform Voigt-
+  Reuss-Hill mass-weighted averaging of olivine and pyroxene phases
+  dynamically, which is outside the static-output scope of V01.5.
+  Documented standard for static uncompressed-density initialization.
+  Future scaffold may upgrade. File: uncompressed_density.py.
+
+- Note 200: Lodders (2003) protosolar A(El)_0 values carry a
+  published 1σ uncertainty of ±0.01 dex per element. Propagated
+  through the V01.5 stoichiometric mass balance, this yields a
+  ±0.010 1σ band on CMF_Earth. This sets the absolute precision
+  floor of V01.5's CMF output regardless of upstream cascade
+  variation. File: solar_abundance_constants.py.
+
+- Note 201: Plotnykov & Valencia (2020) Fe-Ni alloy and
+  olivine + pyroxene reference densities are universal mineral
+  physics constants (Stixrude & Lithgow-Bertelloni 2011 EOS),
+  multi-stellar confirmed via exoplanet population modeling.
+  These are NOT Earth-empirical fallbacks despite being measured
+  in terrestrial laboratories. File: uncompressed_density.py.
+
+### Flags resolved this session
+
+- Flag 07: CMF default — RESOLVED. CMF is now derived from the
+  V01.5 disk chemistry module, consuming V03's [Fe/H], [Mg/H],
+  [Si/H] outputs. The hardcoded DEFAULT_CMF = 0.325 is removed
+  from variable_02_composition/mass_radius_rocky.py. V06 consumers
+  (core_geometry, cmb_pressure, tidal_locking) read CMF from V01.5.
+  Cascade now produces real metallicity-correlated CMF diversity
+  (verified range 0.2834–0.3315 across seeds 1 and 42). Earth
+  calibration: CMF = 0.3223 (target 0.325, ±0.010 1σ from Lodders
+  2003 protosolar uncertainty).
+
+### Flags opened this session
+
+(None — V01.5 scope limits are recorded as Notes 194–201 per
+Rule 2a, since none have an identifiable next step on the project
+roadmap.)
+
+### Open queue update
+
+The Active Flags / open-work section of changelog.md should now reflect:
+
+  - Flag 07: closed (move from "Blocked on upstream cascade variable"
+    to the "Resolved or Duplicate" / "Removed from Open List" section,
+    with the resolution entry citing this scaffold).
+  - All other open Flags (25, 41, 43, 44, 53, 57, 91, 188, 189, plus
+    every flag from the V08/V09 ranges still on the queue):
+    UNCHANGED in this scaffold. Do not alter their wording.
+  - Notes 194–201: recorded in the Notes section, NOT on the open-
+    work queue (per Rule 2a, Notes do not appear there).
+
+### Next step
+
+V01.5 closes Flag 07 in full. The cascade now consumes real disk
+chemistry through the rocky/dwarf mass-radius relation and the V06
+tectonics chain. Candidate next scaffolds (user discretion):
+
+  1. Flag 25 (log g★ Z-dependence): Z is now exposed by V03; multi-
+     dimensional PARSEC isochrone interpolator could be implemented.
+  2. Flag 189 (C, N, S age-dependent abundances): research cycle for
+     thin-disk AMR of C/N/S to supersede V08's EH3 chondrite
+     fallback (Flags 107, 117).
+  3. V09 (Sediment Transport): next variable in the planned cascade.
+
 ## Active Flags
 
 Flags require follow-up work — research, implementation,
 verification, or correction. Each remains open until resolved.
 
 ### Blocked on upstream cascade variable
-- Flag 07: CMF default — UNBLOCKED. Required disk-chemistry inputs
-  ([Fe/H], [Mg/H], [Si/H], [O/H]) now available from V03. Flag remains
-  open until V01.5 disk chemistry module implements CMF from scaled
-  solar abundances.
-
 - Flag 25: log g★ Z-dependence — Z exposed on PARSEC initial proto-solar
   scale (Z⊙_init = 0.01524). Current PARSEC fit at solar Z retained in
   `surface_gravity_evolution.py`; multi-dimensional PARSEC isochrone
@@ -3454,6 +3705,37 @@ Note 192: t_MS returned is the nuclear timescale at the surface
   stellar mass loss, so t_MS at face value is the answer it returns.
   Inherent model approximation. File: main_sequence_lifetime.py.
 
+Note 194: V01.5 deterministic baseline runs at χ_ox = 0 (all iron
+  reduced into the metallic core). Mars-style FeO-rich mantles
+  (CMF ≈ 0.24, geophysical mantle FeO ≈ 18 wt%) cannot be
+  reproduced without external χ_ox parameterization. The mechanism
+  required — V08 mantle ΔIW feedback into V01.5 — would require
+  cascade restructuring not currently on the roadmap. Inherent
+  model approximation. File: core_mass_fraction.py.
+
+Note 195: V01.5 cannot reproduce Mercury-style metal-rich
+  interiors (CMF ≈ 0.70). Mercury's structure is the result of
+  post-formation stochastic processes (giant impact mantle stripping
+  or photophoretic ablation), not disk chemistry. Outside the
+  deterministic chemistry-driven scope of V01.5. Inherent model
+  approximation. File: variable_01_5_disk_chemistry.py.
+
+Note 197: V01.5 Earth calibration produces CMF = 0.3223 against
+  the geophysical target of 0.325. The 0.003 residual reflects
+  unmodeled Ni and light-element partitioning into Earth's core
+  (which raises CMF) approximately compensated by unmodeled FeO
+  partitioning into Earth's mantle (which lowers CMF). These two
+  effects approximately cancel in the Earth case. Inherent model
+  approximation; out of V01.5's scope. File: core_mass_fraction.py.
+
+Note 199: V01.5 holds ρ_mantle = 3323.5 kg/m³ regardless of mantle
+  Mg/Si ratio. A closed-form ρ_mantle(Mg/Si) relation does not exist
+  in the primary literature; modern interior models perform Voigt-
+  Reuss-Hill mass-weighted averaging of olivine and pyroxene phases
+  dynamically, which is outside the static-output scope of V01.5.
+  Documented standard for static uncompressed-density initialization.
+  Future scaffold may upgrade. File: uncompressed_density.py.
+
 ### Earth-measured molecular constants (universal)
 Note 71: H2O Antoine coefficients — Earth-measured molecular constant,
   intrinsic molecular physics, universal.
@@ -3512,6 +3794,20 @@ Note 183: Linear AMR intercept calibration-anchored to Sun at
   τ = 4.6 Gyr. The [X/H] zero-point is by definition the Sun, so this
   anchor is the [X/H] scale's definition, not an empirical Solar System
   fit. File: metallicity_sampler.py.
+
+Note 200: Lodders (2003) protosolar A(El)_0 values carry a
+  published 1σ uncertainty of ±0.01 dex per element. Propagated
+  through the V01.5 stoichiometric mass balance, this yields a
+  ±0.010 1σ band on CMF_Earth. This sets the absolute precision
+  floor of V01.5's CMF output regardless of upstream cascade
+  variation. File: solar_abundance_constants.py.
+
+Note 201: Plotnykov & Valencia (2020) Fe-Ni alloy and
+  olivine + pyroxene reference densities are universal mineral
+  physics constants (Stixrude & Lithgow-Bertelloni 2011 EOS),
+  multi-stellar confirmed via exoplanet population modeling.
+  These are NOT Earth-empirical fallbacks despite being measured
+  in terrestrial laboratories. File: uncompressed_density.py.
 
 ### Earth fallback (accepted, no planet-general data)
 - Note 04: σ_rbf universality — Earth fallback
@@ -3770,6 +4066,21 @@ Note 185: AMR scatter ±0.15–0.20 dex (radial migration) suppressed
   violating Rule 5. Inherent survey-scope limitation.
   File: metallicity_sampler.py.
 
+Note 196: V01.5 assumes oxygen-dominated lithophile bonding
+  (Mg → MgO, Si → SiO₂, FeO with O scavenged from gas-phase H₂O/CO).
+  Stellar systems with C/O ≥ 0.8 produce SiC and graphite
+  condensation that fundamentally alters refractory stoichiometry.
+  Documented model boundary; outside V01.5's operational scope.
+  File: molar_abundances.py.
+
+Note 198: V01.5 CMF variation across the V03 envelope is
+  constrained to roughly [0.27, 0.33] because V03's
+  metallicity_sampler.py locks [Mg/H] = [Si/H] = [O/H] = αFe + FeH
+  (Notes 184, 185). All cascade-driven CMF variation propagates
+  through αFe via N_Fe = 10^(−αFe − 0.06); N_Mg is fixed at 1.0471.
+  Consequence of upstream metallicity sampler design, not a V01.5
+  defect. File: molar_abundances.py.
+
 Note 191: SSE / HPT2000 polynomial Z-validity range is 0.0001 ≤ Z
   ≤ 0.03. The cascade's typical Z range from the Phase A AMR
   (0.007–0.024 across the JJ2010 envelope) sits comfortably inside.
@@ -3862,11 +4173,24 @@ When V04 is implemented, Flags 26 and 34 should be merged into a single entry.
   `variable_03_stellar.py` into main_sequence_lifetime(m_solar, met["Z"]).
 **Reason:** Resolved
 
+### Flag 07
+**Current text:**
+- Flag 07: CMF default — RESOLVED. CMF is now derived from the
+  V01.5 disk chemistry module, consuming V03's [Fe/H], [Mg/H],
+  [Si/H] outputs. The hardcoded DEFAULT_CMF = 0.325 is removed
+  from variable_02_composition/mass_radius_rocky.py. V06 consumers
+  (core_geometry, cmb_pressure, tidal_locking) read CMF from V01.5.
+  Cascade now produces real metallicity-correlated CMF diversity
+  (verified range 0.2834–0.3315 across seeds 1 and 42). Earth
+  calibration: CMF = 0.3223 (target 0.325, ±0.010 1σ from Lodders
+  2003 protosolar uncertainty).
+**Reason:** Resolved (Scaffold 016)
+
 ## Audit Reference
 
 Restructure performed against changelog_audit.md (audit v2).
-Active queue after v3 correction: 24 Active Flags, 129 Active Notes,
-7 entries in Removed from Open List.
+Active queue after v3 correction: 23 Active Flags, 137 Active Notes,
+8 entries in Removed from Open List.
 Five entries required manual rulings (project-state context not
 available from flag text alone):
 
@@ -3878,9 +4202,16 @@ resolution (Scaffold 014 cascade + Scaffold 015 source-side).
 These are reflected in the Active Flags list above.
 
 ### Next step
-V01.5 disk chemistry module (closes Flag 07): implement the validated
-derivation chain (solar molar abundances scaled by [X/H], stoichiometric
-mass balance with bonded mantle oxygen) using V03 metallicity outputs.
+
+V01.5 disk chemistry (Scaffold 016) is implemented; Flag 07 is closed.
+Candidate next scaffolds (user discretion):
+
+1. Flag 25 (log g★ Z-dependence): Z is now exposed by V03; multi-
+   dimensional PARSEC isochrone interpolator could be implemented.
+2. Flag 189 (C, N, S age-dependent abundances): research cycle for
+   thin-disk AMR of C/N/S to supersede V08's EH3 chondrite
+   fallback (Flags 107, 117).
+3. V09 (Sediment Transport): next variable in the planned cascade.
 
 Also queued (parallel / follow-on):
 1. Non-dwarf seed identification to close Flag 182 active-branch

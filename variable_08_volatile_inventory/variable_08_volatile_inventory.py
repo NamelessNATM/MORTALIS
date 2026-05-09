@@ -102,6 +102,7 @@ def run_variable_08(
     seed: int,
     v01: dict,
     v02: dict,
+    v01_5: dict,
     v03: dict,
     v04: dict,
     v05: dict,
@@ -125,7 +126,7 @@ def run_variable_08(
     m_kg = v01["M_kg"]
     r_m = v02["R_m"]
     g = v02["g_m_s2"]
-    cmf = v02.get("CMF", 0.325)
+    cmf = None if not isinstance(v01_5, dict) else v01_5.get("CMF")
     a_m = v05["a_m"]
     r_h = v05["R_H_m"]
     m_dot = v05["M_dot_kg_s"]
@@ -133,6 +134,9 @@ def run_variable_08(
 
     if r_m is None or g is None:
         return _null_output("missing radius or gravity")
+
+    if cmf is None:
+        return _null_output("missing CMF (V01.5 not applicable)")
 
     p_cmb = v06.get("P_cmb_Pa")
     if p_cmb is None:
